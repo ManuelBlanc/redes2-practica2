@@ -6,7 +6,7 @@ typedef struct Server {
     ChannelList	chan;	/* Lista de canales 	*/
 } Server;
 
-Server* server_new(void);
+Server* server_new(const char* name, unsigned short port);
 
 int server_accept(Server serv);
 
