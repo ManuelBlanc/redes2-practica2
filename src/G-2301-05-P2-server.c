@@ -45,9 +45,25 @@ static void demonizar(void) {
 	/* para el final, para que sea facil debugear ... */
 }
 
+Server* server_new(){
+	return malloc(sizeof(Server*));
+}
+
+int server_accept(Server serv){
+	struct sockaddr_in addr;
+
+	addr.sin_family     	= AF_INET;
+	addr.sin_addr.s_addr	= INADDR_ANY;
+	addr.sin_port       	= 0;
+
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	bind(sock, (struct sockaddr*) &addr, sizeof addr);
+	listen(sock, 1); // Maximo 1 conexion
+}
+
 void iniciar_servidor(void) {
 
-	Server* serv = server_new(6667);
+	Server* serv = server_new();
 
 	while (1) {
 		int sock = server_accept(serv);

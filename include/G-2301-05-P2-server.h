@@ -6,6 +6,10 @@ typedef struct Server {
     ChannelList	chan;	/* Lista de canales 	*/
 } Server;
 
+Server* server_new(void);
+
+int server_accept(Server serv);
+
 int server_is_nick_used(const char* nick);
 
 /* Necesitamos un semaforo para proteger el recorrido de las listas
