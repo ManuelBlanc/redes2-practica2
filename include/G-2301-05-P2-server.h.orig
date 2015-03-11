@@ -1,0 +1,29 @@
+#ifndef SERVER_H
+#define SERVER_H
+
+typedef struct Server {
+    UserList   	usrs;	/* Lista de usuarios	*/
+    ChannelList	chan;	/* Lista de canales 	*/
+} Server;
+
+<<<<<<< HEAD
+Server* server_new(char c);
+gdgfgfghgff
+||||||| merged common ancestors
+Server* server_new(void);
+
+=======
+Server* server_new(const char* name, unsigned short port);
+
+>>>>>>> f65acca2606cb1bb87b8ee88793c63753cb25488
+int server_accept(Server serv);
+fjhfjdhfjsdhjsdhdf
+int server_is_nick_used(const char* nick);
+hjdhsjahdasshd
+/* Necesitamos un semaforo para proteger el recorrido de las listas
+ porque si eliminan o insertan un nodo cuando la estas recoriendo:muerte y destruccion*/
+
+/* Otro semaforo (en cada hilo probablemente) para evitar que cuando queremos enviar a un usuario
+ se desconete en ese momento y pete*/
+
+#endif /* SERVER_H *
