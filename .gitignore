@@ -3,6 +3,7 @@
 G-2301-05-P2-server
 *.o
 *.a
+obj/*
 
 # Autotools
 aclocal.m4
