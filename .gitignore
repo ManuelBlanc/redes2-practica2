@@ -19,7 +19,7 @@ INSTALL
 *.pdf
 
 # Editores de texto
-*.sublime-project
+*.sublime-workspace
 *~
 *.swp
 *.swo
