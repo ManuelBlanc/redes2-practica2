@@ -25,8 +25,21 @@ int user_new(int sock);
 int user_create_prefix();
 
 int user_send_message(User* usr, const char* str);
-int user_send_command(User* usr, const char* str);
 
+int user_send_cmd(User* usr, const char* str);
+int user_send_cmdf(User* usr, const char* fmt, ...);
+
+int user_get_nick(User* usr, const char** nick);
+int user_set_nick(User* usr, const char*  nick);
+
+int user_get_name(User* usr, const char** name);
+int user_set_name(User* usr, const char*  name);
+
+int user_get_rname(User* usr, const char** rname);
+int user_set_rname(User* usr, const char*  rname);
+
+int user_get_away(User* usr, const char** message);
+int user_set_away(User* usr, const char*  message);
 
 /*
 ** ==============================================
