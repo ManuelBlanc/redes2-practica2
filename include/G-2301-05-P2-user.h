@@ -21,7 +21,7 @@ typedef struct User {
 	struct User*	next;                          	/* Puntero al siguiente usuario	*/
 } User;
 
-int user_new(int sock);
+User* user_new(int sock);
 int user_create_prefix();
 
 int user_send_message(User* usr, const char* str);
