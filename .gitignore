@@ -1,0 +1,24 @@
+
+# Generados
+G-2301-05-P2-server
+*.o
+*.a
+
+# Autotools
+aclocal.m4
+config.log
+config.status
+configure
+G-2301-05-makefile
+G-2301-05-makefile.in
+COPYING
+INSTALL
+
+# Documentacion
+*.pdf
+
+# Editores de texto
+*.sublime-project
+*~
+*.swp
+*.swo
