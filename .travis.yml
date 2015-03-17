@@ -1,9 +1,9 @@
 
-language: c
-compiler:
-  - gcc
-script: autoreconf --install && ./configure && make -f G-2301-05-makefile
-branches:
-  only:
-      - master
+#language: c
+#compiler:
+#  - gcc
+#script: autoreconf --install && ./configure && make -f G-2301-05-makefile
+#branches:
+#  only:
+#      - master
 

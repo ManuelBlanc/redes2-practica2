@@ -8,21 +8,27 @@
 
 // Ordenamos los campos de mayor a menor para evitar fragmentacion
 typedef struct User {
-	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
-	char        	buffer_send[IRC_MAX_CMD_LEN+1];	/* Buffer para el comando      	*/
-	char        	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
-	char        	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
-	char*       	name;                          	/* Nombre                      	*/
-	char*       	rname;                         	/* Nombre real                 	*/
-	char*       	awaymsg;                       	/* Mensaje de away             	*/
-	int         	sock_fd;                       	/* Descriptor del socket       	*/
-	pthread_t   	thr;                           	/* Hilo                        	*/
-	Server*     	server;                        	/* Servidor al que pertenece   	*/
-	struct User*	next;                          	/* Puntero al siguiente usuario	*/
+	char           	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
+	char           	buffer_send[IRC_MAX_CMD_LEN+1];	/* Buffer para el comando      	*/
+	char           	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
+	char           	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
+	char*          	name;                          	/* Nombre                      	*/
+	char*          	rname;                         	/* Nombre real                 	*/
+	char*          	awaymsg;                       	/* Mensaje de away             	*/
+	int            	sock_fd;                       	/* Descriptor del socket       	*/
+	pthread_t      	thr;                           	/* Hilo                        	*/
+	Server*        	server;                        	/* Servidor al que pertenece   	*/
+	struct User*   	prev;                          	/* Puntero al siguiente usuario	*/
+	struct User*   	next;                          	/* Puntero al siguiente usuario	*/
+	pthread_mutex_t	mutex;                         	/* Semaforo de acceso          	*/
 } User;
 
 User* user_new(int sock);
-int user_create_prefix();
+void user_delete(User* usr);
+int user_create_prefix(User* usr);
+
+int user_mutex_enter(User* usr);
+int user_mutex_leave(User* usr);
 
 int user_send_message(User* usr, const char* str);
 

@@ -65,3 +65,4 @@ void _log(const char* file, int line, const char* func, const char* fmt, ...)
 	// Tambien por pantalla por comodidad
 	//message_text(get_or_create_page("*DEBUG*"), log_buffer);
 }
+

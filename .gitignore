@@ -3,6 +3,12 @@
 G-2301-05-P2-server
 *.o
 *.a
+*.log
+
+# Lex y Yacc
+srclib/G-2301-05-P2-lexer.c
+srclib/G-2301-05-P2-parser.c
+srclib/G-2301-05-P2-parser.h
 
 # Documentacion
 *.pdf
