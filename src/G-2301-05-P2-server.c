@@ -50,25 +50,34 @@ Server* server_new(){
 }
 
 int server_accept(Server serv){
+	struct sockaddr_in user_addr;
+	socklen_t usrlen = sizeof user_addr;
+	
+	accept(serv->sock, (struct sockaddr*) &client_addr, &usrlen);
+	User* user = user_new(serv, sock);
+	server_add_user(serv, user);
+
+}
+
+void iniciar_servidor(void) {
 	struct sockaddr_in addr;
+
+	Server* serv = server_new();
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
 	addr.sin_port       	= 0;
 
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	serv->sock = socket(AF_INET, SOCK_STREAM, 0);
 	bind(sock, (struct sockaddr*) &addr, sizeof addr);
-	listen(sock, 1); // Maximo 1 conexion
-}
+	listen(sock, 3); // Maximo 3 peticiones de conexion encoladas
 
-void iniciar_servidor(void) {
-
-	Server* serv = server_new();
+	socklen_t len = sizeof clif->addr;
+	getsockname(sock, (struct sockaddr*) &clif->addr, &len);
 
 	while (1) {
 		int sock = server_accept(serv);
-		User* user = user_new(serv, sock);
-		server_add_user(serv, user);
+
 	}
 }
 

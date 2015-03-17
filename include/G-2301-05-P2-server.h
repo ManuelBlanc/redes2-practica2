@@ -2,8 +2,9 @@
 #define SERVER_H
 
 typedef struct Server {
-    UserList   	usrs;	/* Lista de usuarios	*/
-    ChannelList	chan;	/* Lista de canales 	*/
+        int             sock;   /* Socket que recibe peticiones  */
+        UserList   	usrs;	/* Lista de usuarios	         */
+        ChannelList	chan;	/* Lista de canales 	         */
 } Server;
 
 Server* server_new(const char* name, unsigned short port);
