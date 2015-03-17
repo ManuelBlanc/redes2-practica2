@@ -3,23 +3,35 @@
 G-2301-05-P2-server
 *.o
 *.a
-obj/*
-
-# Autotools
-aclocal.m4
-config.log
-config.status
-configure
-G-2301-05-makefile
-G-2301-05-makefile.in
-COPYING
-INSTALL
 
 # Documentacion
 *.pdf
 
 # Editores de texto
-*.sublime-project
-*~
+*.sublime-workspace
 *.swp
 *.swo
+
+# Backups
+*~
+
+# Autotools
+.deps/
+.dirstamp
+COPYING
+G-2301-05-makefile
+G-2301-05-makefile.in
+INSTALL
+aclocal.m4
+autom4te.cache/
+config.status
+configure
+include/G-2301-05-P2-config.h
+include/G-2301-05-P2-config.h.in
+include/stamp-h1
+lib/
+obj/
+scripts/compile
+scripts/depcomp
+scripts/install-sh
+scripts/missing

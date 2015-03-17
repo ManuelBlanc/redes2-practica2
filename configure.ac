@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
+#AC_PREREQ([2.69])
 AC_INIT([redes2-server], [0.1.0], [manuel.blanc@estudiante.uam.es])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CONFIG_MACRO_DIR([scripts])
