@@ -31,7 +31,9 @@ include/G-2301-05-P2-config.h.in
 include/stamp-h1
 lib/
 obj/
+scripts/ar-lib
 scripts/compile
 scripts/depcomp
 scripts/install-sh
 scripts/missing
+scripts/ylwrap
