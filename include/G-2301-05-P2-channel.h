@@ -30,7 +30,7 @@ struct UserChannel {
 	User*              	usr;
 	long               	flags;
 	struct UserChannel*	next;
-}
+};
 
 typedef struct Channel {
     UserChannel*   	usrs;  	/* Lista de usuarios         	*/
