@@ -7,21 +7,7 @@
 #define IRC_MAX_CMD_LEN    	(512)	//
 
 // Ordenamos los campos de mayor a menor para evitar fragmentacion
-typedef struct User {
-	char           	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
-	char           	buffer_send[IRC_MAX_CMD_LEN+1];	/* Buffer para el comando      	*/
-	char           	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
-	char           	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
-	char*          	name;                          	/* Nombre                      	*/
-	char*          	rname;                         	/* Nombre real                 	*/
-	char*          	awaymsg;                       	/* Mensaje de away             	*/
-	int            	sock_fd;                       	/* Descriptor del socket       	*/
-	pthread_t      	thr;                           	/* Hilo                        	*/
-	Server*        	server;                        	/* Servidor al que pertenece   	*/
-	struct User*   	prev;                          	/* Puntero al siguiente usuario	*/
-	struct User*   	next;                          	/* Puntero al siguiente usuario	*/
-	pthread_mutex_t	mutex;                         	/* Semaforo de acceso          	*/
-} User;
+typedef struct User* User;
 
 User* user_new(int sock);
 void user_delete(User* usr);
