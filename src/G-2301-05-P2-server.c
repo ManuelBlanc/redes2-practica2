@@ -46,20 +46,25 @@ static void demonizar(void) {
 }
 
 Server* server_new(){
-	return malloc(sizeof(Server*));
+	Server* serv = malloc(sizeof(Server*));
+	pthread_mutex_init(serv->usr_mutex, NULL);
+	pthread_mutex_init(serv->chan_mutex, NULL);
+	return serv;
 }
 
 int server_accept(Server serv){
 	struct sockaddr_in user_addr;
 	socklen_t usrlen = sizeof user_addr;
-	
-	accept(serv->sock, (struct sockaddr*) &client_addr, &usrlen);
-	User* user = user_new(serv, sock);
-	server_add_user(serv, user);
 
+	int sock = accept(serv->sock, (struct sockaddr*) &client_addr, &usrlen);
+	User* user = user_new(serv, sock);
+	pthread_mutex_lock(serv->usr_mutex);
+	server_add_user(serv, user);
+	pthread_mutex_unlock(serv->usr_mutex);
+	return OK;
 }
 
-void iniciar_servidor(void) {
+void server_init(void) {
 	struct sockaddr_in addr;
 
 	Server* serv = server_new();
@@ -72,20 +77,36 @@ void iniciar_servidor(void) {
 	bind(sock, (struct sockaddr*) &addr, sizeof addr);
 	listen(sock, 3); // Maximo 3 peticiones de conexion encoladas
 
-	socklen_t len = sizeof clif->addr;
-	getsockname(sock, (struct sockaddr*) &clif->addr, &len);
+	socklen_t len = sizeof addr;
+	getsockname(sock, (struct sockaddr*) &addr, &len);
 
 	while (1) {
-		int sock = server_accept(serv);
-
+		server_accept(serv);
 	}
+}
+
+int server_is_nick_used(Server serv, const char* nick) {
+	int found;
+	User* usr;
+	usr = *serv.usrs; //!!!!!!!!!!!!!
+	pthread_mutex_lock(serv.usr_mutex);
+	while(usr->next != NULL) {
+		if (!strcmp(nick, usr->nick)) break;
+		usr = usr->next;
+	}
+	if (strcmp(nick, usr->nick) == 0) {
+		pthread_mutex_unlock(serv.usr_mutex);
+		return OK;
+	}
+	pthread_mutex_unlock(serv.usr_mutex);
+	return ERR;
 }
 
 int main(int argc, char const *argv[])
 {
 	procesar_opciones(argc, argv);
 	demonizar();
-	iniciar_servidor();
+	server_init();
 
 	return 0;
 }
