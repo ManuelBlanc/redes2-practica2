@@ -5,7 +5,10 @@
 /* unistd */
 
 /* usr */
-#include <G-2301-05-P2-config.h>
+#include "G-2301-05-P2-config.h"
+#include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-channel.h"
+
 
 static void usage(int code) {
 	printf(stderr, "usage: %s [-hv]\n", "G-2301-05-P2-server")
@@ -52,18 +55,6 @@ Server* server_new(){
 	return serv;
 }
 
-int server_accept(Server serv){
-	struct sockaddr_in user_addr;
-	socklen_t usrlen = sizeof user_addr;
-
-	int sock = accept(serv->sock, (struct sockaddr*) &client_addr, &usrlen);
-	User* user = user_new(serv, sock);
-	pthread_mutex_lock(serv->usr_mutex);
-	server_add_user(serv, user);
-	pthread_mutex_unlock(serv->usr_mutex);
-	return OK;
-}
-
 void server_init(void) {
 	struct sockaddr_in addr;
 
@@ -85,21 +76,51 @@ void server_init(void) {
 	}
 }
 
+int server_accept(Server serv){
+	struct sockaddr_in user_addr;
+	socklen_t usrlen = sizeof user_addr;
+
+	int sock = accept(serv->sock, (struct sockaddr*) &client_addr, &usrlen);
+	User* user = user_new(serv, sock);
+	pthread_mutex_lock(serv->usr_mutex);
+	server_add_user(serv, user);
+	pthread_mutex_unlock(serv->usr_mutex);
+	return OK;
+}
+
 int server_is_nick_used(Server serv, const char* nick) {
-	int found;
-	User* usr;
-	usr = *serv.usrs; //!!!!!!!!!!!!!
+	User* usr = *serv.usrs; //!!!!!!!!!!!!!
 	pthread_mutex_lock(serv.usr_mutex);
 	while(usr->next != NULL) {
 		if (!strcmp(nick, usr->nick)) break;
 		usr = usr->next;
 	}
-	if (strcmp(nick, usr->nick) == 0) {
+	if (!strcmp(nick, usr->nick)) {
 		pthread_mutex_unlock(serv.usr_mutex);
 		return OK;
 	}
 	pthread_mutex_unlock(serv.usr_mutex);
 	return ERR;
+}
+
+int server_add_user(Server* serv, User user) {
+	pthread_mutex_lock(serv.usr_mutex);
+   	userlist_insert(serv->usrs, user);
+	pthread_mutex_unlock(serv.usr_mutex);
+	return OK;
+}
+
+int server_delete_user(Server* serv, const char* name) {
+	pthread_mutex_lock(serv.usr_mutex);
+	userlist_findByName(UserList list, const char* name);
+
+}
+
+int server_add_channel(Server* serv, const char* chan) {
+	pthread_mutex_lock(serv.chan_mutex);
+   	channellist_insert(serv->chan, chan);
+	pthread_mutex_unlock(serv.chan_mutex);
+	return OK;
 }
 
 int main(int argc, char const *argv[])

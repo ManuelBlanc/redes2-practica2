@@ -63,10 +63,10 @@ typedef struct User**   UserList;
 /* Convierte un monstruo en la cabeza de una lista para que
  * se puedan insertar y extraer elementos.
  */
-#define userlist(chan)      (&(chan))
+#define userlist(user)      (&(user))
 
 
-int     	userlist_insert(UserList list, User chan);
+int     	userlist_insert(UserList list, User user);
 UserList	userlist_select(UserList list, int index);
 User    	userlist_extract(UserList list);
 UserList	userlist_findByName(UserList list, const char* name);

@@ -9,6 +9,8 @@ typedef struct Server {
         pthread_mutex_t	chan_mutex;     /* Semaforo de acceso a la lista de canales     */
 } Server;
 
+/* Funciones solo de servidor */
+
 /**
  * Crea una estructura para un servidor
  * @return estructura servidor
@@ -27,12 +29,50 @@ void server_init(void);
  */
 int server_accept(Server serv);
 
+/* Funciones relacionadas con la lista de usuarios */
+
 /**
  * Comprueba si existe un usuario con ese nick
  * @param nick nick a buscar en la lista de usuarios
- * @return OK si lo encontro y ERR si no 
+ * @return OK si lo encontro y ERR si no
  */
 int server_is_nick_used(const char* nick);
+
+/**
+ * Añade un nuevo usuario a la lista de usuarios conectados
+ * @param serv servidor
+ * @param user nuevo usuario
+ * @return codigo de error
+ */
+int server_add_user(Server* serv, User user);
+
+/**
+ * Elimina un usuario de la lista de usuarios conectados
+ * @param serv servidor
+ * @param name nombre del usuario a eliminar
+ * @return codigo de error
+ */
+int server_delete_user(Server* serv, const char* name);
+
+/* Funciones relacionadas con la lista de canales */
+
+/**
+ * Añade un nuevo canal a la lista de canales existentes
+ * @param serv servidor
+ * @param chan nuevo canal
+ * @return codigo de error
+ */
+int server_add_channel(Server* serv, Channel chan);
+
+/**
+ * Elimina un canal de la lista de canales existentes
+ * @param serv servidor
+ * @param chan nombre del canal a eliminar
+ * @return codigo de error
+ */
+int server_delete_channel(Server* serv, const char* chan);
+
+
 
 /* Necesitamos un semaforo para proteger el recorrido de las listas
  porque si eliminan o insertan un nodo cuando la estas recoriendo:muerte y destruccion*/
