@@ -11,10 +11,12 @@ User* user_new(int sock) {
 
 void user_delete(User* usr) {
 	if (usr == NULL) return ERR;
+	user_mutex_enter();
 	// Cerrar el socket
 	// Matar el hilo
 	// Quitar el mutex
-	// Cambiar el user anterior.jk.jñ+
+	// Cambiar el user anterior.
+	user_mutex_leave();
 	pthread_mutex_destroy(usr->mutex);
 }
 
@@ -27,7 +29,7 @@ void user_mutex_leave(User* usr) {
 }
 
 
-int user_send_message(User* usr, const char* str) {
+int user_send_message(User* usr, const char* src, const char* msg) {
 	if (usr == NULL) return ERR;
 	return user_send_cmdf(usr, "PRIVMSG %s %s");
 }

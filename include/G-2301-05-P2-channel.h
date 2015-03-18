@@ -26,20 +26,22 @@ enum ChannelFlags {
         FLAG_USERLIMIT = (1<<10), // l - set/remove the user limit to channel;
 };
 
-struct UserChannel {
-	User*              	usr;
-	long               	flags;
-	struct UserChannel*	next;
-};
+typedef struct UserChannelData {
+	User*                  	usr;
+	long                   	flags;
+	struct UserChannelData*	next;
+} UserChannelData;
 
 typedef struct Channel {
-    UserChannel*   	usrs;  	/* Lista de usuarios         	*/
-    char*          	name;  	/* Nombre                    	*/
-    char*          	topic; 	/* Tema                      	*/
-    char*          	psw;   	/* Contraseña                	*/
-    unsigned int   	flags; 	/* Flags de un canal         	*/
-    Server*        	server;	/* Servidor al que pertenece 	*/
-    struct Channel*	next;  	/* Puntero al siguiente canal	*/
+    unsigned int    	max_usrs;	/* Maximo numero de usuarios 	*/
+    UserChannelData*	usrs;    	/* Lista de usuarios         	*/
+    char*           	name;    	/* Nombre                    	*/
+    char*           	topic;   	/* Tema                      	*/
+    char*           	psw;     	/* Contraseña                	*/
+    unsigned int    	flags;   	/* Flags de un canal         	*/
+    Server*         	server;  	/* Servidor al que pertenece 	*/
+    struct Channel* 	next;    	/* Puntero al siguiente canal	*/
+    pthread_mutext_t	mutex;   	/* Mutex de proteccion       	*/
 } Channel;
 
 Channel* channel_new(void);
@@ -47,14 +49,14 @@ void channel_delete(Channel* chan);
 
 int channel_add_user(Channel* chan, User* usr);
 int channel_remove_user(Channel* chan, User* usr);
-int channel_get_flags_user(Channel* chan, User* usr, UserFlags* flags);
-int channel_set_flags_user(Channel* chan, User* usr, UserFlags flags, User* usr);
-int channel_unset_flags_user(Channel* chan, User* usr, UserFlags flags, User* usr);
+int channel_get_flags_user(Channel* chan, User* usr, long* flags);
+int channel_set_flags_user(Channel* chan, User* usr, long flags, User* actor);
+int channel_unset_flags_user(Channel* chan, User* usr, long flags, User* actor);
 
 int channel_send_message(Channel* chan, User* usr, const char* msg);
 
 int channel_get_topic(Channel* chan, const char** topic);
-int channel_set_topic(Channel* chan, const char*  topic, User* usr);
+int channel_set_topic(Channel* chan, const char*  topic, User* actor);
 
 int channel_get_name(Channel* chan, const char** name);
 int channel_set_name(Channel* chan, const char*  name);
@@ -62,9 +64,9 @@ int channel_set_name(Channel* chan, const char*  name);
 int channel_get_passwd(Channel* chan, const char** passwd);
 int channel_set_passwd(Channel* chan, const char*  passwd);
 
-int channel_get_flags(Channel* chan, ChannelFlags* flags);
-int channel_set_flags(Channel* chan, ChannelFlags flags, User* usr);
-int channel_unset_flags(Channel* chan, ChannelFlags flags, User* usr);
+int channel_get_flags(Channel* chan, long* flags);
+int channel_set_flags(Channel* chan, long flags, User* actor);
+int channel_unset_flags(Channel* chan, long flags, User* actor);
 
 /*
 ** ==============================================

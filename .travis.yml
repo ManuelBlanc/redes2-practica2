@@ -1,9 +1,31 @@
 
-#language: c
-#compiler:
-#  - gcc
-#script: autoreconf --install && ./configure && make -f G-2301-05-makefile
-#branches:
-#  only:
-#      - master
+# Compilacion y pruebas
+language: c
+compiler:
+  - gcc
+script: autoreconf -if && ./configure && make -f G-2301-05-makefile
+
+# Ramas en la que esta activa
+branches:
+  only:
+    - test
+
+notifications:
+  email:
+    recipients:
+      - ana.alonsoa@estudiante.uam.es
+      - manuel.blanc@estudiante.uam.es
+    on_success: change
+    on_failure: change
+  irc:
+    template:
+      - "%{repository_slug}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+      - "Change view : %{compare_url}"
+      - "Build details : %{build_url}"
+    channels:
+      - "metis.ii.uam.es#rectal"
+    use_notice: true
+    skip_join: true
+    on_success: always
+    on_failure: always
 
