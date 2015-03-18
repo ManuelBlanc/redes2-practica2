@@ -3,6 +3,22 @@
 #include "G-2301-05-P2-util.h"
 #include "G-2301-05-P2-user.h"
 
+struct User {
+	char           	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
+	char           	buffer_send[IRC_MAX_CMD_LEN+1];	/* Buffer para el comando      	*/
+	char           	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
+	char           	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
+	char*          	name;                          	/* Nombre                      	*/
+	char*          	rname;                         	/* Nombre real                 	*/
+	char*          	awaymsg;                       	/* Mensaje de away             	*/
+	int            	sock_fd;                       	/* Descriptor del socket       	*/
+	pthread_t      	thr;                           	/* Hilo                        	*/
+	Server*        	server;                        	/* Servidor al que pertenece   	*/
+	struct User*   	prev;                          	/* Puntero al siguiente usuario	*/
+	struct User*   	next;                          	/* Puntero al siguiente usuario	*/
+	pthread_mutex_t	mutex;                         	/* Semaforo de acceso          	*/
+};
+
 User* user_new(int sock) {
 	User* usr = malloc(sizeof User);
 	pthread_mutex_init(usr->mutex, NULL);
@@ -21,10 +37,12 @@ void user_delete(User* usr) {
 }
 
 void user_mutex_enter(User* usr) {
+	if (usr == NULL) return;
 	pthread_mutex_lock(usr->mutex);
 }
 
 void user_mutex_leave(User* usr) {
+	if (usr == NULL) return;
 	pthread_mutex_unlock(usr->mutex);
 }
 
