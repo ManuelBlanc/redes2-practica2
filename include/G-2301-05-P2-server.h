@@ -27,7 +27,7 @@ void server_init(void);
  * @param serv servidor
  * @return codigo de error
  */
-int server_accept(Server serv);
+int server_accept(Server* serv);
 
 /* Funciones relacionadas con la lista de usuarios */
 
@@ -44,7 +44,7 @@ int server_is_nick_used(const char* nick);
  * @param user nuevo usuario
  * @return codigo de error
  */
-int server_add_user(Server* serv, User user);
+int server_add_user(Server* serv, User* user);
 
 /**
  * Elimina un usuario de la lista de usuarios conectados
@@ -62,7 +62,7 @@ int server_delete_user(Server* serv, const char* name);
  * @param chan nuevo canal
  * @return codigo de error
  */
-int server_add_channel(Server* serv, Channel chan);
+int server_add_channel(Server* serv, Channel* chan);
 
 /**
  * Elimina un canal de la lista de canales existentes

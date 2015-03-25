@@ -125,3 +125,12 @@ int user_set_away(User* usr, const char*  away_msg) {
 
 }
 
+UserList userlist_findbyname(UserList usr, const char* name) {
+	if(usr == NULL) return NULL;
+	while(usr->next != NULL) {
+		if (!strcmp(name, usr->nick)) break;
+		usr = usr->next;
+	}
+	if (!strcmp(nick, usr->nick)) return usr;
+	return NULL;
+}

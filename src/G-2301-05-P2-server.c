@@ -76,7 +76,7 @@ void server_init(void) {
 	}
 }
 
-int server_accept(Server serv){
+int server_accept(Server* serv){
 	struct sockaddr_in user_addr;
 	socklen_t usrlen = sizeof user_addr;
 
@@ -88,22 +88,15 @@ int server_accept(Server serv){
 	return OK;
 }
 
-int server_is_nick_used(Server serv, const char* nick) {
-	User* usr = *serv.usrs; //!!!!!!!!!!!!!
-	pthread_mutex_lock(serv.usr_mutex);
-	while(usr->next != NULL) {
-		if (!strcmp(nick, usr->nick)) break;
-		usr = usr->next;
-	}
-	if (!strcmp(nick, usr->nick)) {
-		pthread_mutex_unlock(serv.usr_mutex);
-		return OK;
-	}
-	pthread_mutex_unlock(serv.usr_mutex);
+int server_is_nick_used(Server* serv, const char* nick) {
+	UserList list = serv->usrs;
+	pthread_mutex_lock(serv->usr_mutex);
+	userlist_findByName(list, nick);
+	pthread_mutex_unlock(serv->usr_mutex);
 	return ERR;
 }
 
-int server_add_user(Server* serv, User user) {
+int server_add_user(Server* serv, User* user) {
 	pthread_mutex_lock(serv.usr_mutex);
    	userlist_insert(serv->usrs, user);
 	pthread_mutex_unlock(serv.usr_mutex);
@@ -113,7 +106,7 @@ int server_add_user(Server* serv, User user) {
 int server_delete_user(Server* serv, const char* name) {
 	pthread_mutex_lock(serv.usr_mutex);
 	userlist_findByName(UserList list, const char* name);
-
+/**/
 }
 
 int server_add_channel(Server* serv, const char* chan) {
