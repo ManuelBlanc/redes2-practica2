@@ -24,6 +24,7 @@
 				"latex"
 			],
 			"file_exclude_patterns": [
+				".dirstamp",
 				"aclocal.m4",
 				"config.log",
 				"config.status",
@@ -33,6 +34,7 @@
 				"G-2301-05-makefile.in",
 				"COPYING",
 				"INSTALL",
+				"stamp-h1",
 				"G-2301-05-P2-server"
 			],
 			"follow_symlinks": true,

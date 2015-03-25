@@ -27,10 +27,9 @@ User* user_new(int sock) {
 
 void user_delete(User* usr) {
 	if (usr == NULL) return ERR;
-	user_mutex_enter();
-	// Cerrar el socket
-	// Matar el hilo
-	// Quitar el mutex
+	user_mutex_enter(usr);
+	close(sock_fd);
+	pthread_kill();
 	// Cambiar el user anterior.
 	user_mutex_leave();
 	pthread_mutex_destroy(usr->mutex);

@@ -164,3 +164,28 @@ ChannelList channellist_findByName(ChannelList list, const char* name) {
 void channellist_deleteAll(ChannelList list) {
 
 }
+
+
+
+
+
+int channellist_insert(ChannelList list, Channel chan) {
+	if (list == NULL) return;
+}
+
+ChannelList channellist_select(ChannelList list, int index) {
+	if (list == NULL) return;
+}
+
+Channel channellist_extract(ChannelList list) {
+	if (list == NULL) return;
+}
+
+ChannelList channellist_findByName(ChannelList list, const char* name) {
+	if (list == NULL) return;
+}
+
+void channellist_deleteAll(ChannelList list) {
+	if (list == NULL) return;
+}
+
