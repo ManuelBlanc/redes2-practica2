@@ -3,6 +3,8 @@
 
 #define IRC_MAX_CHANNEL_LEN	(200)	// RFC1459 1.3
 #define IRC_MAX_NICK_LEN   	(9)  	// RFC1459 1.2
+#define IRC_MAX_NAME_LEN   	(20) 	// Decisiones arbitrarias
+#define IRC_MAX_RNAME_LEN  	(30) 	// Decisiones arbitrarias
 #define IRC_MAX_PRE_LEN    	(64) 	// Decision arbitraria
 #define IRC_MAX_CMD_LEN    	(512)	//
 
@@ -11,12 +13,13 @@ typedef struct User* User;
 
 User* user_new(int sock);
 void user_delete(User* usr);
-int user_create_prefix(User* usr);
 
-int user_mutex_enter(User* usr);
-int user_mutex_leave(User* usr);
+int user_init_prefix(User* usr);
 
-int user_send_message(User* usr, const char* str);
+int user_read_from_socket(User* usr, char* buffer, size_t len);
+int user_get_socket(User* usr);
+
+int user_send_message(User* usr, const char* who, const char* str);
 
 int user_send_cmd(User* usr, const char* str);
 int user_send_cmdf(User* usr, const char* fmt, ...);
@@ -30,6 +33,7 @@ int user_set_name(User* usr, const char*  name);
 int user_get_rname(User* usr, const char** rname);
 int user_set_rname(User* usr, const char*  rname);
 
+//
 int user_get_away(User* usr, const char** message);
 int user_set_away(User* usr, const char*  message);
 
@@ -39,11 +43,6 @@ int user_set_away(User* usr, const char*  message);
 ** ==============================================
 */
 
-/*
- * Los objetos tienen un campo 'next' asi que los objetos
- * son los propios nodos de la lista, y una lista
- * es simplemente un puntero al primero de la lista.
- */
 typedef struct User**   UserList;
 
 /* Convierte un monstruo en la cabeza de una lista para que

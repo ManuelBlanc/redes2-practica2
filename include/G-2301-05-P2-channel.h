@@ -32,29 +32,34 @@ enum ChannelFlags {
 
 typedef struct Channel Channel;
 
-Channel* channel_new(void);
+// Creacion y destruccion de las estructuras
+Channel* channel_new(const char* name);
 void channel_delete(Channel* chan);
 
-int channel_add_user(Channel* chan, User* usr);
-int channel_remove_user(Channel* chan, User* usr);
+// Unirse y abandonar (o kickear) del canal
+int channel_join(Channel* chan, User* usr);
+int channel_part(Channel* chan, User* usr, User* actor);
+
+// Cambiar las flags de un usuario (no es necesario que este ingresado)
 int channel_get_flags_user(Channel* chan, User* usr, UserFlags* flags);
 int channel_set_flags_user(Channel* chan, User* usr, UserFlags flags, User* actor);
 int channel_unset_flags_user(Channel* chan, User* usr, UserFlags flags, User* actor);
 
+// Mandar y enviar mensajes
 int channel_send_message(Channel* chan, User* usr, const char* msg);
 
-int channel_join(Channel* chan, User* usr);
-int channel_part(Channel* chan, User* usr, User* actor);
-
+// Manejo del tema
 int channel_get_topic(Channel* chan, const char** topic);
 int channel_set_topic(Channel* chan, const char*  topic, User* actor);
 
+// Manejo del nombre
 int channel_get_name(Channel* chan, const char** name);
-int channel_set_name(Channel* chan, const char*  name);
 
+// Manejo de la contraseña
 int channel_get_passwd(Channel* chan, const char** passwd);
 int channel_set_passwd(Channel* chan, const char*  passwd);
 
+// Manejo de las flags del canal
 int channel_get_flags(Channel* chan, ChannelFlags* flags);
 int channel_set_flags(Channel* chan, ChannelFlags flags, User* actor);
 int channel_unset_flags(Channel* chan, ChannelFlags flags, User* actor);

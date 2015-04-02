@@ -4,47 +4,37 @@
 #include "G-2301-05-P2-user.h"
 
 struct User {
-	char           	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
-	char           	buffer_send[IRC_MAX_CMD_LEN+1];	/* Buffer para el comando      	*/
-	char           	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
-	char           	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
-	char*          	name;                          	/* Nombre                      	*/
-	char*          	rname;                         	/* Nombre real                 	*/
-	char*          	awaymsg;                       	/* Mensaje de away             	*/
-	int            	sock_fd;                       	/* Descriptor del socket       	*/
-	pthread_t      	thr;                           	/* Hilo                        	*/
-	Server*        	server;                        	/* Servidor al que pertenece   	*/
-	struct User*   	prev;                          	/* Puntero al siguiente usuario	*/
-	struct User*   	next;                          	/* Puntero al siguiente usuario	*/
-	pthread_mutex_t	mutex;                         	/* Semaforo de acceso          	*/
+	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
+	char        	buffer_send[IRC_MAX_CMD_LEN+1];	/* Buffer para el comando      	*/
+	char        	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
+	char        	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
+	char*       	name[IRC_MAX_NAME_LEN+1];      	/* Nombre                      	*/
+	char*       	rname[IRC_MAX_RNAME_LEN+1];    	/* Nombre real                 	*/
+	char*       	awaymsg;                       	/* Mensaje de away             	*/
+	int         	sock_fd;                       	/* Descriptor del socket       	*/
+	Server*     	server;                        	/* Servidor al que pertenece   	*/
+	struct User*	prev;                          	/* Puntero al siguiente usuario	*/
+	struct User*	next;                          	/* Puntero al siguiente usuario	*/
 };
 
+// Crea una nueva estructura usuario a partir de un socket.
 User* user_new(int sock) {
-	User* usr = malloc(sizeof User);
-	pthread_mutex_init(usr->mutex, NULL);
+	User* usr = malloc(sizeof *usr);
+	usr->sock_fd = sock;
 	return usr;
 }
 
+// Destruye la estructura y cierra el socket.
 void user_delete(User* usr) {
-	if (usr == NULL) return ERR;
-	user_mutex_enter(usr);
+	if (usr == NULL) return;
 	close(sock_fd);
-	pthread_kill();
-	// Cambiar el user anterior.
-	user_mutex_leave();
-	pthread_mutex_destroy(usr->mutex);
+	free(usr);
 }
 
-void user_mutex_enter(User* usr) {
-	if (usr == NULL) return;
-	pthread_mutex_lock(usr->mutex);
+//
+ssize_t user_read_from_socket(User* usr, char* buffer, size_t len) {
+	return recv(usr->sock_fd, buffer, len, 0);
 }
-
-void user_mutex_leave(User* usr) {
-	if (usr == NULL) return;
-	pthread_mutex_unlock(usr->mutex);
-}
-
 
 int user_send_message(User* usr, const char* src, const char* msg) {
 	if (usr == NULL) return ERR;
@@ -76,7 +66,7 @@ int user_get_nick(User* usr, const char** nick) {
 	return ERR;
 }
 
-int user_set_nick(User* usr, const char*  nick) {
+int user_set_nick(User* usr, const char* nick) {
 	if (usr == NULL) return ERR;
 	user_mutex_enter(usr);
 	strcpy(usr->nick, nick);
@@ -87,10 +77,11 @@ int user_set_nick(User* usr, const char*  nick) {
 
 int user_get_name(User* usr, const char** name) {
 	if (usr == NULL) return ERR;
-
+	*name = usr->name
+	return OK;
 }
 
-int user_set_name(User* usr, const char*  name) {
+int user_set_name(User* usr, const char* name) {
 	if (usr == NULL) return ERR;
 	char* newName = strdup(name);
 	if (NULL == newName) return ERR;
@@ -105,7 +96,7 @@ int user_get_rname(User* usr, const char** rname) {
 	return (rname == NULL);
 }
 
-int user_set_rname(User* usr, const char*  rname) {
+int user_set_rname(User* usr, const char* rname) {
 	if (usr == NULL) return ERR;
 	char* newRname = strdup(rname);
 	if (NULL == newName) return ERR;
@@ -120,17 +111,19 @@ int user_get_away(User* usr, const char** away_msg) {
 	return (away_msg == NULL);
 }
 
-int user_set_away(User* usr, const char*  away_msg) {
+int user_set_away(User* usr, const char* away_msg) {
 	if (usr == NULL) return ERR;
-
+	char* newRname = strdup(rname);
+	if (NULL == newName) return ERR;
+	usr->name = name;
+	return OK;
 }
 
 UserList userlist_findbyname(UserList usr, const char* name) {
 	if(usr == NULL) return NULL;
-	while(usr->next != NULL) {
+	while (usr->next != NULL) {
 		if (!strcmp(name, usr->nick)) break;
 		usr = usr->next;
 	}
-	if (!strcmp(nick, usr->nick)) return usr;
 	return NULL;
 }
