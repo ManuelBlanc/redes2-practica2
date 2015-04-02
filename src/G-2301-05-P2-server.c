@@ -4,7 +4,6 @@
 #include <getopt.h>
 
 /* unistd */
-#include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -57,6 +56,7 @@ static void demonizar(void) {
 
 Server* server_new(){
 	Server* serv = malloc(sizeof(Server*));
+	pthread_mutex_init(&serv->switch_mutex, NULL);
 	return serv;
 }
 
@@ -76,39 +76,17 @@ void server_init(void) {
 	socklen_t len = sizeof addr;
 	getsockname(sock, (struct sockaddr*) &addr, &len);
 
-	pthread_create(&serv->select_thr, NULL, &server_select, serv);
-	pthread_detach(serv->select_thr);
-
 	while (1) {
 		server_accept(serv);
 	}
 }
 
-void server_add_new_sockdesc(Server* serv, int sock) {
-	FD_SET(sock, &(serv->fd_read));
-	if (sock > maxfd) maxfd = sock;
+void server_down_semaforo(Server* serv){
+	pthread_mutex_lock(&serv->switch_mutex);
 }
 
-void server_remove_sockdesc(Server* serv, int sock) {
-	FD_CLR(sock, &(serv->fd_read));
-}
-
-void server_select(Server* serv) {
-	struct timeval tv;
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
-	int ret, i;
-	User* usr = serv->usrs;
-	FD_ZERO(&(serv->fd_read));
-	while (1) {
-		ret = select(maxfd + 1, &(serv->fd_read), NULL, NULL, &tv);
-		if(ret == -1 || errno == EINTR) break;
-		for(i = 0; i < ret; i++, usr = usr->next){
-			if (FD_ISSET(user_get_socket(usr), &(serv->fd_read)) {
-				exe_msg(serv, usr, /*comando que tiene que leer el server, de donde lo cogemos???*/);
-      			}
-		}
-	}
+void server_up_semaforo(Server* serv){
+	pthread_mutex_unlock(&serv->switch_mutex);
 }
 
 int server_accept(Server* serv){
@@ -128,18 +106,17 @@ int server_is_nick_used(Server* serv, const char* nick) {
 
 int server_add_user(Server* serv, User* user) {
    	userlist_insert(serv->usrs, user);
-	server_add_new_sockdesc(serv, sock);/*getter del socket??????*/
 	return OK;
 }
 
 int server_delete_user(Server* serv, const char* name) {
 	/*cde?????????????*/
 	User* usr = userlist_findByName(UserList list, const char* name);
-	server_remove_sockdesc(serv, /*getter del socket de usuario*/);
 	return OK;
 }
 
 int server_add_channel(Server* serv, const char* chan) {
+	/*ya sabemos que no esta repe?????????*/
    	channellist_insert(serv->chan, chan);
 	return OK;
 }

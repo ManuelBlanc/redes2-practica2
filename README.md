@@ -13,4 +13,5 @@ utiles de `git` o de la organización general.
 * `git status`	        - Muestra el estado del indice
 * `git push`  	        - Sube los cambios al repositorio
 * `git pull`  	        - Se trae los cambios del repositorio
-* `git merge-tool`      - Abre la herramienta definida en el fichero de conf para hacer merges
+* `git mergetool`       - Abre la herramienta definida en el fichero de conf para hacer merges
+* `git checkout #identificador commit al que quieres ir` - Abre en el editor el proyecto talcomo estaba en el commit referido
