@@ -14,7 +14,8 @@
 #define GREEN(str) 	"\033[32m" str "\033[0m"
 #define YELLOW(str)	"\033[33m" str "\033[0m"
 
-void _assert(int test, const char* test_str, const char* msg, const char* file, int line, const char* func) {
+void _assert(int test, const char* test_str, const char* msg, const char* file, int line, const char* func)
+{
 	if (test) return;
 	fprintf(stderr, "===========================================================\n"	);
 	fprintf(stderr, "  "RED("Ha fallado una asercion.")" Informacion adicional:\n" 	);
@@ -30,7 +31,8 @@ void _assert(int test, const char* test_str, const char* msg, const char* file, 
 /** Sustituye todos los caracteres que representan espacio por ' ' (0x20)
  * @param str Cadena de caracteres
  */
-static void normalize_whitespace(char* str) {
+static void normalize_whitespace(char* str)
+{
 	while (*str) {
 		if (isspace(*str)) *str = ' ';
 		str++;
@@ -55,8 +57,8 @@ void _log(const char* file, int line, const char* func, const char* fmt, ...)
 	normalize_whitespace(log_buffer);
 
 	// Imprimimos por consola
-	fprintf(stderr, "%s\n", log_buffer);
-	fflush(stderr);
+	fprintf(stdout, "%s\n", log_buffer);
+	fflush(stdout);
 	// Y a fichero
 	if (log_file == NULL) log_file = fopen("chat.log", "w");
 	fprintf(log_file, "%s\n", log_buffer);
@@ -66,3 +68,10 @@ void _log(const char* file, int line, const char* func, const char* fmt, ...)
 	//message_text(get_or_create_page("*DEBUG*"), log_buffer);
 }
 
+
+void* malloc_or_die(size_t n)
+{
+	void* ptr = malloc(n);
+	ASSERT(ptr != NULL, "Fallo catastrofico de malloc");
+	return ptr;
+}
