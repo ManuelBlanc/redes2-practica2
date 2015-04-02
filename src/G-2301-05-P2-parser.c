@@ -6,10 +6,33 @@ int change_flags_usr(){
 int change_flags_chan(){
 
 }
+int serverrcv_cmd(User* usr, char* str){
+	char* cmd;
+	int more_commands = 1;
+
+	while (more_commands) {
+		switch (IRC_UnPipelineCommands(str, &cmd)) {
+		case IRC_ENDPIPE:
+			cli->buf[0] = '\0';
+			more_commands = 0;
+		case IRC_OK:
+			clientrplP_switch(cli, cmd);
+			str = NULL;
+			break;
+
+		case IRC_EOP:
+			memset(cli->buf, sizeof(cli->buf), 0);
+			strncpy(cli->buf, cmd, sizeof(cli->buf));
+			return OK;
+		}
+	}
+	// Vaciamos el buffer
+	return OK;
+}
 
 int exe_msg(Server* serv, User* who, const char* msg) {
 
-	switch (UserParse_Command(msg)) {
+	switch (/*existe???*/UserParse_Command(msg)) {
 
 		case MODE: exe_mode(serv, who, msg);
 	}

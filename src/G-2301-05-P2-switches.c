@@ -231,11 +231,6 @@ static char* namechannel_skip_colon(char* channel) {
 	return *channel == ':' ? channel+1 : channel;
 }
 
-
-static char* namechannel_skip_colon(char* channel) {
-    return *channel == ':' ? channel+1 : channel;
-}
-
 int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 
     char nick[IRC_MAX_NICK_LEN + 1];
