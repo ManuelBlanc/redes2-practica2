@@ -1,21 +1,21 @@
 
-int cambia_flags_usuario(){
+int change_flags_usr(){
 
 }
 
-int cambia_flags_canal(){
+int change_flags_chan(){
 
 }
 
-int ejecutar_mensaje(Server* serv, User* who, const char* msg) {
+int exe_msg(Server* serv, User* who, const char* msg) {
 
 	switch (UserParse_Command(msg)) {
 
-		case MODE: ejecutar_mode(serv, who, msg);
+		case MODE: exe_mode(serv, who, msg);
 	}
 }
 
-int ejecutar_mode(Server* serv, User* who, const char* msg) {
+int exe_mode(Server* serv, User* who, const char* msg) {
 	char* channel_name;
 	char* user;
 	char  mode;
@@ -32,7 +32,7 @@ int ejecutar_mode(Server* serv, User* who, const char* msg) {
 	channel_sendf(chan, "MODE %s +%c", user_get_name(who), mode);
 }
 
-int ejecutar_quit(Server* serv, User* who, const char* msg) {
+int exe_quit(Server* serv, User* who, const char* msg) {
 /*sacar los semaforos fuera delparser.c*/
 	/* down semaforo*/
 	userlist_extract(&who);/*mal argumento*/

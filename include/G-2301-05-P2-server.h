@@ -5,8 +5,8 @@ typedef struct Server {
         int             sock;           /* Socket que recibe peticiones                 */
         UserList   	usrs;	        /* Lista de usuarios                            */
         ChannelList	chan;           /* Lista de canales                             */
-        pthread_mutex_t	usr_mutex;      /* Semaforo de acceso a la lista de usuarios    */
-        pthread_mutex_t	chan_mutex;     /* Semaforo de acceso a la lista de canales     */
+        pthread_t       select_thr;     /* Hilo para la funcion select()                */
+        fd_set          fd_read;        /* Descriptores de socket                       */
 } Server;
 
 /* Funciones solo de servidor */
@@ -28,6 +28,26 @@ void server_init(void);
  * @return codigo de error
  */
 int server_accept(Server* serv);
+
+/**
+ * Hilo que ejecuta la funcion select
+ * @param serv servidor
+ */
+void server_select(Server* serv);
+
+/**
+ * Añade un descriptor a la lista en la que se hace sondeo
+ * @param serv servidor
+ * @param sock descriptor de socket nuevo
+ */
+void server_add_new_sockdesc(Server* serv, int sock);
+
+/**
+ * Elimina un descriptor de la lista en la que se hace sondeo
+ * @param serv servidor
+ * @param sock descriptor de socket a eliminar
+ */
+void server_remove_sockdesc(Server* serv, int sock);
 
 /* Funciones relacionadas con la lista de usuarios */
 

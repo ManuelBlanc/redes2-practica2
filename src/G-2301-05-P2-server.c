@@ -2,13 +2,20 @@
 /* std */
 #include <stdio.h>
 #include <getopt.h>
+
 /* unistd */
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <pthread.h>
 
 /* usr */
 #include "G-2301-05-P2-config.h"
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
+int maxfd = 0; /*Maximo descriptor de socket abierto*/
 
 static void usage(int code) {
 	printf(stderr, "usage: %s [-hv]\n", "G-2301-05-P2-server")
@@ -50,8 +57,6 @@ static void demonizar(void) {
 
 Server* server_new(){
 	Server* serv = malloc(sizeof(Server*));
-	pthread_mutex_init(serv->usr_mutex, NULL);
-	pthread_mutex_init(serv->chan_mutex, NULL);
 	return serv;
 }
 
@@ -71,8 +76,38 @@ void server_init(void) {
 	socklen_t len = sizeof addr;
 	getsockname(sock, (struct sockaddr*) &addr, &len);
 
+	pthread_create(&serv->select_thr, NULL, &server_select, serv);
+	/*hay que matarlo*/
+
 	while (1) {
 		server_accept(serv);
+	}
+}
+
+void server_add_new_sockdesc(Server* serv, int sock) {
+	FD_SET(sock, &(serv->fd_read));
+	if (sock > maxfd) maxfd = sock;
+}
+
+void server_remove_sockdesc(Server* serv, int sock) {
+	FD_CLR(sock, &(serv->fd_read));
+}
+
+void server_select(Server* serv) {
+	struct timeval tv;
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	int ret, i;
+	User* usr = serv->usrs;
+	FD_ZERO(&(serv->fd_read));
+	while (1) {
+		ret = select(maxfd + 1, &(serv->fd_read), NULL, NULL, &tv);
+		if(ret == -1 || errno == EINTR) break;
+		for(i = 0; i < ret; i++, usr = usr->next){
+			if (FD_ISSET(/*getter del socket de usuario*/, &(serv->fd_read)) {
+				exe_msg(serv, usr, /*comando que tiene que leer el server, de donde lo cogemos???*/);
+      			}
+		}
 	}
 }
 
@@ -82,37 +117,30 @@ int server_accept(Server* serv){
 
 	int sock = accept(serv->sock, (struct sockaddr*) &client_addr, &usrlen);
 	User* user = user_new(serv, sock);
-	pthread_mutex_lock(serv->usr_mutex);
 	server_add_user(serv, user);
-	pthread_mutex_unlock(serv->usr_mutex);
 	return OK;
 }
 
 int server_is_nick_used(Server* serv, const char* nick) {
-	UserList list = serv->usrs;
-	pthread_mutex_lock(serv->usr_mutex);
-	userlist_findByName(list, nick);
-	pthread_mutex_unlock(serv->usr_mutex);
-	return ERR;
+	if(NULL == userlist_findByName(list, nick)) return ERR;
+	return OK;
 }
 
 int server_add_user(Server* serv, User* user) {
-	pthread_mutex_lock(serv.usr_mutex);
    	userlist_insert(serv->usrs, user);
-	pthread_mutex_unlock(serv.usr_mutex);
+	server_add_new_sockdesc(serv, sock);/*getter del socket??????*/
 	return OK;
 }
 
 int server_delete_user(Server* serv, const char* name) {
-	pthread_mutex_lock(serv.usr_mutex);
-	userlist_findByName(UserList list, const char* name);
-/**/
+	/*cde?????????????*/
+	User* usr = userlist_findByName(UserList list, const char* name);
+	server_remove_sockdesc(serv, /*getter del socket de usuario*/);
+	return OK;
 }
 
 int server_add_channel(Server* serv, const char* chan) {
-	pthread_mutex_lock(serv.chan_mutex);
    	channellist_insert(serv->chan, chan);
-	pthread_mutex_unlock(serv.chan_mutex);
 	return OK;
 }
 
