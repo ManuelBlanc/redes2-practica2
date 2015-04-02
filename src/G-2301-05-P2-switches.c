@@ -231,26 +231,34 @@ static char* namechannel_skip_colon(char* channel) {
 	return *channel == ':' ? channel+1 : channel;
 }
 
+
+static char* namechannel_skip_colon(char* channel) {
+    return *channel == ':' ? channel+1 : channel;
+}
+
 int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 
-	char nick[IRC_MAX_NICK_LEN + 1];
-	char* prefix;
-	char* target;
-	char* msg;
-	int isPrivate = 0;
-	IRCParse_Privmsg(str, &prefix, &target, &msg);
+    char nick[IRC_MAX_NICK_LEN + 1];
+    char* prefix;
+    char* target;
+    char* msg;
+    int isPrivate = 0;
+    IRCParse_Privmsg(str, &prefix, &target, &msg);
 
-	// Es un canal?
-	if (target[0] == '#') {
-		// Lo buscamos en los canales
-		Channel* chan = channellist_findByName(serv->chan, target+1);
-		channel_send_message(chan, usr, msg);
-	}
-	else {
-		User* recv = userlist_findByName(serv->usrs, target);
-		user_send_message(recv, target, msg);
-
-
-	}
-
+    // Es un canal?
+    namechannel_skip_colon(target);
+    if (target[0] == '#') {
+        // Lo buscamos en los canales
+        Channel* chan = channellist_findByName(serv->chan, target+1);
+        channel_send_message(chan, usr, msg);
+        // Aqui va ha haber bastantes mas cosas ...
+    }
+    else {
+        User* recv = userlist_findByName(serv->usrs, target);
+        char* awaymsg = user_get_away(recv, &awaymsg);
+        user_send_message(recv, user_get_nick(usr), msg);
+        if (awaymsg != NULL) {
+            user_send_message(usr, target, awaymsg);
+        }
+    }
 }

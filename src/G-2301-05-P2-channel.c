@@ -9,8 +9,8 @@ typedef struct UserChannelData {
 } UserChannelData;
 
 typedef struct Channel {
-	unsigned int    	max_usrs;                  	/* Maximo numero de usuarios 	*/
-	unsigned int    	usrc_count;                	/* Numero de usuarios        	*/
+	unsigned int    	usr_max;                   	/* Maximo numero de usuarios 	*/
+	unsigned int    	usr_cnt;                   	/* Numero de usuarios        	*/
 	UserChannelData*	usrs;                      	/* Lista de usuarios         	*/
 	char            	name[IRC_MAX_NAME_LEN+1];  	/* Nombre                    	*/
 	char            	topic[IRC_MAX_TOPIC_LEN+1];	/* Tema                      	*/
@@ -20,27 +20,39 @@ typedef struct Channel {
 	struct Channel* 	next;                      	/* Puntero al siguiente canal	*/
 } Channel;
 
-Channel* channel_new(void) {
-	// Usamos calloc para inicializar todo a 0
+// Reserva de memoria. Inicializa el nombre.
+Channel* channel_new(const char* name) {
 	Channel* chan = calloc(1, sizeof Channel);
+	strncpy(chan->)
 	return chan;
 }
 
+// Destruccion de un canal. Libera la lista enlazada de UserChannelData.
 void channel_delete(Channel* chan) {
+	if (chan == NULL) return;
+	UserChannelData* usrData = chan->usrs;
+	while (usrData != NULL) {
+		UserChannelData* usrNext = usrData->next;
+		free(usrData);
+		usrData = usrNext;
+	}
 	free(chan);
 }
 
-static int channelP_add_user(Channel* chan, User* usr) {
-	// Añade un usuario al canal
+// Añade un usuario a la lista de usuarios.
+static int channelP_add_user(Channel* chan, User* usr, UserChannelData** ucd) {
 	UserChannelData* usrData = malloc(sizeof UserChannelData);
 	usrData->usr       = usr;
 	usrData->flags     = 0;
 	usrData->inChannel = 0
-	usrDat a->next      = chan->usrs;
+	usrData->next      = chan->usrs;
 	chan->usrs = usrData;
+
+	*ucd = usrData;
 	return OK;
 }
 
+// Busca y extrae un usuario de la lista de usuarios
 static int channelP_remove_user(Channel* chan, User* usr) {
 	UserChannelData** usrData = &chan->usrs;
 	while (*usrData != NULL) {
@@ -54,6 +66,7 @@ static int channelP_remove_user(Channel* chan, User* usr) {
 	return ERR;
 }
 
+//
 static int channelP_find_user_data(Channel* chan, User* usr, UserChannelData** ucd) {
 	UserChannelData* usrData = chan->usrs;
 	while (usrData != NULL) {
@@ -66,10 +79,16 @@ static int channelP_find_user_data(Channel* chan, User* usr, UserChannelData** u
 	return 0;
 }
 
+//
 static int channelP_find_or_create(Channel* chan, User* usr, UserChannelData** ucd) {
-	channelP_find_user_data(Channel* chan, User* usr, UserChannelData** ucd)
+	UserChannelData* usrData;
+	if (!channelP_find_user_data(chan, usr, &ucd)) {
+		channelP_add_user(chan, usr, &ucd);
+	}
+	return ucd;
 }
 
+//
 static int channelP_user_op_or_null(Channel* chan, User* usr) {
 	UserChannelData* ucd;
 	if (usr == NULL) return 1;
@@ -77,6 +96,7 @@ static int channelP_user_op_or_null(Channel* chan, User* usr) {
 	return (USRFLAG_OPERATOR & ucd->flags) != 0;
 }
 
+//
 static int channelP_can_send_message(Channel* chan, User* usr) {
 	UserChannelData* ucd;
 
@@ -100,6 +120,7 @@ static int channelP_can_send_message(Channel* chan, User* usr) {
 	return 1; // Podemos mandar mensajes!!
 }
 
+//
 int channel_get_flags_user(Channel* chan, User* usr, long* flags) {
 	UserChannelData* ucd;
 	if (!channelP_find_user_data(chan, usr, &ucd)) return ERR;
@@ -107,6 +128,7 @@ int channel_get_flags_user(Channel* chan, User* usr, long* flags) {
 	return OK;
 }
 
+//
 int channel_set_flags_user(Channel* chan, User* usr, long flags, User* actor) {
 	UserChannelData* ucd;
 
@@ -121,6 +143,7 @@ int channel_set_flags_user(Channel* chan, User* usr, long flags, User* actor) {
 	return OK;
 }
 
+//
 int channel_unset_flags_user(Channel* chan, User* usr, long flags, User* actor) {
 	UserChannelData* ucd;
 
@@ -135,6 +158,7 @@ int channel_unset_flags_user(Channel* chan, User* usr, long flags, User* actor) 
 	return OK;
 }
 
+//
 int channel_send_message(Channel* chan, User* usr, const char* msg) {
 	UserChannelData* ucd;
 
@@ -148,6 +172,7 @@ int channel_send_message(Channel* chan, User* usr, const char* msg) {
 	return OK;
 }
 
+//
 int channel_join(Channel* chan, User* usr) {
 
 }
@@ -155,6 +180,7 @@ int channel_part(Channel* chan, User* usr, User* actor) {
 
 }
 
+//
 int channel_get_topic(Channel* chan, const char** topic) {
 	if (chan == NULL) return ERR;
 	*topic = chan->topic;
@@ -174,24 +200,28 @@ int channel_set_topic(Channel* chan, const char* topic, User* usr) {
 	return OK;
 }
 
+//
 int channel_get_name(Channel* chan, const char** name) {
 	if (chan == NULL) return NULL;
 	*name = chan->name;
 	return OK;
 }
 
+//
 int channel_set_name(Channel* chan, const char* name) {
 	if (chan == NULL) return ERR;
 	strncpy(chan->name, name, sizeof chan->name);
 	return OK;
 }
 
+//
 int channel_get_passwd(Channel* chan, const char** passwd) {
 	if (chan == NULL) return ERR;
 	*passwd = chan->passwd;
 	return OK;
 }
 
+//
 int channel_set_passwd(Channel* chan, const char* passwd, User* actor) {
 	if (chan == NULL) return ERR;
 
@@ -202,12 +232,14 @@ int channel_set_passwd(Channel* chan, const char* passwd, User* actor) {
 	return OK;
 }
 
+//
 int channel_get_flags(Channel* chan, long* flags) {
 	if (chan == NULL) return ERR;
 	*flags = chan->flags;
 	return OK;
 }
 
+//
 int channel_set_flags(Channel* chan, long flags, User* actor) {
 	if (chan == NULL) return ERR;
 
@@ -218,6 +250,7 @@ int channel_set_flags(Channel* chan, long flags, User* actor) {
 	return OK;
 }
 
+//
 int channel_unset_flags(Channel* chan, long flags, User* actor) {
 	if (chan == NULL) return ERR;
 
@@ -230,6 +263,7 @@ int channel_unset_flags(Channel* chan, long flags, User* actor) {
 
 
 
+//
 int channellist_insert(ChannelList list, Channel* chan) {
 	if (list == NULL || chan == NULL) return ERR;
 
@@ -237,18 +271,22 @@ int channellist_insert(ChannelList list, Channel* chan) {
 	if (chan->next != NULL) return ERR;
 }
 
+//
 ChannelList channellist_select(ChannelList list, int index) {
 	if (list == NULL) return NULL;
 }
 
+//
 Channel channellist_extract(ChannelList list) {
 	if (list == NULL) return NULL;
 }
 
+//
 ChannelList channellist_findByName(ChannelList list, const char* name) {
 	if (list == NULL) return NULL;
 }
 
+//
 void channellist_deleteAll(ChannelList list) {
 	if (list == NULL) return;
 }
