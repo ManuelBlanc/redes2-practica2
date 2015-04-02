@@ -77,7 +77,7 @@ void server_init(void) {
 	getsockname(sock, (struct sockaddr*) &addr, &len);
 
 	pthread_create(&serv->select_thr, NULL, &server_select, serv);
-	/*hay que matarlo*/
+	pthread_detach(serv->select_thr);
 
 	while (1) {
 		server_accept(serv);
@@ -104,7 +104,7 @@ void server_select(Server* serv) {
 		ret = select(maxfd + 1, &(serv->fd_read), NULL, NULL, &tv);
 		if(ret == -1 || errno == EINTR) break;
 		for(i = 0; i < ret; i++, usr = usr->next){
-			if (FD_ISSET(/*getter del socket de usuario*/, &(serv->fd_read)) {
+			if (FD_ISSET(user_get_socket(usr), &(serv->fd_read)) {
 				exe_msg(serv, usr, /*comando que tiene que leer el server, de donde lo cogemos???*/);
       			}
 		}
