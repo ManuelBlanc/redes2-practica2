@@ -28,6 +28,18 @@ void server_init(void);
  */
 int server_accept(Server* serv);
 
+/**
+ * Hace down del semaforo que controla la ejecucion de comandos
+ * @param serv servidor
+ */
+void server_down_semaforo(Server* serv);
+
+/**
+ * Hace up del semaforo que controla la ejecucion de comandos
+ * @param serv servidor
+ */
+void server_up_semaforo(Server* serv);
+
 
 /* Funciones relacionadas con la lista de usuarios */
 
