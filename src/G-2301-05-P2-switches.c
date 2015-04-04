@@ -241,16 +241,24 @@ int serverrcv_mode(Server* serv, User* usr, const char* str) {
         	//RPL_INVITELIST                  RPL_ENDOFINVITELIST
         	//RPL_UNIQOPIS
 
-	}
-	return OK;*/
+	}*/
+	return OK;
 }
 
 int serverrcv_user(Server* serv, User* usr, const char* str) {
-	/*long ret;
-	//Command: USER
-	//Parameters: <user> <mode> <unused> <realname>
-	if(0 != IRCParse_User()){
+	/*char nick[IRC_MAX_NICK_LEN + 1];
+	char* prefix;
+	char* user_name;
+	char* realname;
+	char* mode;
+	// The <mode> parameter should be a numeric, and can be used to
+   	//automatically set user modes when registering with the server.  This
+   	//parameter is a bitmask, with only 2 bits having any signification: if
+   	//the bit 2 is set, the user mode 'w' will be set and if the bit 3 is
+   	//set, the user mode 'i' will be set.
+	if(0 != IRCParse_User(str, &prefix, &user_name, &mode, &realname)){
 		IRC_ErrNeedMoreParams();
+		IRC_ErrNeedMoreParams(buf, prefix, nick, str);
 		user_send_cmd(usr, buf);
 		return ERR;
 	}
@@ -260,8 +268,8 @@ int serverrcv_user(Server* serv, User* usr, const char* str) {
 		server_add_user();
 		return OK;
 	}
-	IRC_ErrAlreadyRegistred();
-	return ERR;*/
+	IRC_ErrAlreadyRegistred();*/
+	return ERR;
 }
 
 int serverrcv_quit(Server* serv, User* usr, const char* str) {

@@ -21,8 +21,8 @@
 
 struct Server {
         int                   sock;           /* Socket que recibe peticiones                 */
-        UserList   	      usrs;	      /* Lista de usuarios                            */
-        ChannelList	      chan;           /* Lista de canales                             */
+        User*   	      usrs;	      /* Lista de usuarios                            */
+        Channel*	      chan;           /* Lista de canales                             */
         pthread_mutex_t       switch_mutex;   /* Hilo para la funcion select()                */
 };
 
@@ -110,17 +110,17 @@ int server_accept(Server* serv){
 }
 
 int server_is_nick_used(Server* serv, const char* nick) {
-	if(NULL == userlist_findByName(serv->usrs, nick)) return ERR;
+	if(NULL == userlist_findByName(&serv->usrs, nick)) return ERR;
 	return OK;
 }
 
 int server_add_user(Server* serv, User* user) {
-   	userlist_insert(serv->usrs, *user);
+   	userlist_insert(serv->usrs, user);
 	return OK;
 }
 
 int server_delete_user(Server* serv, const char* name) {
-	UserList usr = userlist_findByName(serv->usrs, name);
+	UserList usr = userlist_findByName(&serv->usrs, name);
         if (usr == NULL) return ERR;
         User usr2 = userlist_extract(usr);
         user_delete(&usr2);
@@ -128,14 +128,14 @@ int server_delete_user(Server* serv, const char* name) {
 }
 
 int server_add_channel(Server* serv, const char* name) {
-        ChannelList chan = channel_findByName(serv->chan, name);
+        ChannelList chan = channel_findByName(&serv->chan, name);
         if (chan != NULL) return ERR;
-   	channellist_insert(serv->chan, *channel_new(serv, name));
+   	channellist_insert(&serv->chan, channel_new(serv, name));
 	return OK;
 }
 
 int server_delete_channel(Server* serv, const char* name) {
-	ChannelList chan = channellist_findByName(serv->chan, name);
+	ChannelList chan = channellist_findByName(&serv->chan, name);
         if (chan == NULL) return ERR;
         Channel chan2 = channellist_extract(chan);
         channel_delete(&chan2);
