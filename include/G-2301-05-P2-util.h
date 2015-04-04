@@ -9,10 +9,14 @@
 #define UNUSED(arg)	((void)(arg))
 enum ErrCode {OK = 0, ERR = -1};
 
+#define ATTRIBUTE(attr) __attribute__(attr)
+
 /* ========================================================
      MALLOC
    ======================================================== */
-void* malloc_or_die(size_t n);
+#include <stddef.h>
+void* emalloc(size_t size);
+void* ecalloc(size_t count, size_t size);
 
 /* ========================================================
      LOGGER

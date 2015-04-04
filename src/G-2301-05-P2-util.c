@@ -14,8 +14,7 @@
 #define GREEN(str) 	"\033[32m" str "\033[0m"
 #define YELLOW(str)	"\033[33m" str "\033[0m"
 
-void _assert(int test, const char* test_str, const char* msg, const char* file, int line, const char* func)
-{
+void _assert(int test, const char* test_str, const char* msg, const char* file, int line, const char* func) {
 	if (test) return;
 	fprintf(stderr, "===========================================================\n"	);
 	fprintf(stderr, "  "RED("Ha fallado una asercion.")" Informacion adicional:\n" 	);
@@ -31,8 +30,7 @@ void _assert(int test, const char* test_str, const char* msg, const char* file, 
 /** Sustituye todos los caracteres que representan espacio por ' ' (0x20)
  * @param str Cadena de caracteres
  */
-static void normalize_whitespace(char* str)
-{
+static void normalize_whitespace(char* str) {
 	while (*str) {
 		if (isspace(*str)) *str = ' ';
 		str++;
@@ -40,8 +38,7 @@ static void normalize_whitespace(char* str)
 }
 
 static FILE* log_file;
-void _log(const char* file, int line, const char* func, const char* fmt, ...)
-{
+void _log(const char* file, int line, const char* func, const char* fmt, ...) {
 	static char log_buffer[512];
 	int len;
 	va_list argptr;
@@ -69,9 +66,17 @@ void _log(const char* file, int line, const char* func, const char* fmt, ...)
 }
 
 
-void* malloc_or_die(size_t n)
+void* emalloc(size_t size)
 {
 	void* ptr = malloc(n);
-	ASSERT(ptr != NULL, "Fallo catastrofico de malloc");
+	ASSERT(ptr != NULL, "No se pudo reservar memoria con malloc()");
+	return ptr;
+}
+
+
+void* ecalloc(size_t count, size_t size)
+{
+	void* ptr = calloc(count, size);
+	ASSERT(ptr != NULL, "No se pudo reservar memoria con calloc()");
 	return ptr;
 }
