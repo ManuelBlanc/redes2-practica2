@@ -39,7 +39,7 @@ int channel_get_name(Channel* chan, const char** name);
 
 // Manejo de la contraseña
 int channel_get_key(Channel* chan, const char** key);
-int channel_set_key(Channel* chan, const char*  key);
+int channel_set_key(Channel* chan, const char*  key, User* actor);
 
 // Manejo de las flags del canal
 int channel_get_flag(Channel* chan, char flag);

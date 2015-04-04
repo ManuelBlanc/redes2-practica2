@@ -1,6 +1,7 @@
 
 /* std */
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 /* redes2 */
 #include <redes2/irc.h>
@@ -98,7 +99,7 @@ int user_send_cmdf(User* usr, const char* fmt, ...) {
 	char buffer[IRC_MAX_CMD_LEN+1];
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprint(buffer, sizeof buffer, fmt, ap);
+	vsnprintf(buffer, sizeof buffer, fmt, ap);
 	int ret = user_send_cmd(usr, buffer);
 	va_end(ap);
 	return ret;
@@ -114,7 +115,7 @@ int user_get_nick(User* usr, const char** nick) {
 // Cambia el nick del usuario.
 int user_set_nick(User* usr, const char* nick) {
 	if (usr == NULL) return ERR;
-	strcpy(usr->nick, nick, USER_MAX_NICK_LEN);
+	strncpy(usr->nick, nick, USER_MAX_NICK_LEN);
 	return OK;
 }
 
@@ -195,7 +196,9 @@ User userlist_extract(UserList list) {
 UserList userlist_findByName(UserList list, const char* name) {
 	if (list == NULL || name == NULL) return NULL;
 
-	while (userlist_head(list) != NULL) {
+	while (1) {
+		User* usr = userlist_head(list);
+		if (usr == NULL) break;
 		if (strncmp(name, usr->name, USER_MAX_NAME_LEN)) break;
 		list = userlist_tail(list);
 	}

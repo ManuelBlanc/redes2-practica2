@@ -1,11 +1,12 @@
 
 /* std */
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/* redes2 */
-#include <redes2/irc.h>
 /* usr */
+#include "G-2301-05-P2-config.h"
+#include "G-2301-05-P2-util.h"
 #include "G-2301-05-P2-channel.h"
 
 // Mascara de flags de usuario
@@ -57,7 +58,7 @@ typedef struct Channel {
 // Reserva de memoria. Inicializa el nombre.
 Channel* channel_new(Server* server, const char* name) {
 	Channel* chan;
-	if (name == NULL) return;
+	if (server == NULL || name == NULL) return NULL;
 
 	chan = ecalloc(1, sizeof *chan);
 	strncpy(chan->name, name, CHANNEL_MAX_NAME_LEN);
@@ -91,6 +92,7 @@ static int channelP_add_user(Channel* chan, User* usr, UserChannelData** ucdDst)
 }
 
 // Busca y borra un usuario de la lista interna de usuarios.
+/*
 static int channelP_remove_user(Channel* chan, User* usr) {
 	UserChannelData** ucd = &chan->usrs;
 	while (*ucd != NULL) {
@@ -103,6 +105,7 @@ static int channelP_remove_user(Channel* chan, User* usr) {
 	}
 	return ERR;
 }
+*/
 
 // Busca y devuelve un usuario de la lista interna de usuarios.
 static int channelP_find_user_data(Channel* chan, User* usr, UserChannelData** ucd) {
@@ -141,6 +144,9 @@ int channel_can_send_message(Channel* chan, User* usr) {
 	if (!channelP_find_user_data(chan, usr, &ucd)) {
 		// Si no esta en la sala y se pueden enviar mensajes desde fuera
 		if (FLAG_NOMSGS & chan->flags) return ERR_CANNOTSENDTOCHAN;
+
+		// Solo si no esta moderado
+		return (FLAG_MODERATED & chan->flags) ? OK : ERR_CANNOTSENDTOCHAN;
 	}
 
 	// Esta baneado?
@@ -175,7 +181,7 @@ int channel_send_cmdf(Channel* chan, const char* fmt, ...) {
 	char buffer[512];
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprint(buffer, sizeof buffer, fmt, ap);
+	vsnprintf(buffer, sizeof buffer, fmt, ap);
 	int ret = channel_send_cmd(chan, buffer);
 	va_end(ap);
 	return ret;
@@ -267,17 +273,17 @@ int channel_join(Channel* chan, User* usr, const char* key) {
 	if (ucd->inChannel) return OK;
 
 	// Esta baneado el usuario?
-	if (USRFLAG_BAN | ucd->flags) return ERR_BANNEDFROMCHAN;
+	if (USRFLAG_BAN & ucd->flags) return ERR_BANNEDFROMCHAN;
 
 	// Hay clave? Se ha proporcionado la clave correcta?
-	if (FLAG_CHANKEY | chan->flags) {
+	if (FLAG_CHANKEY & chan->flags) {
 		if (key == NULL) return ERR_BADCHANNELKEY;
 		if (strncmp(key, chan->key, CHANNEL_MAX_KEY_LEN)) return ERR_BADCHANNELKEY;
 	}
 
 	// Es de solo invitacion?
-	if (FLAG_INVONLY | chan->flags) {
-		if ((USRFLAG_INVITATION | ucd->flags) == 0) return ERR_INVITEONLYCHAN;
+	if (FLAG_INVONLY & chan->flags) {
+		if ((USRFLAG_INVITATION & ucd->flags) == 0) return ERR_INVITEONLYCHAN;
 	}
 
 	// Si hemos llegado hasta aqui, le apuntamos
@@ -309,7 +315,7 @@ int channel_get_topic(Channel* chan, const char** topic) {
 }
 
 // Cambia el topic del canal.
-int channel_set_topic(Channel* chan, const char* topic, User* usr) {
+int channel_set_topic(Channel* chan, const char* topic, User* actor) {
 	if (chan == NULL) return ERR;
 
 	// Solo los operadores pueden cambiar el topic?
@@ -343,7 +349,7 @@ int channel_set_key(Channel* chan, const char* key, User* actor) {
 	// Hay permisos suficientes?
 	if (!channelP_user_op_or_null(chan, actor)) return ERR_CHANOPRIVSNEEDED;
 
-	*key = chan->key;
+	strncpy(chan->key, key, CHANNEL_MAX_KEY_LEN);
 	return OK;
 }
 
@@ -378,7 +384,7 @@ int channel_has_flag(Channel* chan, char flag) {
 }
 
 // Pone una flag al canal.
-int channel_set_flag(Channel* chan, char flags, User* actor) {
+int channel_set_flag(Channel* chan, char flag, User* actor) {
 	ChannelFlags flag_mask;
 	if (chan == NULL) return ERR;
 
@@ -394,7 +400,7 @@ int channel_set_flag(Channel* chan, char flags, User* actor) {
 }
 
 // Quita una flag del canal.
-int channel_unset_flags(Channel* chan, char flags, User* actor) {
+int channel_unset_flags(Channel* chan, char flag, User* actor) {
 	ChannelFlags flag_mask;
 	if (chan == NULL) return ERR;
 
@@ -415,7 +421,7 @@ int channel_unset_flags(Channel* chan, char flags, User* actor) {
 
 // Macros
 #define channellist_head(list)	(*(list))
-#define channellist_tail(list)	(&(*(list)->next))
+#define channellist_tail(list)	(&((*(list))->next))
 
 // Inserta un elemento en la lista.
 int channellist_insert(ChannelList list, Channel* chan) {
@@ -430,7 +436,7 @@ int channellist_insert(ChannelList list, Channel* chan) {
 }
 
 // Extrae el primer elemento de una lista.
-Channel channellist_extract(ChannelList list) {
+Channel* channellist_extract(ChannelList list) {
 	Channel* chan;
 	if (list == NULL) return NULL;
 
@@ -444,7 +450,9 @@ Channel channellist_extract(ChannelList list) {
 ChannelList channellist_findByName(ChannelList list, const char* name) {
 	if (list == NULL || name == NULL) return NULL;
 
-	while (channellist_head(list) != NULL) {
+	while (1) {
+		Channel* chan = channellist_head(list);
+		if (chan == NULL) break;
 		if (strncmp(name, chan->name, CHANNEL_MAX_NAME_LEN)) break;
 		list = channellist_tail(list);
 	}

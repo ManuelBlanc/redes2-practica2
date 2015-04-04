@@ -42,7 +42,7 @@ static void procesar_opciones(int argc, char** argv) {
 		{NULL,0,NULL,0}
 	};
         while (1) {
-		int opt = getopt_long(argc, argv, "vh", NULL, NULL);
+		int opt = getopt_long(argc, argv, "vh", longopts, NULL);
 		switch (opt) {
 			/* Opciones */
 			case 'v': /* verbosity++;        	*/ break;
