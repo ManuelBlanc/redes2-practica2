@@ -71,40 +71,12 @@ int action_switch(User* usr, char* str) {
 	}
 }
 
-int serverrcv_cmd(User* usr, char* str){
-	char* cmd;
-	int more_commands = 1;
-
-	while (more_commands) {
-		switch (IRC_UnPipelineCommands(str, &cmd)) {
-		case IRC_ENDPIPE:
-			usr->buffer_recv[0] = '\0';
-			more_commands = 0;
-		case IRC_OK:
-			action_switch(usr, cmd);
-			str = NULL;
-			break;
-
-		case IRC_EOP:
-			memset(usr->buffer_recv, sizeof(usr->buffer_recv), 0);
-			strncpy(usr->buffer_recv, cmd, sizeof(usr->buffer_recv));
-			return OK;
-		}
-	}
-	// Vaciamos el buffer
-	return OK;
-}
-
-
-
-
-
 static char* namechannel_skip_colon(char* channel) {
 	return *channel == ':' ? channel+1 : channel;
 }
 
 int serverrcv_privmsg(Server* serv, User* usr, char* str) {
-	char nick[USER_MAX_NICK_LEN + 1];
+	char* nick;
 	char* prefix;
 	char* target;
 	char* msg;

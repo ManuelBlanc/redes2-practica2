@@ -36,7 +36,6 @@ autom4te.cache/
 config.status
 configure
 include/G-2301-05-P2-config.h
-include/G-2301-05-P2-config.h.in
 include/stamp-h1
 lib/
 obj/
