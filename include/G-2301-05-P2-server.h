@@ -7,13 +7,6 @@ typedef struct Server Server;
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
-typedef struct Server {
-        int             sock;           /* Socket que recibe peticiones                 */
-        UserList   	usrs;	        /* Lista de usuarios                            */
-        ChannelList	chan;           /* Lista de canales                             */
-        pthread_mutex_t switch_mutex;   /* Mutex que controla de los usuarios           */
-} Server;
-
 /* Funciones solo de servidor */
 
 /**
@@ -51,10 +44,11 @@ void server_up_semaforo(Server* serv);
 
 /**
  * Comprueba si existe un usuario con ese nick
+ * @param serv servidor
  * @param nick nick a buscar en la lista de usuarios
  * @return OK si lo encontro y ERR si no
  */
-int server_is_nick_used(const char* nick);
+int server_is_nick_used(Server* serv, const char* nick);
 
 /**
  * Añade un nuevo usuario a la lista de usuarios conectados

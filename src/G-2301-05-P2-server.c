@@ -1,6 +1,7 @@
 
 /* std */
 #include <stdio.h>
+#include <stdlib.h>
 #include <getopt.h>
 
 /* unistd */
@@ -8,25 +9,27 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
 
 /* usr */
 #include "G-2301-05-P2-config.h"
 #include "G-2301-05-P2-server.h"
-#include "G-2301-05-P2-channel.h"
 #include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-channel.h"
 
 struct Server {
-        int             sock;           /* Socket que recibe peticiones                 */
-        UserList   	usrs;	        /* Lista de usuarios                            */
-        ChannelList	chan;           /* Lista de canales                             */
-        pthread_t       select_thr;     /* Hilo para la funcion select()                */
-        fd_set          fd_read;        /* Descriptores de socket                       */
+        int                   sock;           /* Socket que recibe peticiones                 */
+        UserList   	      usrs;	      /* Lista de usuarios                            */
+        ChannelList	      chan;           /* Lista de canales                             */
+        pthread_mutex_t       switch_mutex;   /* Hilo para la funcion select()                */
 };
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
 
 static void usage(int code) {
-	printf(stderr, "usage: %s [-hv]\n", "G-2301-05-P2-server")
+	fprintf(stderr, "usage: %s [-hv]\n", "G-2301-05-P2-server");
 	exit(code);
 }
 
@@ -39,7 +42,7 @@ static void procesar_opciones(int argc, char * const *argv) {
 		{ "daggerset",	no_argument,      	&daggerset,	1  	},
 		{NULL,0,NULL,0}
 	};
-	while (1) {
+        while (1) {
 		int opt = getopt_long(argc, argv, "vh", NULL, NULL);
 		switch (opt) {
 			/* Opciones */
@@ -79,11 +82,11 @@ void server_init(void) {
 	addr.sin_port       	= 0;
 
 	serv->sock = socket(AF_INET, SOCK_STREAM, 0);
-	bind(sock, (struct sockaddr*) &addr, sizeof addr);
-	listen(sock, 3); // Maximo 3 peticiones de conexion encoladas
+	bind(serv->sock, (struct sockaddr*) &addr, sizeof addr);
+	listen(serv->sock, 3); // Maximo 3 peticiones de conexion encoladas
 
 	socklen_t len = sizeof addr;
-	getsockname(sock, (struct sockaddr*) &addr, &len);
+	getsockname(serv->sock, (struct sockaddr*) &addr, &len);
 
 	while (1) {
 		server_accept(serv);
@@ -102,14 +105,14 @@ int server_accept(Server* serv){
 	struct sockaddr_in user_addr;
 	socklen_t usrlen = sizeof user_addr;
 
-	int sock = accept(serv->sock, (struct sockaddr*) &client_addr, &usrlen);
+	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
 	User* user = user_new(serv, sock);
 	server_add_user(serv, user);
 	return OK;
 }
 
 int server_is_nick_used(Server* serv, const char* nick) {
-	if(NULL == userlist_findByName(list, nick)) return ERR;
+	if(NULL == userlist_findByName(serv->usrs, nick)) return ERR;
 	return OK;
 }
 

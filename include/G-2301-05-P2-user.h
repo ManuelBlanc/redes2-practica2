@@ -57,4 +57,4 @@ User    	userlist_extract(UserList list);
 UserList	userlist_findByName(UserList list, const char* name);
 void    	userlist_deleteAll(UserList list);
 
-#endif USER_H
+#endif /*USER_H*/

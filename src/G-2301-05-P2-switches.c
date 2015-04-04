@@ -281,15 +281,17 @@ int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 			default: break;
 			case ERR_NOTEXTTOSEND:
 				IRC_ErrNoTextToSend(buf, prefix, target);
+				user_send_cmd(usr, buf);
 				break;
 			case ERR_CANNOTSENDTOCHAN:
 				IRC_ErrCanNotSendToChan(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
 				break;
 			case ERR_NOSUCHNICK:
 				IRC_ErrNoSuchNick(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
 				break;
 		}
-		user_send_cmd(usr, buf);
 		//case ERR_TOOMANYTARGETS: no admitimos multiples destinatarios
 		//ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
 	} else {
@@ -317,12 +319,13 @@ int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 }
 
 int serverrcv_mode(Server* serv, User* usr, const char* str) {
-	char nick[IRC_MAX_NICK_LEN + 1];
+	/*char nick[IRC_MAX_NICK_LEN + 1];
 	char* channel_name;
 	char* user_target;
 	char* prefix;
-	char  mode;
-	long  opt;
+	char* mode;
+	char buf[512];
+	long opt;
 
 	user_get_nick(usr, &nick);
 	if(0 != IRCParse_Mode(str, &prefix, &channel_name, &mode, &user_target)){
@@ -331,75 +334,73 @@ int serverrcv_mode(Server* serv, User* usr, const char* str) {
 		return ERR;
 	}
 
-//
-	if (user != NULL) {
-		userlist_findByName(UserList list/*en elchannel, no?*/, const char* name);
-		/* buscar user y llamar a cambiarflags de usuario*/
-	} else {
-		/* cambiar flags decanal*/
-	}
-	IRC_Mode(who->send, who->pre, channel_name, mode, char *user);
-	channel_sendf(chan, "MODE %s +%c", user_get_name(who), mode);
-//
-
 	namechannel_skip_colon(channel_name);
 	Channel* chan = channellist_findByName(serv->chan, channel_name);
-	if (NULL == chan) opt = ERR_NEEDMOREPARAMS;
-
-	if (NULL == user_target) {
-		channel_set_flags(Channel chan, char flags, User actor)
+	if (NULL != user_target) {
+		if(mode == '+') {
+			opt = channel_set_flag_user(chan, user_target, mode, usr);
+		} else if(mode == '-') {
+			opt = channel_unset_flag_user(chan, user_target, mode, usr);
+		} else {
+			//si no hacemos devolver banlist, invitedlist o exceptionlist, esto BIEN
+			opt = RPL_UNIQOPIS;
+		}
 		switch(opt) {
 			default: break;
 			case ERR_NEEDMOREPARAMS:
+				IRC_ErrNeedMoreParams(buf, prefix, nick, str);
+				user_send_cmd(usr, buf);
 				break;
-			case ERR_USERSDONTMATCH:
-				IRC_ErrUsersDontMatch(char *command, char *prefix, char *nick)
+			case ERR_USERSDONTMATCH://!!!!!!!!!!!
+				IRC_ErrUsersDontMatch(buf, prefix, nick);
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_UMODEUNKNOWNFLAG:
-				IRC_ErrUModeUnknownFlag(char *command, char *prefix, char *nick)
+				IRC_ErrUModeUnknownFlag(buf, prefix, nick);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_UMODEIS:
-				IRC_RplUModeIs(buf, prefix, char *nick, char *usermodestring)
+				IRC_RplUModeIs(buf, prefix, nick, mode);
+				user_send_cmd(usr, buf);
+				break;
+			case RPL_UNIQOPIS:
+				IRC_RplUniqOpIs(buf, prefix, nick, channel_name, char *nickname);
+				//como sacar el creador del canal????
 				user_send_cmd(usr, buf);
 				break;
 		}
-		/*
-		ERR_NEEDMOREPARAMS, ERR_USERSDONTMATCH, ERR_UMODEUNKNOWNFLAG, RPL_UMODEIS
-		*/
 	} else {
-		User* recv = userlist_findByName(serv->usrs, target);
+		User* recv = userlist_findByName(serv->usrs, user_target);
 		if (NULL != recv) opt = user_send_message(recv, nick, msg);
 		else opt = ERR_NOSUCHNICK;
 		switch(opt) {
 			default: break;
 			case ERR_NOTEXTTOSEND:
-				IRC_ErrNoTextToSend(buf, prefix, target);
+				IRC_ErrNoTextToSend(buf, prefix, user_target);
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_NOSUCHNICK:
-				IRC_ErrNoSuchNick(buf, prefix, nick, target);
+				IRC_ErrNoSuchNick(buf, prefix, nick, user_target);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_AWAY:
 				char* awaymsg = user_get_away(recv, &awaymsg);
-				IRC_RplAway(buf, prefix, nick, target, awaymsg);
+				IRC_RplAway(buf, prefix, nick, user_target, awaymsg);
 				user_send_cmd(usr, buf);
 				break;
 		}
-		/*
-		ERR_NEEDMOREPARAMS              ERR_KEYSET
-           ERR_NOCHANMODES                 ERR_CHANOPRIVSNEEDED
-           ERR_USERNOTINCHANNEL            ERR_UNKNOWNMODE
-           RPL_CHANNELMODEIS
-           RPL_BANLIST                     RPL_ENDOFBANLIST
-           RPL_EXCEPTLIST                  RPL_ENDOFEXCEPTLIST
-           RPL_INVITELIST                  RPL_ENDOFINVITELIST
-           RPL_UNIQOPIS
-		*/
+
+		//ERR_NEEDMOREPARAMS              ERR_KEYSET
+        	//ERR_NOCHANMODES                 ERR_CHANOPRIVSNEEDED
+        	//ERR_USERNOTINCHANNEL            ERR_UNKNOWNMODE
+        	//RPL_CHANNELMODEIS
+        	//RPL_BANLIST                     RPL_ENDOFBANLIST
+        	//RPL_EXCEPTLIST                  RPL_ENDOFEXCEPTLIST
+        	//RPL_INVITELIST                  RPL_ENDOFINVITELIST
+        	//RPL_UNIQOPIS
+
 	}
-	return OK;
+	return OK;*/
 }
 
 int serverrcv_quit(Server* serv, User* usr, const char* str) {
