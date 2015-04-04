@@ -1,6 +1,10 @@
 
-#include "G-2301-05-P2-config.h"
-#include "G-2301-05-P2-util.h"
+/* std */
+#include <stdarg.h>
+#include <string.h>
+/* redes2 */
+#include <redes2/irc.h>
+/* usr */
 #include "G-2301-05-P2-user.h"
 
 struct User {
@@ -13,14 +17,24 @@ struct User {
 	char*       	awaymsg;                       	/* Mensaje de away             	*/
 	int         	sock_fd;                       	/* Descriptor del socket       	*/
 	Server*     	server;                        	/* Servidor al que pertenece   	*/
-	struct User*	prev;                          	/* Puntero al siguiente usuario	*/
 	struct User*	next;                          	/* Puntero al siguiente usuario	*/
+	pthread_t   	thread;                        	/* Hilo                        	*/
 };
 
+static void* userP_reader_thread(void* data) {
+	User* usr = data;
+}
+
 // Crea una nueva estructura usuario a partir de un socket.
-User* user_new(int sock) {
-	User* usr = malloc(sizeof *usr);
+User* user_new(Server* serv, int sock) {
+	User* usr = calloc(1, sizeof *usr);ç
+	usr->server  = serv;
 	usr->sock_fd = sock;
+	if (OK != pthread_create(usr->thread, NULL, userP_reader_thread, usr)) {
+		free(usr);
+		return NULL;
+	}
+	pthread_detach(usr->thread);
 	return usr;
 }
 
@@ -37,8 +51,9 @@ ssize_t user_read_from_socket(User* usr, char* buffer, size_t len) {
 }
 
 int user_send_message(User* usr, const char* src, const char* msg) {
+	char buffer[512];
 	if (usr == NULL) return ERR;
-	return user_send_cmdf(usr, "PRIVMSG %s %s");
+	return (int)IRC_Privmsg(char *command, char *prefix, char *msgtarget, char *msg)
 }
 
 
@@ -119,11 +134,32 @@ int user_set_away(User* usr, const char* away_msg) {
 	return OK;
 }
 
-UserList userlist_findbyname(UserList usr, const char* name) {
-	if(usr == NULL) return NULL;
-	while (usr->next != NULL) {
-		if (!strcmp(name, usr->nick)) break;
-		usr = usr->next;
+int userlist_insert(UserList list, User user) {
+
+}
+
+UserList userlist_select(UserList list, int index) {
+
+}
+
+User userlist_extract(UserList list) {
+
+}
+
+UserList userlist_findbyname(UserList list, const char* name) {
+	if (list == NULL) return NULL;
+	while (*list != NULL) {
+		if (!strcmp(name, list->nick)) return list;
+		list = &(*list->next);
 	}
 	return NULL;
+}
+
+void userlist_deleteAll(UserList list) {
+	User* usr;
+	if (list == NULL) return NULL;
+	usr = *list;
+	while (*list != NULL) {
+		list = &(*list->next);
+	}
 }
