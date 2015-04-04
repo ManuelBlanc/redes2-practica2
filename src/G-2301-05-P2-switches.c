@@ -1,7 +1,7 @@
 
 
-int action_switch(int what) {
-	switch (what) {
+int action_switch(User* usr, char* str) {
+	switch (IRC_CommandQuery(str)) {
 		default: break;
 		case ADMIN   	: printf("%s\n", "Comando ADMIN   recibido!"); break;
 		case AWAY    	: printf("%s\n", "Comando AWAY    recibido!"); break;
@@ -222,6 +222,29 @@ int action_switch(int what) {
 	}
 }
 
+int serverrcv_cmd(User* usr, char* str){
+	char* cmd;
+	int more_commands = 1;
+
+	while (more_commands) {
+		switch (IRC_UnPipelineCommands(str, &cmd)) {
+		case IRC_ENDPIPE:
+			usr->buffer_recv[0] = '\0';
+			more_commands = 0;
+		case IRC_OK:
+			action_switch(usr, cmd);
+			str = NULL;
+			break;
+
+		case IRC_EOP:
+			memset(usr->buffer_recv, sizeof(usr->buffer_recv), 0);
+			strncpy(usr->buffer_recv, cmd, sizeof(usr->buffer_recv));
+			return OK;
+		}
+	}
+	// Vaciamos el buffer
+	return OK;
+}
 
 
 
@@ -232,28 +255,164 @@ static char* namechannel_skip_colon(char* channel) {
 }
 
 int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
+	char nick[IRC_MAX_NICK_LEN + 1];
+	char* prefix;
+	char* target;
+	char* msg;
+	char buf[512];
+	long opt;
 
-    char nick[IRC_MAX_NICK_LEN + 1];
-    char* prefix;
-    char* target;
-    char* msg;
-    int isPrivate = 0;
-    IRCParse_Privmsg(str, &prefix, &target, &msg);
+	user_get_nick(usr, &nick);
+	if(0 != IRCParse_Privmsg(str, &prefix, &target, &msg)){
+		IRC_ErrUnKnownCommand(buf, prefix, nick, str);
+		user_send_cmd(usr, buf);
+		return ERR;
+	}
 
     // Es un canal?
-    namechannel_skip_colon(target);
-    if (target[0] == '#') {
-        // Lo buscamos en los canales
-        Channel* chan = channellist_findByName(serv->chan, target+1);
-        channel_send_message(chan, usr, msg);
-        // Aqui va ha haber bastantes mas cosas ...
-    }
-    else {
-        User* recv = userlist_findByName(serv->usrs, target);
-        char* awaymsg = user_get_away(recv, &awaymsg);
-        user_send_message(recv, user_get_nick(usr), msg);
-        if (awaymsg != NULL) {
-            user_send_message(usr, target, awaymsg);
-        }
-    }
+	namechannel_skip_colon(target);
+	if (strchr("#!&+", target[0])) {
+        	// Lo buscamos en los canales
+        	Channel* chan = channellist_findByName(serv->chan, target);
+		//Envia el mensaje o devuelve un codigo de error
+		if (NULL != chan) opt = channel_send_message(chan, usr, msg);
+		else opt = ERR_CANNOTSENDTOCHAN;
+		switch(opt) {
+			default: break;
+			case ERR_NOTEXTTOSEND:
+				IRC_ErrNoTextToSend(buf, prefix, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_CANNOTSENDTOCHAN:
+				IRC_ErrCanNotSendToChan(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_NOSUCHNICK:
+				IRC_ErrNoSuchNick(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+		}
+		/*
+		//case ERR_TOOMANYTARGETS: no admitimos multiples destinatarios
+	  	ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
+		*/
+	} else {
+        	User* recv = userlist_findByName(serv->usrs, target);
+		if (NULL != recv) opt = user_send_message(recv, nick, msg);
+		else opt = ERR_NOSUCHNICK;
+        	switch(opt) {
+			default: break;
+			case ERR_NOTEXTTOSEND:
+				IRC_ErrNoTextToSend(buf, prefix, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_NOSUCHNICK:
+				IRC_ErrNoSuchNick(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+			case RPL_AWAY:
+				char* awaymsg = user_get_away(recv, &awaymsg);
+				IRC_RplAway(buf, prefix, nick, target, awaymsg);
+				user_send_cmd(usr, buf);
+				break;
+		}
+	}
+	return OK;
+}
+
+int serverrcv_mode(Server* serv, User* usr, const char* str) {
+	char nick[IRC_MAX_NICK_LEN + 1];
+	char* channel_name;
+	char* user_target;
+	char* prefix;
+	char  mode;
+	long  opt;
+
+	user_get_nick(usr, &nick);
+	if(0 != IRCParse_Mode(str, &prefix, &channel_name, &mode, &user_target)){
+		IRC_ErrUnKnownCommand(buf, prefix, nick, str);
+		user_send_cmd(usr, buf);
+		return ERR;
+	}
+
+//
+	if (user != NULL) {
+		userlist_findByName(UserList list/*en elchannel, no?*/, const char* name);
+		/* buscar user y llamar a cambiarflags de usuario*/
+	} else {
+		/* cambiar flags decanal*/
+	}
+	IRC_Mode(who->send, who->pre, channel_name, mode, char *user);
+	channel_sendf(chan, "MODE %s +%c", user_get_name(who), mode);
+//
+
+	namechannel_skip_colon(channel_name);
+        Channel* chan = channellist_findByName(serv->chan, channel_name);
+	if (NULL == chan) opt = ERR_CANNOTSENDTOCHAN;
+
+	if (NULL == user_target) {
+		/*
+		ERR_NEEDMOREPARAMS              ERR_USERSDONTMATCH
+           ERR_UMODEUNKNOWNFLAG            RPL_UMODEIS
+		*/
+		switch(opt) {
+			default: break;
+			case ERR_NOTEXTTOSEND:
+				IRC_ErrNoTextToSend(buf, prefix, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_CANNOTSENDTOCHAN:
+				IRC_ErrCanNotSendToChan(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_NOSUCHNICK:
+				IRC_ErrNoSuchNick(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+		}
+		/*
+		//case ERR_TOOMANYTARGETS: no admitimos multiples destinatarios
+	  	ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
+		*/
+	} else {
+		/*
+		ERR_NEEDMOREPARAMS              ERR_KEYSET
+           ERR_NOCHANMODES                 ERR_CHANOPRIVSNEEDED
+           ERR_USERNOTINCHANNEL            ERR_UNKNOWNMODE
+           RPL_CHANNELMODEIS
+           RPL_BANLIST                     RPL_ENDOFBANLIST
+           RPL_EXCEPTLIST                  RPL_ENDOFEXCEPTLIST
+           RPL_INVITELIST                  RPL_ENDOFINVITELIST
+           RPL_UNIQOPIS
+		*/
+        	User* recv = userlist_findByName(serv->usrs, target);
+		if (NULL != recv) opt = user_send_message(recv, nick, msg);
+		else opt = ERR_NOSUCHNICK;
+        	switch(opt) {
+			default: break;
+			case ERR_NOTEXTTOSEND:
+				IRC_ErrNoTextToSend(buf, prefix, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_NOSUCHNICK:
+				IRC_ErrNoSuchNick(buf, prefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+			case RPL_AWAY:
+				char* awaymsg = user_get_away(recv, &awaymsg);
+				IRC_RplAway(buf, prefix, nick, target, awaymsg);
+				user_send_cmd(usr, buf);
+				break;
+		}
+	}
+	return OK;
+}
+
+int serverrcv_quit(Server* serv, User* usr, const char* str) {
+/*sacar los semaforos fuera delparser.c*/
+	/* down semaforo*/
+	userlist_extract(&usr);/*mal argumento*/
+	/* up semaforo*/
+	channel_sendf(chan, "MODE %s +%c", user_get_name(usr), mode);
+
 }
