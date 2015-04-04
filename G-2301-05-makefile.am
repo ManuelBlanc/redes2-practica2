@@ -1,8 +1,10 @@
 
+ACLOCAL_AMFLAGS = -I scripts/
+
 AM_YFLAGS = -d
 
-noinst_LIBRARIES = lib/libr2parser.a
-lib_libr2parser_a_SOURCES = srclib/G-2301-05-P2-parser.y srclib/G-2301-05-P2-lexer.l
+#noinst_LIBRARIES = lib/libr2parser.a
+#lib_libr2parser_a_SOURCES = srclib/G-2301-05-P2-parser.y srclib/G-2301-05-P2-lexer.l
 
 noinst_PROGRAMS = G-2301-05-P2-server
 G_2301_05_P2_server_SOURCES = src/G-2301-05-P2-server.c
