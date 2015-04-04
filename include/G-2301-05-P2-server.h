@@ -40,23 +40,15 @@ void server_down_semaforo(Server* serv);
 void server_up_semaforo(Server* serv);
 
 
-/* Funciones relacionadas con la lista de usuarios */
-
-/**
- * Comprueba si existe un usuario con ese nick
- * @param serv servidor
- * @param nick nick a buscar en la lista de usuarios
- * @return OK si lo encontro y ERR si no
- */
-int server_is_nick_used(Server* serv, const char* nick);
+/* Funciones relacionadas con las listas de usuarios o canales */
 
 /**
  * Añade un nuevo usuario a la lista de usuarios conectados
  * @param serv servidor
- * @param user nuevo usuario
+ * @param usr nuevo usuario
  * @return codigo de error
  */
-int server_add_user(Server* serv, User* user);
+int server_add_user(Server* serv, User* usr);
 
 /**
  * Elimina un usuario de la lista de usuarios conectados
@@ -71,10 +63,10 @@ int server_delete_user(Server* serv, const char* name);
 /**
  * Añade un nuevo canal a la lista de canales existentes
  * @param serv servidor
- * @param chan nombre del nuevo canal
+ * @param name nombre del nuevo canal
  * @return codigo de error
  */
-int server_add_channel(Server* serv, char* chan);
+int server_add_channel(Server* serv, const char* name);
 
 /**
  * Elimina un canal de la lista de canales existentes
@@ -82,7 +74,7 @@ int server_add_channel(Server* serv, char* chan);
  * @param chan nombre del canal a eliminar
  * @return codigo de error
  */
-int server_delete_channel(Server* serv, const char* chan);
+int server_delete_channel(Server* serv, const char* name);
 
 
 
