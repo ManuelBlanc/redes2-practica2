@@ -1,6 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+typedef struct Server Server;
+
+// Orden importante para que no haya recurrencia ciclica
+#include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-channel.h"
+
 typedef struct Server {
         int             sock;           /* Socket que recibe peticiones                 */
         UserList   	usrs;	        /* Lista de usuarios                            */
@@ -92,4 +98,4 @@ int server_delete_channel(Server* serv, const char* chan);
 /* Otro semaforo (en cada hilo probablemente) para evitar que cuando queremos enviar a un usuario
  se desconete en ese momento y pete*/
 
-#endif /* SERVER_H *
+#endif /* SERVER_H */

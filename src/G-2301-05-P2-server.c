@@ -11,8 +11,17 @@
 
 /* usr */
 #include "G-2301-05-P2-config.h"
-#include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-server.h"
 #include "G-2301-05-P2-channel.h"
+#include "G-2301-05-P2-user.h"
+
+struct Server {
+        int             sock;           /* Socket que recibe peticiones                 */
+        UserList   	usrs;	        /* Lista de usuarios                            */
+        ChannelList	chan;           /* Lista de canales                             */
+        pthread_t       select_thr;     /* Hilo para la funcion select()                */
+        fd_set          fd_read;        /* Descriptores de socket                       */
+};
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
 
