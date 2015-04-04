@@ -39,7 +39,6 @@ static void procesar_opciones(int argc, char * const *argv) {
 		{ "help",     	no_argument,      	NULL,      	'h'	},
 		{ "buffy",    	no_argument,      	NULL,      	'b'	},
 		{ "fluoride", 	required_argument,	NULL,      	'f'	},
-		{ "daggerset",	no_argument,      	&daggerset,	1  	},
 		{NULL,0,NULL,0}
 	};
         while (1) {
@@ -107,8 +106,7 @@ int server_accept(Server* serv){
 
 	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
 	User* user = user_new(serv, sock);
-	server_add_user(serv, user);
-	return OK;
+	return server_add_user(serv, user);
 }
 
 int server_is_nick_used(Server* serv, const char* nick) {
@@ -117,19 +115,30 @@ int server_is_nick_used(Server* serv, const char* nick) {
 }
 
 int server_add_user(Server* serv, User* user) {
-   	userlist_insert(serv->usrs, user);
+   	userlist_insert(serv->usrs, *user);
 	return OK;
 }
 
 int server_delete_user(Server* serv, const char* name) {
-	/*cde?????????????*/
-	User* usr = userlist_findByName(UserList list, const char* name);
+	UserList usr = userlist_findByName(serv->usrs, name);
+        if (usr == NULL) return ERR;
+        User usr2 = userlist_extract(usr);
+        user_delete(&usr2);
 	return OK;
 }
 
-int server_add_channel(Server* serv, const char* chan) {
-	/*ya sabemos que no esta repe?????????*/
-   	channellist_insert(serv->chan, chan);
+int server_add_channel(Server* serv, const char* name) {
+        ChannelList chan = channel_findByName(serv->chan, name);
+        if (chan != NULL) return ERR;
+   	channellist_insert(serv->chan, *channel_new(serv, name));
+	return OK;
+}
+
+int server_delete_channel(Server* serv, const char* name) {
+	ChannelList chan = channellist_findByName(serv->chan, name);
+        if (chan == NULL) return ERR;
+        Channel chan2 = channellist_extract(chan);
+        channel_delete(&chan2);
 	return OK;
 }
 
