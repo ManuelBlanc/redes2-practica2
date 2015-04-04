@@ -8,8 +8,7 @@
 #include "G-2301-05-P2-user.h"
 
 struct User {
-	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
-	char        	buffer_send[IRC_MAX_CMD_LEN+1];	/* Buffer para el comando      	*/
+	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion 	*/
 	char        	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
 	char        	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
 	char*       	name[IRC_MAX_NAME_LEN+1];      	/* Nombre                      	*/
@@ -21,13 +20,48 @@ struct User {
 	pthread_t   	thread;                        	/* Hilo                        	*/
 };
 
+static int userP_process_commands(User* usr, char* str){
+	char* cmd;
+	int more_commands = 1;
+
+	while (more_commands) {
+		switch (IRC_UnPipelineCommands(str, &cmd)) {
+		case IRC_ENDPIPE:
+			usr->buffer_recv[0] = '\0';
+			more_commands = 0;
+		case IRC_OK:
+			server_down_semaforo(usr->server);
+			action_switch(usr, cmd);
+			server_up_semaforo(usr->server);
+			str = NULL;
+			break;
+
+		case IRC_EOP:
+			memset(usr->buffer_recv, sizeof(usr->buffer_recv), 0);
+			strncpy(usr->buffer_recv, cmd, sizeof(usr->buffer_recv));
+			return OK;
+		}
+	}
+	return OK;
+}
+
 static void* userP_reader_thread(void* data) {
 	User* usr = data;
+	char buffer[512];
+	ssize_t len;
+	size_t len_buf;
+
+	while (1) {
+		len_buf = strlen(usr->buffer_recv);
+		len = recvfrom(usr->sock_fd, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf, 0);
+		if (len <= 0) return NULL; // Se cierra la conexion
+		usr->buffer_recv[len+len_buf] = '\0';
+	}
 }
 
 // Crea una nueva estructura usuario a partir de un socket.
 User* user_new(Server* serv, int sock) {
-	User* usr = calloc(1, sizeof *usr);ç
+	User* usr = ecalloc(1, sizeof *usr);
 	usr->server  = serv;
 	usr->sock_fd = sock;
 	if (OK != pthread_create(usr->thread, NULL, userP_reader_thread, usr)) {
@@ -45,24 +79,14 @@ void user_delete(User* usr) {
 	free(usr);
 }
 
-//
-ssize_t user_read_from_socket(User* usr, char* buffer, size_t len) {
-	return recv(usr->sock_fd, buffer, len, 0);
-}
-
-int user_send_message(User* usr, const char* src, const char* msg) {
-	char buffer[512];
-	if (usr == NULL) return ERR;
-	return (int)IRC_Privmsg(char *command, char *prefix, char *msgtarget, char *msg)
-}
-
-
+// Envia un comando al usuario.
 int user_send_cmd(User* usr, const char* str) {
 	if (usr == NULL) return ERR;
 	ssize_t bytesSent = send(usr->sock_fd, str, strlen(str), 0);
 	if (bytesSent < -1) return -1;
 }
 
+// Envia un comando con formato a un usuario.
 int user_send_cmdf(User* usr, const char* fmt, ...) {
 	if (usr == NULL) return ERR;
 	char buffer[512];

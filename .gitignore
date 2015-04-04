@@ -18,6 +18,9 @@ srclib/G-2301-05-P2-parser.h
 *.swp
 *.swo
 
+# Git (merge conflicts)
+*.orig
+
 # Backups
 *~
 

@@ -119,8 +119,9 @@ static int channelP_find_user_data(Channel* chan, User* usr, UserChannelData** u
 
 // Busca o crea un usuario en la lista interna de usuarios.
 static void channelP_find_or_create(Channel* chan, User* usr, UserChannelData** ucd) {
-	if (!channelP_find_user_data(chan, usr, &ucd)) {
-		channelP_add_user(chan, usr, &ucd);
+	if (!channelP_find_user_data(chan, usr, ucd)) {
+		// Si no lo hemos encontrado lo creamos.
+		channelP_add_user(chan, usr, ucd);
 	}
 }
 
@@ -128,7 +129,7 @@ static void channelP_find_or_create(Channel* chan, User* usr, UserChannelData** 
 static int channelP_user_op_or_null(Channel* chan, User* usr) {
 	UserChannelData* ucd;
 	if (usr == NULL) return 1;
-	if (!channelP_find_user_data(chan, actor, &ucd)) return 0;
+	if (!channelP_find_user_data(chan, usr, &ucd)) return 0;
 	return (USRFLAG_OPERATOR & ucd->flags) != 0;
 }
 
@@ -162,7 +163,7 @@ int channel_send_cmd(Channel* chan, const char* str) {
 	if (chan == NULL) return ERR;
 	ucd = chan->usrs;
 	while (ucd != NULL) {
-		user_send_cmd(ucd->usr, chan->name, msg);
+		user_send_cmd(ucd->usr, str);
 		ucd = ucd->next;
 	}
 	return OK;
@@ -175,7 +176,7 @@ int channel_send_cmdf(Channel* chan, const char* fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	vsnprint(buffer, sizeof buffer, fmt, ap);
-	int ret = user_send_cmd(usr, buffer);
+	int ret = channel_send_cmd(chan, buffer);
 	va_end(ap);
 	return ret;
 }
@@ -203,7 +204,8 @@ int channel_has_flag_user(Channel* chan, User* usr, char flag) {
 	flag_mask = channelP_char_to_usrflag(flag);
 	if (flag_mask == 0) return ERR_UMODEUNKNOWNFLAG;
 
-	if (!channelP_find_user_data(chan, usr, &ucd)) return ERR;
+	// Buscamos al objetivo
+	if (!channelP_find_user_data(chan, usr, &ucd)) return ERR_USERNOTINCHANNEL;
 
 	return (flag_mask & ucd->flags) != 0;
 }
@@ -222,7 +224,7 @@ int channel_set_flag_user(Channel* chan, User* usr, char flag, User* actor) {
 	if (!channelP_user_op_or_null(chan, actor)) return ERR_CHANOPRIVSNEEDED;
 
 	// Buscamos al objetivo
-	if (!channelP_find_or_create(chan, usr, &ucd)) return ERR_USERNOTINCHANNEL;
+	if (!channelP_find_user_data(chan, usr, &ucd)) return ERR_USERNOTINCHANNEL;
 
 	// Exito!
 	ucd->flags |= flag_mask;
@@ -243,7 +245,7 @@ int channel_unset_flag_user(Channel* chan, User* usr, char flag, User* actor) {
 	if (!channelP_user_op_or_null(chan, actor)) return ERR_CHANOPRIVSNEEDED;
 
 	// Buscamos al objetivo
-	if (!channelP_find_or_create(chan, usr, &ucd)) return ERR_USERNOTINCHANNEL;
+	if (!channelP_find_user_data(chan, usr, &ucd)) return ERR_USERNOTINCHANNEL;
 
 	// Exito!
 	ucd->flags &= ~flag_mask;
@@ -269,13 +271,13 @@ int channel_join(Channel* chan, User* usr, const char* key) {
 
 	// Hay clave? Se ha proporcionado la clave correcta?
 	if (FLAG_CHANKEY | chan->flags) {
-		if (key == NULL) return ERR_BADCHANNELKEY
+		if (key == NULL) return ERR_BADCHANNELKEY;
 		if (strncmp(key, chan->key, CHANNEL_MAX_KEY_LEN)) return ERR_BADCHANNELKEY;
 	}
 
 	// Es de solo invitacion?
 	if (FLAG_INVONLY | chan->flags) {
-		if (USERFLAG | ucd->flags) return ERR_INVITEONLYCHAN;
+		if ((USRFLAG_INVITATION | ucd->flags) == 0) return ERR_INVITEONLYCHAN;
 	}
 
 	// Si hemos llegado hasta aqui, le apuntamos
@@ -414,7 +416,7 @@ int channel_unset_flags(Channel* chan, char flags, User* actor) {
 #define channellist_head(list)	(*(list))
 #define channellist_tail(list)	(&(*(list)->next))
 
-//
+// Inserta un elemento en la lista.
 int channellist_insert(ChannelList list, Channel* chan) {
 	if (list == NULL || chan == NULL) return ERR;
 
@@ -426,7 +428,7 @@ int channellist_insert(ChannelList list, Channel* chan) {
 	return OK;
 }
 
-//
+// Extrae el primer elemento de una lista.
 Channel channellist_extract(ChannelList list) {
 	Channel* chan;
 	if (list == NULL) return NULL;
@@ -437,23 +439,19 @@ Channel channellist_extract(ChannelList list) {
 	return chan;
 }
 
-// Busca un elemento
-Channel channellist_findByName(ChannelList list, const char* name) {
-	Channel* chan;
+// Busca un elemento por su nombre.
+ChannelList channellist_findByName(ChannelList list, const char* name) {
 	if (list == NULL || name == NULL) return NULL;
 
-	while (1) {
-		chan = channellist_head(list);
-		list = channellist_tail(list);
-		if (chan == NULL) break;
+	while (channellist_head(list) != NULL) {
 		if (strncmp(name, chan->name, CHANNEL_MAX_NAME_LEN)) break;
-		chan = channellist_head(list);
+		list = channellist_tail(list);
 	}
 
-	return chan;
+	return list;
 }
 
-// Libera todos los elementos de la lista
+// Libera todos los elementos de la lista.
 void channellist_deleteAll(ChannelList list) {
 	Channel* chan;
 	if (list == NULL) return;

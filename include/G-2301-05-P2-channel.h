@@ -8,11 +8,6 @@ typedef struct Channel** ChannelList;
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-server.h"
 
-#define CHANNEL_MAX_NAME_LEN 	(9) // Decision arbitraria
-#define CHANNEL_MAX_TOPIC_LEN	(50) // Decision arbitraria
-#define CHANNEL_MAX_KEY_LEN  	(50) // Decision arbitraria
-
-
 // Creacion y destruccion de las estructuras
 Channel* channel_new(Server* server, const char* name);
 void channel_delete(Channel* chan);
@@ -57,9 +52,9 @@ int channel_unset_flag(Channel* chan, char flag, User* actor);
 ** ==============================================
 */
 
-int     channellist_insert(ChannelList list, Channel chan);
-Channel channellist_extract(ChannelList list);
-Channel channellist_findByName(ChannelList list, const char* name);
-void    channellist_deleteAll(ChannelList list);
+int         channellist_insert(ChannelList list, Channel chan);
+Channel     channellist_extract(ChannelList list);
+ChannelList channellist_findByName(ChannelList list, const char* name);
+void        channellist_deleteAll(ChannelList list);
 
 #endif /* CHANNEL_H */
