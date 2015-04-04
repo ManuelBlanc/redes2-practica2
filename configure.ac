@@ -36,16 +36,13 @@ AC_CHECK_HEADERS([redes2/irc.h], [], [
 # Checks for library functions.
 
 # Configuration constants
-AC_DEFINE(IRC_MAX_CMD_LEN, 512) # RFC1459 2.3
-
-AC_DEFINE(CHANNEL_MAX_NAME_LEN, 50) # RFC1459 1.3
-AC_DEFINE(CHANNEL_MAX_TOPIC_LEN, 50)
-AC_DEFINE(CHANNEL_MAX_KEY_LEN, 50)
-
-AC_DEFINE(USER_MAX_CHANNEL_LEN, 200) # RFC1459 1.3
-AC_DEFINE(USER_MAX_NICK_LEN, 9) # RFC1459 1.2
-AC_DEFINE(USER_MAX_NAME_LEN, 20)
-AC_DEFINE(USER_MAX_RNAME_LEN, 30)
-AC_DEFINE(USER_MAX_PRE_LEN, 64)
+AC_DEFINE([IRC_MAX_CMD_LEN],      	512,	[Maximum command length]) # RFC1459 2.3
+AC_DEFINE([CHANNEL_MAX_NAME_LEN], 	50, 	[Maximum channel name length]) # RFC2812 1.3
+AC_DEFINE([CHANNEL_MAX_TOPIC_LEN],	50, 	[Maximum channel topic length])
+AC_DEFINE([CHANNEL_MAX_KEY_LEN],  	50, 	[Maximum channel key length])
+AC_DEFINE([USER_MAX_NICK_LEN],    	9,  	[Maximum user length]) # RFC1459 1.2
+AC_DEFINE([USER_MAX_NAME_LEN],    	9,  	[Maximum username length])
+AC_DEFINE([USER_MAX_RNAME_LEN],   	50, 	[Maximum user real name length])
+AC_DEFINE([USER_MAX_PRE_LEN],     	83, 	[Maximum user prefix length]) # RFC2812 2.3
 
 AC_OUTPUT

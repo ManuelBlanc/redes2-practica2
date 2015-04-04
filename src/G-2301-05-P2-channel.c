@@ -308,6 +308,7 @@ int channel_get_topic(Channel* chan, const char** topic) {
 	return OK;
 }
 
+// Cambia el topic del canal.
 int channel_set_topic(Channel* chan, const char* topic, User* usr) {
 	if (chan == NULL) return ERR;
 
@@ -317,18 +318,18 @@ int channel_set_topic(Channel* chan, const char* topic, User* usr) {
 		if (!channelP_user_op_or_null(chan, actor)) return ERR;
 	}
 
-	strncpy(chan->topic, topic);
+	strncpy(chan->topic, topic, CHANNEL_MAX_TOPIC_LEN);
 	return OK;
 }
 
-// Devuelve una copia del nombre del canal.
+// Devuelve el nombre del canal.
 int channel_get_name(Channel* chan, const char** name) {
-	if (chan == NULL) return NULL;
+	if (chan == NULL) return ERR;
 	*name = chan->name;
 	return OK;
 }
 
-// Devuelve una copia de la contraseña del canal.
+// Devuelve la contraseña del canal.
 int channel_get_key(Channel* chan, const char** key) {
 	if (chan == NULL) return ERR;
 	*key = chan->key;

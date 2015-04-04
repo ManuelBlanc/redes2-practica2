@@ -8,19 +8,20 @@
 #include "G-2301-05-P2-user.h"
 
 struct User {
-	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion 	*/
-	char        	pre[IRC_MAX_PRE_LEN+1];        	/* Prefijo                     	*/
-	char        	nick[IRC_MAX_NICK_LEN+1];      	/* Nickname                    	*/
-	char*       	name[IRC_MAX_NAME_LEN+1];      	/* Nombre                      	*/
-	char*       	rname[IRC_MAX_RNAME_LEN+1];    	/* Nombre real                 	*/
-	char*       	awaymsg;                       	/* Mensaje de away             	*/
+	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
+	char        	pre[USER_MAX_PRE_LEN+1];       	/* Prefijo                     	*/
+	char        	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                    	*/
+	char*       	name[USER_MAX_NAME_LEN+1];     	/* Nombre                      	*/
+	char*       	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                 	*/
+	char*       	awaymsg[USER_MAX_AWAY_LEN+1];  	/* Mensaje de away             	*/
 	int         	sock_fd;                       	/* Descriptor del socket       	*/
 	Server*     	server;                        	/* Servidor al que pertenece   	*/
 	struct User*	next;                          	/* Puntero al siguiente usuario	*/
 	pthread_t   	thread;                        	/* Hilo                        	*/
 };
 
-static int userP_process_commands(User* usr, char* str){
+// Procesa los comandos en una cadena, bajo el mutex global.
+static int userP_process_commands(User* usr, char* str) {
 	char* cmd;
 	int more_commands = 1;
 
@@ -45,6 +46,7 @@ static int userP_process_commands(User* usr, char* str){
 	return OK;
 }
 
+// Funcion que ejecuta el hilo lector.
 static void* userP_reader_thread(void* data) {
 	User* usr = data;
 	char buffer[512];
@@ -79,6 +81,10 @@ void user_delete(User* usr) {
 	free(usr);
 }
 
+void user_init_prefix(User* usr) {
+	(void)usr;
+}
+
 // Envia un comando al usuario.
 int user_send_cmd(User* usr, const char* str) {
 	if (usr == NULL) return ERR;
@@ -89,7 +95,7 @@ int user_send_cmd(User* usr, const char* str) {
 // Envia un comando con formato a un usuario.
 int user_send_cmdf(User* usr, const char* fmt, ...) {
 	if (usr == NULL) return ERR;
-	char buffer[512];
+	char buffer[IRC_MAX_CMD_LEN+1];
 	va_list ap;
 	va_start(ap, fmt);
 	vsnprint(buffer, sizeof buffer, fmt, ap);
@@ -98,92 +104,114 @@ int user_send_cmdf(User* usr, const char* fmt, ...) {
 	return ret;
 }
 
-
+// Devuelve el nick del usuario.
 int user_get_nick(User* usr, const char** nick) {
 	if (usr == NULL) return ERR;
-	*nick = strdup(user->nick)
-	return ERR;
+	*nick = user->nick;
+	return OK;
 }
 
+// Cambia el nick del usuario.
 int user_set_nick(User* usr, const char* nick) {
 	if (usr == NULL) return ERR;
-	user_mutex_enter(usr);
-	strcpy(usr->nick, nick);
-	user_mutex_leave(usr);
+	strcpy(usr->nick, nick, USER_MAX_NICK_LEN);
 	return OK;
 }
 
-
+// Devuelve el nombre del usuario.
 int user_get_name(User* usr, const char** name) {
 	if (usr == NULL) return ERR;
-	*name = usr->name
+	*name = usr->name;
 	return OK;
 }
 
+// Cambia el nombre del usuario.
 int user_set_name(User* usr, const char* name) {
 	if (usr == NULL) return ERR;
-	char* newName = strdup(name);
-	if (NULL == newName) return ERR;
-	usr->name = name;
+	strncpy(usr->name, name, USER_MAX_NAME_LEN);
 	return OK;
 }
 
-
+// Devuelve el nombre real del usuario.
 int user_get_rname(User* usr, const char** rname) {
 	if (usr == NULL) return ERR;
-	*rname = strdup(rname);
+	*rname = usr->rname;
 	return (rname == NULL);
 }
 
+// Cambia el nombre real del usuario.
 int user_set_rname(User* usr, const char* rname) {
 	if (usr == NULL) return ERR;
-	char* newRname = strdup(rname);
-	if (NULL == newName) return ERR;
-	usr->name = name;
+	strncpy(usr->rname, rname, USER_MAX_RNAME_LEN);
 	return OK;
 }
 
-
+// Devuelve el mensaje de away (si esta away).
 int user_get_away(User* usr, const char** away_msg) {
 	if (usr == NULL) return ERR;
-	*away_msg = strdup(usr->away_msg);
+	*away_msg = usr->away_msg;
 	return (away_msg == NULL);
 }
 
+// Cambia el estado de away del usuario.
 int user_set_away(User* usr, const char* away_msg) {
 	if (usr == NULL) return ERR;
-	char* newRname = strdup(rname);
-	if (NULL == newName) return ERR;
-	usr->name = name;
+	usr->away_msg = away_msg;
 	return OK;
 }
 
-int userlist_insert(UserList list, User user) {
+// ============================================================================
+//   Funciones de listas
+// ============================================================================
 
+// Macros
+#define userlist_head(list)	(*(list))
+#define userlist_tail(list)	(&(*(list)->next))
+
+// Inserta un elemento en la lista.
+int userlist_insert(UserList list, User* usr) {
+	if (list == NULL || usr == NULL) return ERR;
+
+	// Comprobamos que NO este ya en una lista
+	if (usr->next != NULL) return ERR;
+
+	usr->next = userlist_head(list);
+	*list = usr;
+	return OK;
 }
 
-UserList userlist_select(UserList list, int index) {
-
-}
-
+// Extrae el primer elemento de una lista.
 User userlist_extract(UserList list) {
-
-}
-
-UserList userlist_findbyname(UserList list, const char* name) {
-	if (list == NULL) return NULL;
-	while (*list != NULL) {
-		if (!strcmp(name, list->nick)) return list;
-		list = &(*list->next);
-	}
-	return NULL;
-}
-
-void userlist_deleteAll(UserList list) {
 	User* usr;
 	if (list == NULL) return NULL;
-	usr = *list;
-	while (*list != NULL) {
-		list = &(*list->next);
+
+	usr = userlist_head(list);
+	*list = usr->next;
+	usr->next = NULL;
+	return usr;
+}
+
+// Busca un elemento por su nombre.
+UserList userlist_findByName(UserList list, const char* name) {
+	if (list == NULL || name == NULL) return NULL;
+
+	while (userlist_head(list) != NULL) {
+		if (strncmp(name, usr->name, USER_MAX_NAME_LEN)) break;
+		list = userlist_tail(list);
+	}
+
+	return list;
+}
+
+// Libera todos los elementos de la lista.
+void userlist_deleteAll(UserList list) {
+	User* usr;
+	if (list == NULL) return;
+
+	usr = userlist_head(list);
+	while (usr != NULL) {
+		list = userlist_tail(list);
+		free(usr);
+		usr = userlist_head(list);
 	}
 }

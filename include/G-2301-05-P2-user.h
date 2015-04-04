@@ -13,9 +13,6 @@ void user_delete(User* usr);
 
 int user_init_prefix(User* usr);
 
-int user_read_from_socket(User* usr, char* buffer, size_t len);
-int user_get_socket(User* usr);
-
 // Mandar comandos a un usuario
 int user_send_cmd(User* usr, const char* str);
 int user_send_cmdf(User* usr, const char* fmt, ...)
@@ -43,7 +40,7 @@ int user_set_away(User* usr, const char*  message);
 ** ==============================================
 */
 
-int     	userlist_insert(UserList list, User user);
+int     	userlist_insert(UserList list, User* user);
 User    	userlist_extract(UserList list);
 UserList	userlist_findByName(UserList list, const char* name);
 void    	userlist_deleteAll(UserList list);
