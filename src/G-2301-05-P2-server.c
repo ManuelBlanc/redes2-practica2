@@ -33,7 +33,7 @@ static void usage(int code) {
 	exit(code);
 }
 
-static void procesar_opciones(int argc, char * const *argv) {
+static void procesar_opciones(int argc, char** argv) {
 	static struct option longopts[] = {
 		{ "verbose",  	no_argument,      	NULL,      	'v'	},
 		{ "help",     	no_argument,      	NULL,      	'h'	},
@@ -115,20 +115,20 @@ int server_is_nick_used(Server* serv, const char* nick) {
 }
 
 int server_add_user(Server* serv, User* user) {
-   	userlist_insert(serv->usrs, user);
+   	userlist_insert(&serv->usrs, user);
 	return OK;
 }
 
 int server_delete_user(Server* serv, const char* name) {
 	UserList usr = userlist_findByName(&serv->usrs, name);
         if (usr == NULL) return ERR;
-        User usr2 = userlist_extract(usr);
-        user_delete(&usr2);
+        User* usr2 = userlist_extract(usr);
+        user_delete(usr2);
 	return OK;
 }
 
 int server_add_channel(Server* serv, const char* name) {
-        ChannelList chan = channel_findByName(&serv->chan, name);
+        ChannelList chan = channellist_findByName(&serv->chan, name);
         if (chan != NULL) return ERR;
    	channellist_insert(&serv->chan, channel_new(serv, name));
 	return OK;
@@ -137,12 +137,12 @@ int server_add_channel(Server* serv, const char* name) {
 int server_delete_channel(Server* serv, const char* name) {
 	ChannelList chan = channellist_findByName(&serv->chan, name);
         if (chan == NULL) return ERR;
-        Channel chan2 = channellist_extract(chan);
-        channel_delete(&chan2);
+        Channel* chan2 = channellist_extract(chan);
+        channel_delete(chan2);
 	return OK;
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char** argv)
 {
 	procesar_opciones(argc, argv);
 	demonizar();

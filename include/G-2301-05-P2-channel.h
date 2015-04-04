@@ -52,8 +52,8 @@ int channel_unset_flag(Channel* chan, char flag, User* actor);
 ** ==============================================
 */
 
-int         channellist_insert(ChannelList list, Channel chan);
-Channel     channellist_extract(ChannelList list);
+int         channellist_insert(ChannelList list, Channel* chan);
+Channel*    channellist_extract(ChannelList list);
 ChannelList channellist_findByName(ChannelList list, const char* name);
 void        channellist_deleteAll(ChannelList list);
 

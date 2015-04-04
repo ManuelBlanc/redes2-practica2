@@ -147,7 +147,7 @@ int user_set_rname(User* usr, const char* rname) {
 }
 
 // Devuelve el mensaje de away (si esta away).
-int user_get_away(User* usr, const char** away_msg) {
+int user_get_away(User* usr, char** away_msg) {
 	if (usr == NULL) return ERR;
 	*away_msg = usr->away_msg;
 	return (away_msg == NULL);

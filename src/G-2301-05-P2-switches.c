@@ -1,4 +1,11 @@
+/* redes2 */
+#include <redes2/irc.h>
 
+/* usr */
+#include "G-2301-05-P2-config.h"
+#include "G-2301-05-P2-server.h"
+#include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-channel.h"
 
 int action_switch(User* usr, char* str) {
 	switch (IRC_CommandQuery(str)) {
@@ -96,8 +103,8 @@ static char* namechannel_skip_colon(char* channel) {
 	return *channel == ':' ? channel+1 : channel;
 }
 
-int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
-	char nick[IRC_MAX_NICK_LEN + 1];
+int serverrcv_privmsg(Server* serv, User* usr, char* str) {
+	char nick[USER_MAX_NICK_LEN + 1];
 	char* prefix;
 	char* target;
 	char* msg;
@@ -115,9 +122,9 @@ int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 	namechannel_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
-		Channel* chan = channellist_findByName(serv->chan, target);
+		ChannelList chan = channellist_findByName(&serv->chan, target);
 		//Envia el mensaje o devuelve un codigo de error
-		if (NULL != chan) opt = channel_send_message(chan, usr, msg);
+		if (NULL != chan) opt = channel_send_message(*chan, usr, msg);
 		else opt = ERR_CANNOTSENDTOCHAN;
 		switch(opt) {
 			default: break;
@@ -137,8 +144,9 @@ int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 		//case ERR_TOOMANYTARGETS: no admitimos multiples destinatarios
 		//ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
 	} else {
-		User* recv = userlist_findByName(serv->usrs, target);
-		if (NULL != recv) opt = user_send_message(recv, nick, msg);
+		char* awaymsg;
+		UserList recv = userlist_findByName(&serv->usrs, target);
+		if (NULL != recv) opt = user_send_message(*recv, nick, msg);
 		else opt = ERR_NOSUCHNICK;
 		switch(opt) {
 			default: break;
@@ -151,7 +159,7 @@ int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_AWAY:
-				char* awaymsg = user_get_away(recv, &awaymsg);
+				user_get_away(*recv, &awaymsg);
 				IRC_RplAway(buf, prefix, nick, target, awaymsg);
 				user_send_cmd(usr, buf);
 				break;
@@ -160,8 +168,8 @@ int serverrcv_privmsg(Server* serv, User* usr, const char* str) {
 	return OK;
 }
 
-int serverrcv_mode(Server* serv, User* usr, const char* str) {
-	/*char nick[IRC_MAX_NICK_LEN + 1];
+int serverrcv_mode(Server* serv, User* usr, char* str) {
+	/*char nick[USER_MAX_NICK_LEN + 1];
 	char* channel_name;
 	char* user_target;
 	char* prefix;
@@ -245,8 +253,8 @@ int serverrcv_mode(Server* serv, User* usr, const char* str) {
 	return OK;
 }
 
-int serverrcv_user(Server* serv, User* usr, const char* str) {
-	/*char nick[IRC_MAX_NICK_LEN + 1];
+int serverrcv_user(Server* serv, User* usr, char* str) {
+	/*char nick[USER_MAX_NICK_LEN + 1];
 	char* prefix;
 	char* user_name;
 	char* realname;
@@ -272,11 +280,11 @@ int serverrcv_user(Server* serv, User* usr, const char* str) {
 	return ERR;
 }
 
-int serverrcv_quit(Server* serv, User* usr, const char* str) {
+int serverrcv_quit(Server* serv, User* usr, char* str) {
 /*sacar los semaforos fuera delparser.c*/
 	/* down semaforo*/
-	userlist_extract(&usr);/*mal argumento*/
+	//userlist_extract(&usr);/*mal argumento*/
 	/* up semaforo*/
-	channel_sendf(chan, "MODE %s +%c", user_get_name(usr), mode);
-
+	//channel_sendf(chan, "MODE %s +%c", user_get_name(usr), mode);
+	return OK;
 }

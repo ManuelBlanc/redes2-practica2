@@ -31,7 +31,7 @@ int user_get_rname(User* usr, const char** rname);
 int user_set_rname(User* usr, const char*  rname);
 
 // Cambiar el mensaje de away
-int user_get_away(User* usr, const char** message);
+int user_get_away(User* usr, char** message);
 int user_set_away(User* usr, const char*  message);
 
 /*
@@ -41,7 +41,7 @@ int user_set_away(User* usr, const char*  message);
 */
 
 int     	userlist_insert(UserList list, User* user);
-User    	userlist_extract(UserList list);
+User*    	userlist_extract(UserList list);
 UserList	userlist_findByName(UserList list, const char* name);
 void    	userlist_deleteAll(UserList list);
 
