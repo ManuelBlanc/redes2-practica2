@@ -71,10 +71,10 @@ int server_delete_user(Server* serv, const char* name);
 /**
  * Añade un nuevo canal a la lista de canales existentes
  * @param serv servidor
- * @param chan nuevo canal
+ * @param chan nombre del nuevo canal
  * @return codigo de error
  */
-int server_add_channel(Server* serv, Channel* chan);
+int server_add_channel(Server* serv, char* chan);
 
 /**
  * Elimina un canal de la lista de canales existentes

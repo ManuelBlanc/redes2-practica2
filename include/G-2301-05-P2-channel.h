@@ -6,14 +6,15 @@ typedef struct Channel** ChannelList;
 
 #include "G-2301-05-P2-util.h"
 #include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-server.h"
 
 #define CHANNEL_MAX_NAME_LEN 	(9) // Decision arbitraria
 #define CHANNEL_MAX_TOPIC_LEN	(50) // Decision arbitraria
-#define CHANNEL_MAX_PSW_LEN  	(50) // Decision arbitraria
+#define CHANNEL_MAX_KEY_LEN  	(50) // Decision arbitraria
 
 
 // Creacion y destruccion de las estructuras
-Channel* channel_new(const char* name);
+Channel* channel_new(Server* server, const char* name);
 void channel_delete(Channel* chan);
 
 // Unirse y abandonar (o kickear) del canal
@@ -26,7 +27,7 @@ int channel_set_flag_user(Channel* chan, User* usr, char flag, User* actor);
 int channel_unset_flag_user(Channel* chan, User* usr, char flag, User* actor);
 
 // Puede un usuario mandar mensajes?
-int channel_can_send_message(Channel* chan, User* usr, const char* msg);
+int channel_can_send_message(Channel* chan, User* usr);
 
 // Mandar comandos
 int channel_send_cmd(Channel* chan, const char* str);
@@ -56,9 +57,9 @@ int channel_unset_flag(Channel* chan, char flag, User* actor);
 ** ==============================================
 */
 
-int        	channellist_insert(ChannelList list, Channel chan);
-Channel    	channellist_extract(ChannelList list);
-ChannelList	channellist_findByName(ChannelList list, const char* name);
-void       	channellist_deleteAll(ChannelList list);
+int     channellist_insert(ChannelList list, Channel chan);
+Channel channellist_extract(ChannelList list);
+Channel channellist_findByName(ChannelList list, const char* name);
+void    channellist_deleteAll(ChannelList list);
 
 #endif /* CHANNEL_H */

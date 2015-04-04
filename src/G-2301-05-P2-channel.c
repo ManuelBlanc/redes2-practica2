@@ -55,12 +55,13 @@ typedef struct Channel {
 } Channel;
 
 // Reserva de memoria. Inicializa el nombre.
-Channel* channel_new(const char* name) {
+Channel* channel_new(Server* server, const char* name) {
 	Channel* chan;
 	if (name == NULL) return;
 
-	chan = ecalloc(1, sizeof Channel);
+	chan = ecalloc(1, sizeof *chan);
 	strncpy(chan->name, name, CHANNEL_MAX_NAME_LEN);
+	chan->server = server;
 	return chan;
 }
 
@@ -77,15 +78,15 @@ void channel_delete(Channel* chan) {
 }
 
 // Añade un usuario a la lista interna de usuarios.
-static int channelP_add_user(Channel* chan, User* usr, UserChannelData** ucd) {
-	UserChannelData* ucd = emalloc(sizeof UserChannelData);
+static int channelP_add_user(Channel* chan, User* usr, UserChannelData** ucdDst) {
+	UserChannelData* ucd = emalloc(sizeof *ucd);
 	ucd->usr       = usr;
 	ucd->flags     = 0;
-	ucd->inChannel = 0
+	ucd->inChannel = 0;
 	ucd->next      = chan->usrs;
 	chan->usrs = ucd;
 
-	*ucd = ucd;
+	*ucdDst = ucd;
 	return OK;
 }
 
@@ -94,11 +95,11 @@ static int channelP_remove_user(Channel* chan, User* usr) {
 	UserChannelData** ucd = &chan->usrs;
 	while (*ucd != NULL) {
 		UserChannelData* usrNext = *ucd;
-		if (next->usr == usr) {
+		if (usrNext->usr == usr) {
 			*ucd = usrNext->next;
 			return OK;
 		}
-		*ucd = &usrNext->next;
+		ucd = &usrNext->next;
 	}
 	return ERR;
 }
@@ -117,12 +118,10 @@ static int channelP_find_user_data(Channel* chan, User* usr, UserChannelData** u
 }
 
 // Busca o crea un usuario en la lista interna de usuarios.
-static int channelP_find_or_create(Channel* chan, User* usr, UserChannelData** ucd) {
-	UserChannelData* ucd;
+static void channelP_find_or_create(Channel* chan, User* usr, UserChannelData** ucd) {
 	if (!channelP_find_user_data(chan, usr, &ucd)) {
 		channelP_add_user(chan, usr, &ucd);
 	}
-	return ucd;
 }
 
 // Comprueba si un usuario es operador o NULL.
@@ -376,7 +375,7 @@ int channel_has_flag(Channel* chan, char flag) {
 }
 
 // Pone una flag al canal.
-int channel_set_flag(Channel* chan, long flags, User* actor) {
+int channel_set_flag(Channel* chan, char flags, User* actor) {
 	ChannelFlags flag_mask;
 	if (chan == NULL) return ERR;
 
@@ -392,7 +391,7 @@ int channel_set_flag(Channel* chan, long flags, User* actor) {
 }
 
 // Quita una flag del canal.
-int channel_unset_flags(Channel* chan, long flags, User* actor) {
+int channel_unset_flags(Channel* chan, char flags, User* actor) {
 	ChannelFlags flag_mask;
 	if (chan == NULL) return ERR;
 
@@ -440,11 +439,15 @@ Channel channellist_extract(ChannelList list) {
 
 // Busca un elemento
 Channel channellist_findByName(ChannelList list, const char* name) {
+	Channel* chan;
 	if (list == NULL || name == NULL) return NULL;
 
-	while (channellist_head(list) != NULL) {
-		if (strncmp(name, chan->name, CHANNEL_MAX_NAME_LEN)) break;
+	while (1) {
+		chan = channellist_head(list);
 		list = channellist_tail(list);
+		if (chan == NULL) break;
+		if (strncmp(name, chan->name, CHANNEL_MAX_NAME_LEN)) break;
+		chan = channellist_head(list);
 	}
 
 	return chan;
@@ -459,7 +462,7 @@ void channellist_deleteAll(ChannelList list) {
 	while (chan != NULL) {
 		list = channellist_tail(list);
 		free(chan);
-		chan = channellist_head(chan);
+		chan = channellist_head(list);
 	}
 }
 

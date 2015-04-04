@@ -14,8 +14,6 @@ typedef struct User** UserList;
 #define IRC_MAX_PRE_LEN    	(64) 	// Decision arbitraria
 #define IRC_MAX_CMD_LEN    	(512)	//
 
-// Ordenamos los campos de mayor a menor para evitar fragmentacion
-typedef struct User* User;
 
 // Crear y destruir estructuras
 User* user_new(Server* serv, int sock);
@@ -53,18 +51,16 @@ int user_set_away(User* usr, const char*  message);
 ** ==============================================
 */
 
-typedef struct User**   UserList;
-
-/* Convierte un monstruo en la cabeza de una lista para que
- * se puedan insertar y extraer elementos.
- */
-#define userlist(user)      (&(user))
-
-
 int     	userlist_insert(UserList list, User user);
 UserList	userlist_select(UserList list, unsigned int index);
 User    	userlist_extract(UserList list);
 UserList	userlist_findByName(UserList list, const char* name);
 void    	userlist_deleteAll(UserList list);
 
+<<<<<<< HEAD
+#endif /*USER_H*/
+||||||| merged common ancestors
+#endif USER_H
+=======
 #endif /* USER_H */
+>>>>>>> e1159b4fa5d9db7fdeb9d12a40c243d4785d1aa4
