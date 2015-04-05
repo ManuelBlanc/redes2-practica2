@@ -94,7 +94,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	namechannel_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
-		ChannelList chan = channellist_findByName(&serv->chan, target);
+		ChannelList chan = channellist_findByName(server_get_channellist(serv), target);
 		//Envia el mensaje o devuelve un codigo de error
 		if (NULL != chan) opt = channel_send_message(*chan, usr, msg);
 		else opt = ERR_CANNOTSENDTOCHAN;
@@ -117,7 +117,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 		//ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
 	} else {
 		char* awaymsg;
-		UserList recv = userlist_findByName(&serv->usrs, target);
+		UserList recv = userlist_findByName(server_get_userlist(serv), target);
 		if (NULL != recv) opt = user_send_message(*recv, nick, msg);
 		else opt = ERR_NOSUCHNICK;
 		switch(opt) {

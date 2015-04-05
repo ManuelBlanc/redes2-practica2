@@ -109,6 +109,16 @@ int server_accept(Server* serv){
 	return server_add_user(serv, user);
 }
 
+UserList server_get_userlist(Server* serv) {
+        if(NULL == serv) return NULL;
+        return (&serv->usrs);
+}
+
+ChannelList server_get_channellist(Server* serv) {
+        if(NULL == serv) return NULL;
+        return (&serv->chan);
+}
+
 int server_is_nick_used(Server* serv, const char* nick) {
 	if(NULL == userlist_findByName(&serv->usrs, nick)) return ERR;
 	return OK;

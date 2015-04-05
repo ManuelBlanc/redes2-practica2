@@ -6,8 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 /* usr */
-#include "G-2301-05-P1-chat.h"
-#include "G-2301-05-P1-util.h"
+#include "G-2301-05-P2-util.h"
 
 #define BOLD(str)  	"\033[1m"  str "\033[0m"
 #define RED(str)   	"\033[31m" str "\033[0m"
@@ -68,7 +67,7 @@ void _log(const char* file, int line, const char* func, const char* fmt, ...) {
 
 void* emalloc(size_t size)
 {
-	void* ptr = malloc(n);
+	void* ptr = malloc(size);
 	ASSERT(ptr != NULL, "No se pudo reservar memoria con malloc()");
 	return ptr;
 }
