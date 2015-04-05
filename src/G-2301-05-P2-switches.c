@@ -94,7 +94,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	namechannel_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
-		ChannelList chan = channellist_findByName(&serv->chan, target);
+		ChannelList chan = channellist_findByName(server_get_channellist(serv), target);
 		//Envia el mensaje o devuelve un codigo de error
 		if (NULL != chan) opt = channel_send_message(*chan, usr, msg);
 		else opt = ERR_CANNOTSENDTOCHAN;
@@ -117,7 +117,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 		//ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
 	} else {
 		char* awaymsg;
-		UserList recv = userlist_findByName(&serv->usrs, target);
+		UserList recv = userlist_findByName(server_get_userlist(serv), target);
 		if (NULL != recv) opt = user_send_message(*recv, nick, msg);
 		else opt = ERR_NOSUCHNICK;
 		switch(opt) {
@@ -231,21 +231,21 @@ int serverrcv_user(Server* serv, User* usr, char* str) {
 	char* user_name;
 	char* realname;
 	char* mode;
+	char buf[512];
 	// The <mode> parameter should be a numeric, and can be used to
    	//automatically set user modes when registering with the server.  This
    	//parameter is a bitmask, with only 2 bits having any signification: if
    	//the bit 2 is set, the user mode 'w' will be set and if the bit 3 is
    	//set, the user mode 'i' will be set.
 	if(0 != IRCParse_User(str, &prefix, &user_name, &mode, &realname)){
-		IRC_ErrNeedMoreParams();
-		IRC_ErrNeedMoreParams(buf, prefix, nick, str);
+		IRC_ErrNeedMoreParams(buf, prefix, user_name, str);
 		user_send_cmd(usr, buf);
 		return ERR;
 	}
-	User* usr = userlist_findByName();
-	if(NULL == usr){
+	UserList usr_using = userlist_findByName(&serv->usrs, user_name);
+	if(NULL == usr_using){
 		setters...
-		server_add_user();
+		server_add_user(serv, usr);
 		return OK;
 	}
 	IRC_ErrAlreadyRegistred();*/

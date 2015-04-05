@@ -43,6 +43,20 @@ void server_up_semaforo(Server* serv);
 /* Funciones relacionadas con las listas de usuarios o canales */
 
 /**
+ * Devuelve la lista de usuarios
+ * @param serv servidor
+ * @return lista de usuarios
+ */
+UserList server_get_userlist(Server* serv);
+
+/**
+ * Devuelve la lista de canales
+ * @param serv servidor
+ * @return lista de canales
+ */
+ChannelList server_get_channellist(Server* serv);
+
+/**
  * Añade un nuevo usuario a la lista de usuarios conectados
  * @param serv servidor
  * @param usr nuevo usuario

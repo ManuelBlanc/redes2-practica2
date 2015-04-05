@@ -66,6 +66,9 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Maximum away message length */
+#undef USER_MAX_AWAY_LEN
+
 /* Maximum username length */
 #undef USER_MAX_NAME_LEN
 

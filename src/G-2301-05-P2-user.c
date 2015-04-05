@@ -7,14 +7,15 @@
 #include <redes2/irc.h>
 /* usr */
 #include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-config.h"
 
 struct User {
 	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
 	char        	pre[USER_MAX_PRE_LEN+1];       	/* Prefijo                     	*/
 	char        	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                    	*/
-	char*       	name[USER_MAX_NAME_LEN+1];     	/* Nombre                      	*/
-	char*       	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                 	*/
-	char*       	awaymsg[USER_MAX_AWAY_LEN+1];  	/* Mensaje de away             	*/
+	char       	name[USER_MAX_NAME_LEN+1];     	/* Nombre                      	*/
+	char       	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                 	*/
+	char       	away_msg[USER_MAX_AWAY_LEN+1];  /* Mensaje de away             	*/
 	int         	sock_fd;                       	/* Descriptor del socket       	*/
 	Server*     	server;                        	/* Servidor al que pertenece   	*/
 	struct User*	next;                          	/* Puntero al siguiente usuario	*/
@@ -78,12 +79,13 @@ User* user_new(Server* serv, int sock) {
 // Destruye la estructura y cierra el socket.
 void user_delete(User* usr) {
 	if (usr == NULL) return;
-	close(sock_fd);
+	close(usr->sock_fd);
 	free(usr);
 }
 
-void user_init_prefix(User* usr) {
+int user_init_prefix(User* usr) {
 	(void)usr;
+	return OK;
 }
 
 // Envia un comando al usuario.
@@ -106,9 +108,9 @@ int user_send_cmdf(User* usr, const char* fmt, ...) {
 }
 
 // Devuelve el nick del usuario.
-int user_get_nick(User* usr, const char** nick) {
+int user_get_nick(User* usr, char** nick) {
 	if (usr == NULL) return ERR;
-	*nick = user->nick;
+	*nick = usr->nick;
 	return OK;
 }
 
@@ -120,7 +122,7 @@ int user_set_nick(User* usr, const char* nick) {
 }
 
 // Devuelve el nombre del usuario.
-int user_get_name(User* usr, const char** name) {
+int user_get_name(User* usr, char** name) {
 	if (usr == NULL) return ERR;
 	*name = usr->name;
 	return OK;
@@ -134,7 +136,7 @@ int user_set_name(User* usr, const char* name) {
 }
 
 // Devuelve el nombre real del usuario.
-int user_get_rname(User* usr, const char** rname) {
+int user_get_rname(User* usr, char** rname) {
 	if (usr == NULL) return ERR;
 	*rname = usr->rname;
 	return (rname == NULL);
@@ -157,7 +159,7 @@ int user_get_away(User* usr, char** away_msg) {
 // Cambia el estado de away del usuario.
 int user_set_away(User* usr, const char* away_msg) {
 	if (usr == NULL) return ERR;
-	usr->away_msg = away_msg;
+	strncpy(usr->away_msg, away_msg, USER_MAX_AWAY_LEN);
 	return OK;
 }
 
@@ -167,7 +169,7 @@ int user_set_away(User* usr, const char* away_msg) {
 
 // Macros
 #define userlist_head(list)	(*(list))
-#define userlist_tail(list)	(&(*(list)->next))
+#define userlist_tail(list)	(&(userlist_head(list)->next))
 
 // Inserta un elemento en la lista.
 int userlist_insert(UserList list, User* usr) {
@@ -182,7 +184,7 @@ int userlist_insert(UserList list, User* usr) {
 }
 
 // Extrae el primer elemento de una lista.
-User userlist_extract(UserList list) {
+User* userlist_extract(UserList list) {
 	User* usr;
 	if (list == NULL) return NULL;
 
