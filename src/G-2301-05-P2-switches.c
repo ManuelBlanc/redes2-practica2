@@ -90,7 +90,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 		return ERR;
 	}
 
-    // Es un canal?
+	// Es un canal?
 	namechannel_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
@@ -404,7 +404,40 @@ int exec_cmd_kick(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The KILL command is used to cause a client-server connection to be
+	closed by the server which has the actual connection.  Servers
+	generate KILL messages on nickname collisions.  It MAY also be
+	available available to users who have the operator status.
 
+	Clients which have automatic reconnect algorithms effectively make
+	this command useless since the disconnection is only brief.  It does
+	however break the flow of data and can be used to stop large amounts
+	of 'flooding' from abusive users or accidents.  Abusive users usually
+	don't care as they will reconnect promptly and resume their abusive
+	behaviour.  To prevent this command from being abused, any user may
+	elect to receive KILL messages generated for others to keep an 'eye'
+	on would be trouble spots.
+
+	In an arena where nicknames are REQUIRED to be globally unique at all
+	times, KILL messages are sent whenever 'duplicates' are detected
+	(that is an attempt to register two users with the same nickname) in
+	the hope that both of them will disappear and only 1 reappear.
+
+	When a client is removed as the result of a KILL message, the server
+	SHOULD add the nickname to the list of unavailable nicknames in an
+	attempt to avoid clients to reuse this name immediately which is
+	usually the pattern of abusive behaviour often leading to useless
+	"KILL loops".  See the "IRC Server Protocol" document [IRC-SERVER]
+	for more information on this procedure.
+
+	The comment given MUST reflect the actual reason for the KILL.  For
+	server-generated KILLs it usually is made up of details concerning
+	the origins of the two conflicting nicknames.  For users it is left
+	up to them to provide an adequate reason to satisfy others who see
+	it.  To prevent/discourage fake KILLs from being generated to hide
+	the identify of the KILLer, the comment also shows a 'kill-path'
+	which is updated by each server it passes through, each prepending
+	its name to the path.
 */
 int exec_cmd_kill(Server* serv, User* usr, const char* cmd) {
 
@@ -413,7 +446,7 @@ int exec_cmd_kill(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	Extension magica de Eloy.
 */
 int exec_cmd_knock(Server* serv, User* usr, const char* cmd) {
 
@@ -422,7 +455,13 @@ int exec_cmd_knock(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	With LINKS, a user can list all servernames, which are known by the
+	server answering the query.  The returned list of servers MUST match
+	the mask, or if no mask is given, the full list is returned.
 
+	If <remote server> is given in addition to <server mask>, the LINKS
+	command is forwarded to the first server found that matches that name
+	(if any), and that server is then required to answer the query.
 */
 int exec_cmd_links(Server* serv, User* usr, const char* cmd) {
 
@@ -431,7 +470,14 @@ int exec_cmd_links(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The list command is used to list channels and their topics.  If the
+	<channel> parameter is used, only the status of that channel is
+	displayed.
 
+	If the <target> parameter is specified, the request is forwarded to
+	that server which will generate the reply.
+
+	Wildcards are allowed in the <target> parameter.
 */
 int exec_cmd_list(Server* serv, User* usr, const char* cmd) {
 
@@ -440,7 +486,14 @@ int exec_cmd_list(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The LUSERS command is used to get statistics about the size of the
+	IRC network.  If no parameter is given, the reply will be about the
+	whole net.  If a <mask> is specified, then the reply will only
+	concern the part of the network formed by the servers matching the
+	mask.  Finally, if the <target> parameter is specified, the request
+	is forwarded to that server which will generate the reply.
 
+	Wildcards are allowed in the <target> parameter.
 */
 int exec_cmd_lusers(Server* serv, User* usr, const char* cmd) {
 
@@ -604,7 +657,7 @@ int exec_cmd_names(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	Extension magica de Eloy.
 */
 int exec_cmd_namesx(Server* serv, User* usr, const char* cmd) {
 
@@ -613,7 +666,8 @@ int exec_cmd_namesx(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	NICK command is used to give user a nickname or change the existing
+	one.
 */
 int exec_cmd_nick(Server* serv, User* usr, const char* cmd) {
 
@@ -622,7 +676,20 @@ int exec_cmd_nick(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The NOTICE command is used similarly to PRIVMSG.  The difference
+	between NOTICE and PRIVMSG is that automatic replies MUST NEVER be
+	sent in response to a NOTICE message.  This rule applies to servers
+	too - they MUST NOT send any error reply back to the client on
+	receipt of a notice.  The object of this rule is to avoid loops
+	between clients automatically sending something in response to
+	something it received.
 
+	This command is available to services as well as users.
+
+	This is typically used by services, and automatons (clients with
+	either an AI or other interactive program controlling their actions).
+
+	See PRIVMSG for more details on replies and examples.
 */
 int exec_cmd_notice(Server* serv, User* usr, const char* cmd) {
 
@@ -631,7 +698,10 @@ int exec_cmd_notice(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	A normal user uses the OPER command to obtain operator privileges.
+	The combination of <name> and <password> are REQUIRED to gain
+	Operator privileges.  Upon success, the user will receive a MODE
+	message (see section 3.1.5) indicating the new user modes.
 */
 int exec_cmd_oper(Server* serv, User* usr, const char* cmd) {
 
@@ -640,7 +710,15 @@ int exec_cmd_oper(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The PART command causes the user sending the message to be removed
+	from the list of active members for all given channels listed in the
+	parameter string.  If a "Part Message" is given, this will be sent
+	instead of the default message, the nickname.  This request is always
+	granted by the server.
 
+	Servers MUST be able to parse arguments in the form of a list of
+	target, but SHOULD NOT use lists when sending PART messages to
+	clients.
 */
 int exec_cmd_part(Server* serv, User* usr, const char* cmd) {
 
@@ -649,7 +727,10 @@ int exec_cmd_part(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	The PASS command is used to set a 'connection password'.  The
+	optional password can and MUST be set before any attempt to register
+	the connection is made.  Currently this requires that user send a
+	PASS command before sending the NICK/USER combination.
 */
 int exec_cmd_pass(Server* serv, User* usr, const char* cmd) {
 
@@ -658,7 +739,18 @@ int exec_cmd_pass(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The PING command is used to test the presence of an active client or
+	server at the other end of the connection.  Servers send a PING
+	message at regular intervals if no other activity detected coming
+	from a connection.  If a connection fails to respond to a PING
+	message within a set amount of time, that connection is closed.  A
+	PING message MAY be sent even if the connection is active.
 
+	When a PING message is received, the appropriate PONG message MUST be
+	sent as reply to <server1> (server which sent the PING message out)
+	as soon as possible.  If the <server2> parameter is specified, it
+	represents the target of the ping, and the message gets forwarded
+	there.
 */
 int exec_cmd_ping(Server* serv, User* usr, const char* cmd) {
 
@@ -667,7 +759,10 @@ int exec_cmd_ping(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	PONG message is a reply to ping message.  If parameter <server2> is
+	given, this message MUST be forwarded to given target.  The <server>
+	parameter is the name of the entity who has responded to PING message
+	and generated this message.
 */
 int exec_cmd_pong(Server* serv, User* usr, const char* cmd) {
 
@@ -676,7 +771,18 @@ int exec_cmd_pong(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	PRIVMSG is used to send private messages between users, as well as to
+	send messages to channels.  <msgtarget> is usually the nickname of
+	the recipient of the message, or a channel name.
 
+	The <msgtarget> parameter may also be a host mask (#<mask>) or server
+	mask ($<mask>).  In both cases the server will only send the PRIVMSG
+	to those who have a server or host matching the mask.  The mask MUST
+	have at least 1 (one) "." in it and no wildcards following the last
+	".".  This requirement exists to prevent people sending messages to
+	"#*" or "$*", which would broadcast to all users.  Wildcards are the
+	'*' and '?'  characters.  This extension to the PRIVMSG command is
+	only available to operators.
 */
 int exec_cmd_privmsg(Server* serv, User* usr, const char* cmd) {
 
@@ -685,7 +791,8 @@ int exec_cmd_privmsg(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	A client session is terminated with a quit message.  The server
+	acknowledges this by sending an ERROR message to the client.
 */
 int exec_cmd_quit(Server* serv, User* usr, const char* cmd) {
 
@@ -694,7 +801,9 @@ int exec_cmd_quit(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	The rehash command is an administrative command which can be used by
+	an operator to force the server to re-read and process its
+	configuration file.
 */
 int exec_cmd_rehash(Server* serv, User* usr, const char* cmd) {
 
@@ -703,7 +812,14 @@ int exec_cmd_rehash(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	An operator can use the restart command to force the server to
+	restart itself.  This message is optional since it may be viewed as a
+	risk to allow arbitrary people to connect to a server as an operator
+	and execute this command, causing (at least) a disruption to service.
 
+	The RESTART command MUST always be fully processed by the server to
+	which the sending client is connected and MUST NOT be passed onto
+	other connected servers.
 */
 int exec_cmd_restart(Server* serv, User* usr, const char* cmd) {
 
@@ -766,7 +882,11 @@ int exec_cmd_silence(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The SQUERY command is used similarly to PRIVMSG.  The only difference
+	is that the recipient MUST be a service.  This is the only way for a
+	text message to be delivered to a service.
 
+	See PRIVMSG for more details on replies and example.
 */
 int exec_cmd_squery(Server* serv, User* usr, const char* cmd) {
 
@@ -775,7 +895,17 @@ int exec_cmd_squery(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The SQUIT command is available only to operators.  It is used to
+	disconnect server links.  Also servers can generate SQUIT messages on
+	error conditions.  A SQUIT message may also target a remote server
+	connection.  In this case, the SQUIT message will simply be sent to
+	the remote server without affecting the servers in between the
+	operator and the remote server.
 
+	The <comment> SHOULD be supplied by all operators who execute a SQUIT
+	for a remote server.  The server ordered to disconnect its peer
+	generates a WALLOPS message with <comment> included, so that other
+	users may be aware of the reason of this action.
 */
 int exec_cmd_squit(Server* serv, User* usr, const char* cmd) {
 
@@ -784,7 +914,34 @@ int exec_cmd_squit(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The stats command is used to query statistics of certain server.  If
+	<query> parameter is omitted, only the end of stats reply is sent
+	back.
 
+	A query may be given for any single letter which is only checked by
+	the destination server and is otherwise passed on by intermediate
+	servers, ignored and unaltered.
+
+	Wildcards are allowed in the <target> parameter.
+
+	Except for the ones below, the list of valid queries is
+	implementation dependent.  The standard queries below SHOULD be
+	supported by the server:
+
+	l - returns a list of the server's connections, showing how
+	  long each connection has been established and the
+	  traffic over that connection in Kbytes and messages for
+	  each direction;
+	m - returns the usage count for each of commands supported
+	  by the server; commands for which the usage count is
+	  zero MAY be omitted;
+	o - returns a list of configured privileged users,
+	  operators;
+	u - returns a string showing how long the server has been
+	  up.
+
+	It is also RECOMMENDED that client and server access configuration be
+	published this way.
 */
 int exec_cmd_stats(Server* serv, User* usr, const char* cmd) {
 
@@ -793,7 +950,17 @@ int exec_cmd_stats(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The SUMMON command can be used to give users who are on a host
+	running an IRC server a message asking them to please join IRC.  This
+	message is only sent if the target server (a) has SUMMON enabled, (b)
+	the user is logged in and (c) the server process can write to the
+	user's tty (or similar).
 
+	If no <server> parameter is given it tries to summon <user> from the
+	server the client is connected to is assumed as the target.
+
+	If summon is not enabled in a server, it MUST return the
+	ERR_SUMMONDISABLED numeric.
 */
 int exec_cmd_summon(Server* serv, User* usr, const char* cmd) {
 
@@ -802,7 +969,11 @@ int exec_cmd_summon(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	The time command is used to query local time from the specified
+	server. If the <target> parameter is not given, the server receiving
+	the command must reply to the query.
 
+	Wildcards are allowed in the <target> parameter.
 */
 int exec_cmd_time(Server* serv, User* usr, const char* cmd) {
 
@@ -811,7 +982,12 @@ int exec_cmd_time(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	The TOPIC command is used to change or view the topic of a channel.
+	The topic for channel <channel> is returned if there is no <topic>
+	given.  If the <topic> parameter is present, the topic for that
+	channel will be changed, if this action is allowed for the user
+	requesting it.  If the <topic> parameter is an empty string, the
+	topic for that channel will be removed.
 */
 int exec_cmd_topic(Server* serv, User* usr, const char* cmd) {
 
