@@ -421,7 +421,7 @@ int channel_unset_flags(Channel* chan, char flag, User* actor) {
 
 // Macros
 #define channellist_head(list)	(*(list))
-#define channellist_tail(list)	(&((*(list))->next))
+#define channellist_tail(list)	(&channellist_head(list)->next)
 
 // Inserta un elemento en la lista.
 int channellist_insert(ChannelList list, Channel* chan) {
