@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 /* usr */
 #include "G-2301-05-P2-util.h"

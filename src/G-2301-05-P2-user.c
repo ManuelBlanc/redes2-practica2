@@ -3,11 +3,17 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <pthread.h>
 /* redes2 */
 #include <redes2/irc.h>
 /* usr */
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-config.h"
+#include "G-2301-05-P2-switches.c"
+
 
 struct User {
 	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
@@ -23,7 +29,7 @@ struct User {
 };
 
 // Procesa los comandos en una cadena, bajo el mutex global.
-static int userP_process_commands(User* usr, char* str) {
+/*static int userP_process_commands(User* usr, char* str) {
 	char* cmd;
 	int more_commands = 1;
 
@@ -46,18 +52,17 @@ static int userP_process_commands(User* usr, char* str) {
 		}
 	}
 	return OK;
-}
+}*/
 
 // Funcion que ejecuta el hilo lector.
 static void* userP_reader_thread(void* data) {
 	User* usr = data;
-	char buffer[512];
 	ssize_t len;
 	size_t len_buf;
 
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
-		len = recvfrom(usr->sock_fd, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf, 0);
+		len = recv(usr->sock_fd, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf, 0);
 		if (len <= 0) return NULL; // Se cierra la conexion
 		usr->buffer_recv[len+len_buf] = '\0';
 	}
@@ -68,7 +73,7 @@ User* user_new(Server* serv, int sock) {
 	User* usr = ecalloc(1, sizeof *usr);
 	usr->server  = serv;
 	usr->sock_fd = sock;
-	if (OK != pthread_create(usr->thread, NULL, userP_reader_thread, usr)) {
+	if (OK != pthread_create(&usr->thread, NULL, userP_reader_thread, usr)) {
 		free(usr);
 		return NULL;
 	}
@@ -93,6 +98,7 @@ int user_send_cmd(User* usr, const char* str) {
 	if (usr == NULL) return ERR;
 	ssize_t bytesSent = send(usr->sock_fd, str, strlen(str), 0);
 	if (bytesSent < -1) return -1;
+	return OK;
 }
 
 // Envia un comando con formato a un usuario.

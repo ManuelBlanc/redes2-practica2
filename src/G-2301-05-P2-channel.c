@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* redes2 */
+#include <redes2/irc.h>
 /* usr */
 #include "G-2301-05-P2-config.h"
 #include "G-2301-05-P2-util.h"
@@ -56,6 +58,13 @@ typedef struct Channel {
 } Channel;
 
 // Reserva de memoria. Inicializa el nombre.
+//Apart from the
+//requirement that the first character is either '&', '#', '+' or '!',
+//the only restriction on a channel name is that it SHALL NOT contain
+//any spaces (' '), a control G (^G or ASCII 7), a comma (',').  Space
+//is used as parameter separator and command is used as a list item
+//separator by the protocol).  A colon (':') can also be used as a
+//delimiter for the channel mask.  Channel names are case insensitive.
 Channel* channel_new(Server* server, const char* name) {
 	Channel* chan;
 	if (server == NULL || name == NULL) return NULL;
@@ -308,7 +317,7 @@ int channel_part(Channel* chan, User* usr, User* actor) {
 }
 
 // Devuelve el topic.
-int channel_get_topic(Channel* chan, const char** topic) {
+int channel_get_topic(Channel* chan, char** topic) {
 	if (chan == NULL) return ERR;
 	*topic = chan->topic;
 	return OK;
@@ -329,14 +338,14 @@ int channel_set_topic(Channel* chan, const char* topic, User* actor) {
 }
 
 // Devuelve el nombre del canal.
-int channel_get_name(Channel* chan, const char** name) {
+int channel_get_name(Channel* chan, char** name) {
 	if (chan == NULL) return ERR;
 	*name = chan->name;
 	return OK;
 }
 
 // Devuelve la contraseña del canal.
-int channel_get_key(Channel* chan, const char** key) {
+int channel_get_key(Channel* chan, char** key) {
 	if (chan == NULL) return ERR;
 	*key = chan->key;
 	return OK;
@@ -472,4 +481,3 @@ void channellist_deleteAll(ChannelList list) {
 		chan = channellist_head(list);
 	}
 }
-

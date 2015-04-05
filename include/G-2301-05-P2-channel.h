@@ -31,14 +31,14 @@ ATTRIBUTE((format(printf, 2, 3)));
 
 
 // Manejo del tema
-int channel_get_topic(Channel* chan, const char** topic);
+int channel_get_topic(Channel* chan, char** topic);
 int channel_set_topic(Channel* chan, const char*  topic, User* actor);
 
 // Manejo del nombre
-int channel_get_name(Channel* chan, const char** name);
+int channel_get_name(Channel* chan, char** name);
 
 // Manejo de la contraseña
-int channel_get_key(Channel* chan, const char** key);
+int channel_get_key(Channel* chan, char** key);
 int channel_set_key(Channel* chan, const char*  key, User* actor);
 
 // Manejo de las flags del canal

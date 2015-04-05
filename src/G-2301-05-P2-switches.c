@@ -77,8 +77,41 @@ static char* namechannel_skip_colon(char* channel) {
 	return *channel == ':' ? channel+1 : channel;
 }
 
+long checksend_message_usr(User* dst, User* src, char* msg) {
+	char buf[512];
+	char* awaymsg;
+	char* prefix = NULL;//para que compile sin la fun de get prefix
+	char* dst_nick;
+
+	if(dst == NULL) return ERR;
+	if(msg == NULL) return ERR_NOTEXTTOSEND;
+	user_get_away(dst, &awaymsg);
+	if(awaymsg != NULL) return RPL_AWAY;
+	//user_get_prefix(src, &prefix);
+	user_get_nick(dst, &dst_nick);
+	IRC_Privmsg(buf, prefix, dst_nick, msg);
+	user_send_cmd(src, buf);
+	return OK;
+}
+
+long checksend_message_chan(Channel* dst, User* src, char* msg) {
+	long opt;
+	char buf[512];
+	char* prefix = NULL;//para que compile sin la fun de get prefix
+	char* chan;
+
+	opt = channel_can_send_message(dst, src);
+	if(opt != OK) return opt;
+	if(msg == NULL) return ERR_NOTEXTTOSEND;
+	//user_get_prefix(src, &prefix);
+	channel_get_name(dst, &chan);
+	IRC_Privmsg(buf, prefix, chan, msg);
+	return OK;
+}
+
+
 int serverrcv_privmsg(Server* serv, User* usr, char* str) {
-	char* nick;
+	char* nick = NULL;
 	char* prefix;
 	char* target;
 	char* msg;
@@ -98,7 +131,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 		// Lo buscamos en los canales
 		ChannelList chan = channellist_findByName(server_get_channellist(serv), target);
 		//Envia el mensaje o devuelve un codigo de error
-		if (NULL != chan) opt = channel_send_message(*chan, usr, msg);
+		if (NULL != chan) opt = checksend_message_chan(*chan, usr, msg);
 		else opt = ERR_CANNOTSENDTOCHAN;
 		switch(opt) {
 			default: break;
@@ -118,10 +151,10 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 		//case ERR_TOOMANYTARGETS: no admitimos multiples destinatarios
 		//ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
 	} else {
-		char* awaymsg;
+		char* awaymsg = NULL;
 		UserList recv = userlist_findByName(server_get_userlist(serv), target);
 		//user_send_cmd(User* usr, const char* str)
-		if (NULL != recv) opt = user_send_message(*recv, nick, msg);
+		if (NULL != recv) opt = checksend_message_usr(*recv, usr, msg);
 		else opt = ERR_NOSUCHNICK;
 		switch(opt) {
 			default: break;

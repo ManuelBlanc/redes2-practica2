@@ -81,7 +81,8 @@
 /* Maximum user real name length */
 #undef USER_MAX_RNAME_LEN
 
-/* Removed "Version number of package" */
+/* Version number of package */
+
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
