@@ -7,67 +7,67 @@
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
-int action_switch(User* usr, char* str) {
+int action_switch(Server* serv, User* usr, char* str) {
 	switch (IRC_CommandQuery(str)) {
-		default: break;
-		case ADMIN   	: printf("%s\n", "Comando ADMIN   recibido!"); break;
-		case AWAY    	: printf("%s\n", "Comando AWAY    recibido!"); break;
-		case CNOTICE 	: printf("%s\n", "Comando CNOTICE recibido!"); break;
-		case CONNECT 	: printf("%s\n", "Comando CONNECT recibido!"); break;
-		case CPRIVMSG	: printf("%s\n", "Comando CPRIVMS recibido!"); break;
-		case DIE     	: printf("%s\n", "Comando DIE     recibido!"); break;
-		case ENCAP   	: printf("%s\n", "Comando ENCAP   recibido!"); break;
-		case ERROR   	: printf("%s\n", "Comando ERROR   recibido!"); break;
-		case HELP    	: printf("%s\n", "Comando HELP    recibido!"); break;
-		case INFO    	: printf("%s\n", "Comando INFO    recibido!"); break;
-		case INVITE  	: printf("%s\n", "Comando INVITE  recibido!"); break;
-		case ISON    	: printf("%s\n", "Comando ISON    recibido!"); break;
-		case JOIN    	: printf("%s\n", "Comando JOIN    recibido!"); break;
-		case KICK    	: printf("%s\n", "Comando KICK    recibido!"); break;
-		case KILL    	: printf("%s\n", "Comando KILL    recibido!"); break;
-		case KNOCK   	: printf("%s\n", "Comando KNOCK   recibido!"); break;
-		case LINKS   	: printf("%s\n", "Comando LINKS   recibido!"); break;
-		case LIST    	: printf("%s\n", "Comando LIST    recibido!"); break;
-		case LUSERS  	: printf("%s\n", "Comando LUSERS  recibido!"); break;
-		case MODE    	: printf("%s\n", "Comando MODE    recibido!"); break;
-		case MOTD    	: printf("%s\n", "Comando MOTD    recibido!"); break;
-		case NAMES   	: printf("%s\n", "Comando NAMES   recibido!"); break;
-		case NAMESX  	: printf("%s\n", "Comando NAMESX  recibido!"); break;
-		case NICK    	: printf("%s\n", "Comando NICK    recibido!"); break;
-		case NOTICE  	: printf("%s\n", "Comando NOTICE  recibido!"); break;
-		case OPER    	: printf("%s\n", "Comando OPER    recibido!"); break;
-		case PART    	: printf("%s\n", "Comando PART    recibido!"); break;
-		case PASS    	: printf("%s\n", "Comando PASS    recibido!"); break;
-		case PING    	: printf("%s\n", "Comando PING    recibido!"); break;
-		case PONG    	: printf("%s\n", "Comando PONG    recibido!"); break;
-		case PRIVMSG 	: printf("%s\n", "Comando PRIVMSG recibido!"); break;
-		case QUIT    	: printf("%s\n", "Comando QUIT    recibido!"); break;
-		case REHASH  	: printf("%s\n", "Comando REHASH  recibido!"); break;
-		case RESTART 	: printf("%s\n", "Comando RESTART recibido!"); break;
-		case RULES   	: printf("%s\n", "Comando RULES   recibido!"); break;
-		case SERVER  	: printf("%s\n", "Comando SERVER  recibido!"); break;
-		case SERVICE 	: printf("%s\n", "Comando SERVICE recibido!"); break;
-		case SERVLIST	: printf("%s\n", "Comando SERVLIS recibido!"); break;
-		case SETNAME 	: printf("%s\n", "Comando SETNAME recibido!"); break;
-		case SILENCE 	: printf("%s\n", "Comando SILENCE recibido!"); break;
-		case SQUERY  	: printf("%s\n", "Comando SQUERY  recibido!"); break;
-		case SQUIT   	: printf("%s\n", "Comando SQUIT   recibido!"); break;
-		case STATS   	: printf("%s\n", "Comando STATS   recibido!"); break;
-		case SUMMON  	: printf("%s\n", "Comando SUMMON  recibido!"); break;
-		case TIME    	: printf("%s\n", "Comando TIME    recibido!"); break;
-		case TOPIC   	: printf("%s\n", "Comando TOPIC   recibido!"); break;
-		case TRACE   	: printf("%s\n", "Comando TRACE   recibido!"); break;
-		case UHNAMES 	: printf("%s\n", "Comando UHNAMES recibido!"); break;
-		case USER    	: printf("%s\n", "Comando USER    recibido!"); break;
-		case USERHOST	: printf("%s\n", "Comando USERHOS recibido!"); break;
-		case USERIP  	: printf("%s\n", "Comando USERIP  recibido!"); break;
-		case USERS   	: printf("%s\n", "Comando USERS   recibido!"); break;
-		case VERSION 	: printf("%s\n", "Comando VERSION recibido!"); break;
-		case WALLOPS 	: printf("%s\n", "Comando WALLOPS recibido!"); break;
-		case WATCH   	: printf("%s\n", "Comando WATCH   recibido!"); break;
-		case WHO     	: printf("%s\n", "Comando WHO     recibido!"); break;
-		case WHOIS   	: printf("%s\n", "Comando WHOIS   recibido!"); break;
-		case WHOWAS  	: printf("%s\n", "Comando WHOWAS  recibido!"); break;
+		default      	: /* Aqui habria que dar un error */ break;
+		case ADMIN   	: exec_cmd_admin   (serv, usr, str); break;
+		case AWAY    	: exec_cmd_away    (serv, usr, str); break;
+		case CNOTICE 	: exec_cmd_cnotice (serv, usr, str); break;
+		case CONNECT 	: exec_cmd_connect (serv, usr, str); break;
+		case CPRIVMSG	: exec_cmd_cprivmsg(serv, usr, str); break;
+		case DIE     	: exec_cmd_die     (serv, usr, str); break;
+		case ENCAP   	: exec_cmd_encap   (serv, usr, str); break;
+		case ERROR   	: exec_cmd_error   (serv, usr, str); break;
+		case HELP    	: exec_cmd_help    (serv, usr, str); break;
+		case INFO    	: exec_cmd_info    (serv, usr, str); break;
+		case INVITE  	: exec_cmd_invite  (serv, usr, str); break;
+		case ISON    	: exec_cmd_ison    (serv, usr, str); break;
+		case JOIN    	: exec_cmd_join    (serv, usr, str); break;
+		case KICK    	: exec_cmd_kick    (serv, usr, str); break;
+		case KILL    	: exec_cmd_kill    (serv, usr, str); break;
+		case KNOCK   	: exec_cmd_knock   (serv, usr, str); break;
+		case LINKS   	: exec_cmd_links   (serv, usr, str); break;
+		case LIST    	: exec_cmd_list    (serv, usr, str); break;
+		case LUSERS  	: exec_cmd_lusers  (serv, usr, str); break;
+		case MODE    	: exec_cmd_mode    (serv, usr, str); break;
+		case MOTD    	: exec_cmd_motd    (serv, usr, str); break;
+		case NAMES   	: exec_cmd_names   (serv, usr, str); break;
+		case NAMESX  	: exec_cmd_namesx  (serv, usr, str); break;
+		case NICK    	: exec_cmd_nick    (serv, usr, str); break;
+		case NOTICE  	: exec_cmd_notice  (serv, usr, str); break;
+		case OPER    	: exec_cmd_oper    (serv, usr, str); break;
+		case PART    	: exec_cmd_part    (serv, usr, str); break;
+		case PASS    	: exec_cmd_pass    (serv, usr, str); break;
+		case PING    	: exec_cmd_ping    (serv, usr, str); break;
+		case PONG    	: exec_cmd_pong    (serv, usr, str); break;
+		case PRIVMSG 	: exec_cmd_privmsg (serv, usr, str); break;
+		case QUIT    	: exec_cmd_quit    (serv, usr, str); break;
+		case REHASH  	: exec_cmd_rehash  (serv, usr, str); break;
+		case RESTART 	: exec_cmd_restart (serv, usr, str); break;
+		case RULES   	: exec_cmd_rules   (serv, usr, str); break;
+		case SERVER  	: exec_cmd_server  (serv, usr, str); break;
+		case SERVICE 	: exec_cmd_service (serv, usr, str); break;
+		case SERVLIST	: exec_cmd_servlist(serv, usr, str); break;
+		case SETNAME 	: exec_cmd_setname (serv, usr, str); break;
+		case SILENCE 	: exec_cmd_silence (serv, usr, str); break;
+		case SQUERY  	: exec_cmd_squery  (serv, usr, str); break;
+		case SQUIT   	: exec_cmd_squit   (serv, usr, str); break;
+		case STATS   	: exec_cmd_stats   (serv, usr, str); break;
+		case SUMMON  	: exec_cmd_summon  (serv, usr, str); break;
+		case TIME    	: exec_cmd_time    (serv, usr, str); break;
+		case TOPIC   	: exec_cmd_topic   (serv, usr, str); break;
+		case TRACE   	: exec_cmd_trace   (serv, usr, str); break;
+		case UHNAMES 	: exec_cmd_uhnames (serv, usr, str); break;
+		case USER    	: exec_cmd_user    (serv, usr, str); break;
+		case USERHOST	: exec_cmd_userhost(serv, usr, str); break;
+		case USERIP  	: exec_cmd_userip  (serv, usr, str); break;
+		case USERS   	: exec_cmd_users   (serv, usr, str); break;
+		case VERSION 	: exec_cmd_version (serv, usr, str); break;
+		case WALLOPS 	: exec_cmd_wallops (serv, usr, str); break;
+		case WATCH   	: exec_cmd_watch   (serv, usr, str); break;
+		case WHO     	: exec_cmd_who     (serv, usr, str); break;
+		case WHOIS   	: exec_cmd_whois   (serv, usr, str); break;
+		case WHOWAS  	: exec_cmd_whowas  (serv, usr, str); break;
 	}
 }
 
@@ -828,7 +828,7 @@ int exec_cmd_restart(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	Extension magica de Eloy.
 */
 int exec_cmd_rules(Server* serv, User* usr, const char* cmd) {
 
@@ -837,7 +837,7 @@ int exec_cmd_rules(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	Extension magica de Eloy.
 */
 int exec_cmd_server(Server* serv, User* usr, const char* cmd) {
 
