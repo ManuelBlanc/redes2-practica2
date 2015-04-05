@@ -8,6 +8,7 @@
 #include "G-2301-05-P2-channel.h"
 
 int action_switch(User* usr, char* str) {
+	if(NULL == usr) return ERR;//para el unused
 	switch (IRC_CommandQuery(str)) {
 		default: break;
 		case ADMIN   	: printf("%s\n", "Comando ADMIN   recibido!"); break;
@@ -69,6 +70,7 @@ int action_switch(User* usr, char* str) {
 		case WHOIS   	: printf("%s\n", "Comando WHOIS   recibido!"); break;
 		case WHOWAS  	: printf("%s\n", "Comando WHOWAS  recibido!"); break;
 	}
+	return OK;
 }
 
 static char* namechannel_skip_colon(char* channel) {
@@ -118,6 +120,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	} else {
 		char* awaymsg;
 		UserList recv = userlist_findByName(server_get_userlist(serv), target);
+		//user_send_cmd(User* usr, const char* str)
 		if (NULL != recv) opt = user_send_message(*recv, nick, msg);
 		else opt = ERR_NOSUCHNICK;
 		switch(opt) {
@@ -140,7 +143,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	return OK;
 }
 
-int serverrcv_mode(Server* serv, User* usr, char* str) {
+/*int serverrcv_mode(Server* serv, User* usr, char* str) {
 	char* nick;
 	char* prefix;
 	char* user_name;
@@ -165,7 +168,7 @@ int serverrcv_mode(Server* serv, User* usr, char* str) {
 	}
 	//IRC_ErrAlreadyRegistred();
 	return ERR;
-}
+}*/
 
 // ================================================================================================
 
@@ -175,9 +178,9 @@ int serverrcv_mode(Server* serv, User* usr, char* str) {
 	omitted.  Each server MUST have the ability to forward ADMIN messages
 	to other servers.
 */
-int exec_cmd_admin(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_admin(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -197,18 +200,18 @@ int exec_cmd_admin(Server* serv, User* usr, const char* cmd) {
 	other servers.  To update the away status of a client across servers,
 	the user mode 'a' SHOULD be used instead.  (See Section 3.1.5)
 */
-int exec_cmd_away(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_away(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy
 */
-int exec_cmd_cnotice(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_cnotice(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -224,18 +227,18 @@ int exec_cmd_cnotice(Server* serv, User* usr, const char* cmd) {
 	The server receiving a remote CONNECT command SHOULD generate a
 	WALLOPS message describing the source and target of the request.
 */
-int exec_cmd_connect(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_connect(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-int exec_cmd_cprivmsg(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_cprivmsg(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -249,18 +252,18 @@ int exec_cmd_cprivmsg(Server* serv, User* usr, const char* cmd) {
 	the sending client is connected and MUST NOT be passed onto other
 	connected servers.
 */
-int exec_cmd_die(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_die(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-int exec_cmd_encap(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_encap(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -283,18 +286,18 @@ int exec_cmd_encap(Server* serv, User* usr, const char* cmd) {
 	message SHOULD be encapsulated inside a NOTICE message, indicating
 	that the client was not responsible for the error.
 */
-int exec_cmd_error(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_error(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-int exec_cmd_help(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_help(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -306,9 +309,9 @@ int exec_cmd_help(Server* serv, User* usr, const char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-int exec_cmd_info(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_info(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -326,9 +329,9 @@ int exec_cmd_info(Server* serv, User* usr, const char* cmd) {
 	notified.  (This is unlike the MODE changes, and is occasionally the
 	source of trouble for users.)
 */
-int exec_cmd_invite(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_invite(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -349,9 +352,9 @@ int exec_cmd_invite(Server* serv, User* usr, const char* cmd) {
 	command and thus not passed onto other servers for further
 	processing.
 */
-int exec_cmd_ison(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_ison(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -378,9 +381,9 @@ int exec_cmd_ison(Server* serv, User* usr, const char* cmd) {
 	a PART command (See Section 3.2.2) for each channel he is a member
 	of.
 */
-int exec_cmd_join(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_join(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -397,54 +400,54 @@ int exec_cmd_join(Server* serv, User* usr, const char* cmd) {
 	users to clients.  This is necessarily to maintain backward
 	compatibility with old client software.
 */
-int exec_cmd_kick(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_kill(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_kick(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_knock(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_links(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_kill(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_list(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_knock(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_lusers(Server* serv, User* usr, const char* cmd) {
+/*int exec_cmd_links(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
-}
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_list(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_lusers(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -477,7 +480,7 @@ int exec_cmd_lusers(Server* serv, User* usr, const char* cmd) {
 
 	The flag 's' is obsolete but MAY still be used.
 */
-int exec_cmd_mode(Server* serv, User* usr, const char* cmd) {
+/*int exec_cmd_mode(Server* serv, User* usr, const char* cmd) {
 	char* nick;
 	char* channel_name;
 	char* user_target;
@@ -563,7 +566,7 @@ int exec_cmd_mode(Server* serv, User* usr, const char* cmd) {
 
 	}
 	return OK;
-}
+}*/
 
 // ================================================================================================
 
@@ -574,9 +577,9 @@ int exec_cmd_mode(Server* serv, User* usr, const char* cmd) {
 	Wildcards are allowed in the <target> parameter.
 
 */
-int exec_cmd_motd(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_motd(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -597,243 +600,243 @@ int exec_cmd_motd(Server* serv, User* usr, const char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-int exec_cmd_names(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_namesx(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_names(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_nick(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_notice(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_namesx(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_oper(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_part(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_nick(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_pass(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_ping(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_notice(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_pong(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_privmsg(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_oper(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_quit(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_rehash(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_part(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_restart(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_rules(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_pass(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_server(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_service(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_ping(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_servlist(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_setname(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_pong(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_silence(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_squery(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_privmsg(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_squit(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_stats(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_quit(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_summon(Server* serv, User* usr, const char* cmd) {
-
-}
-
-// ================================================================================================
-
-/*
-
-*/
-int exec_cmd_time(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_rehash(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 
 */
-int exec_cmd_topic(Server* serv, User* usr, const char* cmd) {
+/*int exec_cmd_restart(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
-}
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_rules(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_server(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_service(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_servlist(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_setname(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_silence(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_squery(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_squit(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_stats(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_summon(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_time(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
+
+// ================================================================================================
+
+/*
+
+*/
+/*int exec_cmd_topic(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	TRACE commaallowed in the <target> parameter.
 */
-int exec_cmd_trace(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_trace(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-int exec_cmd_uhnames(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_uhnames(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -850,7 +853,7 @@ int exec_cmd_uhnames(Server* serv, User* usr, const char* cmd) {
 
 	The <realname> may contain space characters.
 */
-int exec_cmd_user(Server* serv, User* usr, const char* cmd) {
+/*int exec_cmd_user(Server* serv, User* usr, const char* cmd) {
 	char nick[USER_MAX_NICK_LEN + 1];
 	char* prefix;
 	char* user_name;
@@ -864,13 +867,13 @@ int exec_cmd_user(Server* serv, User* usr, const char* cmd) {
 	}
 	UserList usr_using = userlist_findByName(&serv->usrs, user_name);
 	if (NULL == usr_using){
-		setters...
+		//setters...
 		server_add_user(serv, usr);
 		return OK;
 	}
 	IRC_ErrAlreadyRegistred();
 	return ERR;
-}
+}*/
 
 // ================================================================================================
 
@@ -880,18 +883,18 @@ int exec_cmd_user(Server* serv, User* usr, const char* cmd) {
 	about each nickname that it found.  The returned list has each reply
 	separated by a space.
 */
-int exec_cmd_userhost(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_userhost(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-int exec_cmd_userip(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_userip(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -906,9 +909,9 @@ int exec_cmd_userip(Server* serv, User* usr, const char* cmd) {
 	simply toggling an option and restarting the server.  The procedure
 	to enable this command SHOULD also include suitable large comments.
 */
-int exec_cmd_users(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_users(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -919,9 +922,9 @@ int exec_cmd_users(Server* serv, User* usr, const char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-int exec_cmd_version(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_version(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -935,18 +938,18 @@ int exec_cmd_version(Server* serv, User* usr, const char* cmd) {
 	WALLOPS allows and recognizes only servers as the originators of
 	WALLOPS.
 */
-int exec_cmd_wallops(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_wallops(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-int exec_cmd_watch(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_watch(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -964,9 +967,9 @@ int exec_cmd_watch(Server* serv, User* usr, const char* cmd) {
 	If the "o" parameter is passed only operators are returned according
 	to the <mask> supplied.
 */
-int exec_cmd_who(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_who(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -986,9 +989,9 @@ int exec_cmd_who(Server* serv, User* usr, const char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-int exec_cmd_whois(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_whois(Server* serv, User* usr, const char* cmd) {
+	return OK;
+}*/
 
 // ================================================================================================
 
@@ -1005,6 +1008,7 @@ int exec_cmd_whois(Server* serv, User* usr, const char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-int exec_cmd_whowas(Server* serv, User* usr, const char* cmd) {
-
-}
+/*int exec_cmd_whowas(Server* serv, User* usr, const char* cmd) {
+	//we have no history
+	return OK;
+}*/
