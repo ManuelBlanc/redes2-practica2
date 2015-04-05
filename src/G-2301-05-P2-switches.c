@@ -846,7 +846,22 @@ int exec_cmd_server(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
+	An operator can use the restart command to force the server to
+	restart itself.  This message is optional since it may be viewed as a
+	risk to allow arbitrary people to connect to a server as an operator
+	and execute this command, causing (at least) a disruption to service.
 
+	The RESTART command MUST always be fully processed by the server to
+	which the sending client is connected and MUST NOT be passed onto
+	other connected servers.
+	The <distribution> parameter is used to specify the visibility of a
+	service.  The service may only be known to servers which have a name
+	matching the distribution.  For a matching server to have knowledge
+	of the service, the network path between that server and the server
+	on which the service is connected MUST be composed of servers which
+	names all match the mask.
+
+	The <type> parameter is currently reserved for future usage.
 */
 int exec_cmd_service(Server* serv, User* usr, const char* cmd) {
 
@@ -855,7 +870,10 @@ int exec_cmd_service(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	The SERVLIST command is used to list services currently connected to
+	the network and visible to the user issuing the command.  The
+	optional parameters may be used to restrict the result of the query
+	(to matching services names, and services type).
 */
 int exec_cmd_servlist(Server* serv, User* usr, const char* cmd) {
 
@@ -864,7 +882,7 @@ int exec_cmd_servlist(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	Extension magica de Eloy.
 */
 int exec_cmd_setname(Server* serv, User* usr, const char* cmd) {
 
@@ -873,7 +891,7 @@ int exec_cmd_setname(Server* serv, User* usr, const char* cmd) {
 // ================================================================================================
 
 /*
-
+	Extension magica de Eloy.
 */
 int exec_cmd_silence(Server* serv, User* usr, const char* cmd) {
 
