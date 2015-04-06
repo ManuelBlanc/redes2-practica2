@@ -66,7 +66,7 @@ static void demonizar(void) {
 }
 
 Server* server_new(){
-	Server* serv = malloc(sizeof(Server*));
+	Server* serv = malloc(sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
 	return serv;
 }
@@ -88,6 +88,7 @@ void server_init(void) {
 	getsockname(serv->sock, (struct sockaddr*) &addr, &len);
 
 	while (1) {
+                LOG("Esperando peticiones de conexion");
 		server_accept(serv);
 	}
 }
@@ -154,6 +155,7 @@ int server_delete_channel(Server* serv, const char* name) {
 
 int main(int argc, char** argv)
 {
+        LOG("Comenzando ejecucion");
 	procesar_opciones(argc, argv);
 	demonizar();
 	server_init();
