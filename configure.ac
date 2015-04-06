@@ -19,7 +19,7 @@ AC_PROG_RANLIB
 AM_PROG_AR
 
 # Checks for flags.
-#ax_check_compile_flag([-fdiagnostics-color=auto], [CFLAGS="$CFLAGS -fdiagnostics-color=auto"])
+AX_CHECK_COMPILE_FLAG([-fdiagnostics-color=auto], [CFLAGS="$CFLAGS -fdiagnostics-color=auto"])
 
 # Checks for libraries.
 AC_SEARCH_LIBS([IRC_CommandQuery], [ircredes], [], [
