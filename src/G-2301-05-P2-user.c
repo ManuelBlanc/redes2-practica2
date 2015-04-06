@@ -17,11 +17,11 @@
 
 struct User {
 	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         	*/
-	char        	pre[USER_MAX_PRE_LEN+1];       	/* Prefijo                     	*/
+	char        	prefix[USER_MAX_PRE_LEN+1];    	/* Prefijo                     	*/
 	char        	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                    	*/
-	char       	name[USER_MAX_NAME_LEN+1];     	/* Nombre                      	*/
-	char       	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                 	*/
-	char       	away_msg[USER_MAX_AWAY_LEN+1];  /* Mensaje de away             	*/
+	char        	name[USER_MAX_NAME_LEN+1];     	/* Nombre                      	*/
+	char        	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                 	*/
+	char        	away_msg[USER_MAX_AWAY_LEN+1]; 	/* Mensaje de away             	*/
 	int         	sock_fd;                       	/* Descriptor del socket       	*/
 	Server*     	server;                        	/* Servidor al que pertenece   	*/
 	struct User*	next;                          	/* Puntero al siguiente usuario	*/
@@ -89,8 +89,24 @@ void user_delete(User* usr) {
 }
 
 int user_init_prefix(User* usr) {
-	(void)usr;
+	char* host;
+	if (usr == NULL) return ERR;
+
+	{
+		// Buscamos nuestra IP
+		struct sockaddr_in address;
+		socklen_t addr_len = sizeof address;
+		getsockname(usr->sock_fd, &address, &addr_len);
+		host = inet_ntoa(addr_len.sin_addr.s_addr)
+	}
+
+	snprint(usr->prefix, USER_MAX_PRE_LEN, "%9s!%9s@%63s", usr->nick, usr->name, host);
 	return OK;
+}
+
+int user_get_prefix(User* usr, char** prefix) {
+	if (usr == NULL) return ERR;
+	*prefix = usr->prefix;
 }
 
 // Envia un comando al usuario.

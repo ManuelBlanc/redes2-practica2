@@ -7,72 +7,8 @@
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
-int action_switch(Server* serv, User* usr, char* str) {
-	switch (IRC_CommandQuery(str)) {
-		default      	: /* Aqui habria que dar un error */ break;
-		case ADMIN   	: exec_cmd_admin   (serv, usr, str); break;
-		case AWAY    	: exec_cmd_away    (serv, usr, str); break;
-		case CNOTICE 	: exec_cmd_cnotice (serv, usr, str); break;
-		case CONNECT 	: exec_cmd_connect (serv, usr, str); break;
-		case CPRIVMSG	: exec_cmd_cprivmsg(serv, usr, str); break;
-		case DIE     	: exec_cmd_die     (serv, usr, str); break;
-		case ENCAP   	: exec_cmd_encap   (serv, usr, str); break;
-		case ERROR   	: exec_cmd_error   (serv, usr, str); break;
-		case HELP    	: exec_cmd_help    (serv, usr, str); break;
-		case INFO    	: exec_cmd_info    (serv, usr, str); break;
-		case INVITE  	: exec_cmd_invite  (serv, usr, str); break;
-		case ISON    	: exec_cmd_ison    (serv, usr, str); break;
-		case JOIN    	: exec_cmd_join    (serv, usr, str); break;
-		case KICK    	: exec_cmd_kick    (serv, usr, str); break;
-		case KILL    	: exec_cmd_kill    (serv, usr, str); break;
-		case KNOCK   	: exec_cmd_knock   (serv, usr, str); break;
-		case LINKS   	: exec_cmd_links   (serv, usr, str); break;
-		case LIST    	: exec_cmd_list    (serv, usr, str); break;
-		case LUSERS  	: exec_cmd_lusers  (serv, usr, str); break;
-		case MODE    	: exec_cmd_mode    (serv, usr, str); break;
-		case MOTD    	: exec_cmd_motd    (serv, usr, str); break;
-		case NAMES   	: exec_cmd_names   (serv, usr, str); break;
-		case NAMESX  	: exec_cmd_namesx  (serv, usr, str); break;
-		case NICK    	: exec_cmd_nick    (serv, usr, str); break;
-		case NOTICE  	: exec_cmd_notice  (serv, usr, str); break;
-		case OPER    	: exec_cmd_oper    (serv, usr, str); break;
-		case PART    	: exec_cmd_part    (serv, usr, str); break;
-		case PASS    	: exec_cmd_pass    (serv, usr, str); break;
-		case PING    	: exec_cmd_ping    (serv, usr, str); break;
-		case PONG    	: exec_cmd_pong    (serv, usr, str); break;
-		case PRIVMSG 	: exec_cmd_privmsg (serv, usr, str); break;
-		case QUIT    	: exec_cmd_quit    (serv, usr, str); break;
-		case REHASH  	: exec_cmd_rehash  (serv, usr, str); break;
-		case RESTART 	: exec_cmd_restart (serv, usr, str); break;
-		case RULES   	: exec_cmd_rules   (serv, usr, str); break;
-		case SERVER  	: exec_cmd_server  (serv, usr, str); break;
-		case SERVICE 	: exec_cmd_service (serv, usr, str); break;
-		case SERVLIST	: exec_cmd_servlist(serv, usr, str); break;
-		case SETNAME 	: exec_cmd_setname (serv, usr, str); break;
-		case SILENCE 	: exec_cmd_silence (serv, usr, str); break;
-		case SQUERY  	: exec_cmd_squery  (serv, usr, str); break;
-		case SQUIT   	: exec_cmd_squit   (serv, usr, str); break;
-		case STATS   	: exec_cmd_stats   (serv, usr, str); break;
-		case SUMMON  	: exec_cmd_summon  (serv, usr, str); break;
-		case TIME    	: exec_cmd_time    (serv, usr, str); break;
-		case TOPIC   	: exec_cmd_topic   (serv, usr, str); break;
-		case TRACE   	: exec_cmd_trace   (serv, usr, str); break;
-		case UHNAMES 	: exec_cmd_uhnames (serv, usr, str); break;
-		case USER    	: exec_cmd_user    (serv, usr, str); break;
-		case USERHOST	: exec_cmd_userhost(serv, usr, str); break;
-		case USERIP  	: exec_cmd_userip  (serv, usr, str); break;
-		case USERS   	: exec_cmd_users   (serv, usr, str); break;
-		case VERSION 	: exec_cmd_version (serv, usr, str); break;
-		case WALLOPS 	: exec_cmd_wallops (serv, usr, str); break;
-		case WATCH   	: exec_cmd_watch   (serv, usr, str); break;
-		case WHO     	: exec_cmd_who     (serv, usr, str); break;
-		case WHOIS   	: exec_cmd_whois   (serv, usr, str); break;
-		case WHOWAS  	: exec_cmd_whowas  (serv, usr, str); break;
-	}
-	return OK;
-}
-
-static char* namechannel_skip_colon(char* channel) {
+// Se salta los dos puntos de una cadena (si estan ahi)
+static char* string_skip_colon(char* channel) {
 	return *channel == ':' ? channel+1 : channel;
 }
 
@@ -82,8 +18,8 @@ long checksend_message_usr(User* dst, User* src, char* msg) {
 	char* prefix = NULL;//para que compile sin la fun de get prefix
 	char* dst_nick;
 
-	if(dst == NULL) return ERR;
-	if(msg == NULL) return ERR_NOTEXTTOSEND;
+	if (dst == NULL) return ERR;
+	if (msg == NULL) return ERR_NOTEXTTOSEND;
 	user_get_away(dst, &awaymsg);
 	if(awaymsg != NULL) return RPL_AWAY;
 	//user_get_prefix(src, &prefix);
@@ -125,7 +61,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	}
 
 	// Es un canal?
-	namechannel_skip_colon(target);
+	string_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
 		ChannelList chan = channellist_findByName(server_get_channellist(serv), target);
@@ -210,9 +146,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	omitted.  Each server MUST have the ability to forward ADMIN messages
 	to other servers.
 */
-/*int exec_cmd_admin(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_admin(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_admin no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -232,18 +172,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	other servers.  To update the away status of a client across servers,
 	the user mode 'a' SHOULD be used instead.  (See Section 3.1.5)
 */
-/*int exec_cmd_away(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_away(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_away no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy
 */
-/*int exec_cmd_cnotice(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_cnotice(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_cnotice no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -259,18 +207,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	The server receiving a remote CONNECT command SHOULD generate a
 	WALLOPS message describing the source and target of the request.
 */
-/*int exec_cmd_connect(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_connect(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_connect no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_cprivmsg(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_cprivmsg(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_cprivmsg no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -284,18 +240,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	the sending client is connected and MUST NOT be passed onto other
 	connected servers.
 */
-/*int exec_cmd_die(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_die(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_die no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_encap(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_encap(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_encap no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -318,18 +282,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	message SHOULD be encapsulated inside a NOTICE message, indicating
 	that the client was not responsible for the error.
 */
-/*int exec_cmd_error(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_error(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_error no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_help(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_help(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_help no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -341,9 +313,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_info(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_info(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_info no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -361,9 +337,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	notified.  (This is unlike the MODE changes, and is occasionally the
 	source of trouble for users.)
 */
-/*int exec_cmd_invite(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_invite(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_invite no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -384,9 +364,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	command and thus not passed onto other servers for further
 	processing.
 */
-/*int exec_cmd_ison(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_ison(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_ison no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -413,9 +397,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	a PART command (See Section 3.2.2) for each channel he is a member
 	of.
 */
-/*int exec_cmd_join(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_join(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_join no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -432,9 +420,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	users to clients.  This is necessarily to maintain backward
 	compatibility with old client software.
 */
-/*int exec_cmd_kick(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_kick(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_kick no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -474,18 +466,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	which is updated by each server it passes through, each prepending
 	its name to the path.
 */
-/*int exec_cmd_kill(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_kill(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_kill no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_knock(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_knock(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_knock no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -498,9 +498,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	command is forwarded to the first server found that matches that name
 	(if any), and that server is then required to answer the query.
 */
-/*int exec_cmd_links(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_links(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_links no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -514,9 +518,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_list(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_list(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_list no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -530,9 +538,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_lusers(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_lusers(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_lusers no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -565,9 +577,9 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	The flag 's' is obsolete but MAY still be used.
 */
-/*int exec_cmd_mode(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_mode(Server* serv, User* usr, const char* cmd) {
 	char* nick;
-	char* channel_name;
+	char* channel_nam
 	char* user_target;
 	char* prefix;
 	char* mode;
@@ -581,7 +593,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 		return ERR;
 	}
 
-	namechannel_skip_colon(channel_name);
+	string_skip_colon(channel_name);
 	Channel* chan = channellist_findByName(serv->chan, channel_name);
 	if (NULL != user_target) {
 		if (mode == '+') {
@@ -651,7 +663,7 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	}
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -662,9 +674,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	Wildcards are allowed in the <target> parameter.
 
 */
-/*int exec_cmd_motd(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_motd(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_motd no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -685,18 +701,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_names(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_names(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_names no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_namesx(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_namesx(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_namesx no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -704,9 +728,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	NICK command is used to give user a nickname or change the existing
 	one.
 */
-/*int exec_cmd_nick(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_nick(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_nick no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -726,9 +754,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	See PRIVMSG for more details on replies and examples.
 */
-/*int exec_cmd_notice(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_notice(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_notice no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -738,9 +770,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	Operator privileges.  Upon success, the user will receive a MODE
 	message (see section 3.1.5) indicating the new user modes.
 */
-/*int exec_cmd_oper(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_oper(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_oper no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -755,9 +791,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	target, but SHOULD NOT use lists when sending PART messages to
 	clients.
 */
-/*int exec_cmd_part(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_part(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_part no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -767,9 +807,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	the connection is made.  Currently this requires that user send a
 	PASS command before sending the NICK/USER combination.
 */
-/*int exec_cmd_pass(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_pass(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_pass no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -787,9 +831,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	represents the target of the ping, and the message gets forwarded
 	there.
 */
-/*int exec_cmd_ping(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_ping(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_ping no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -799,9 +847,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	parameter is the name of the entity who has responded to PING message
 	and generated this message.
 */
-/*int exec_cmd_pong(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_pong(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_pong no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -819,9 +871,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	'*' and '?'  characters.  This extension to the PRIVMSG command is
 	only available to operators.
 */
-/*int exec_cmd_privmsg(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_privmsg(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_privmsg no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -829,9 +885,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	A client session is terminated with a quit message.  The server
 	acknowledges this by sending an ERROR message to the client.
 */
-/*int exec_cmd_quit(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_quit(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_quit no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -840,9 +900,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	an operator to force the server to re-read and process its
 	configuration file.
 */
-/*int exec_cmd_rehash(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_rehash(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_rehash no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -856,27 +920,39 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	which the sending client is connected and MUST NOT be passed onto
 	other connected servers.
 */
-/*int exec_cmd_restart(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_restart(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_restart no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_rules(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_rules(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_rules no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_server(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_server(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_server no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -898,9 +974,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	The <type> parameter is currently reserved for future usage.
 */
-/*int exec_cmd_service(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_service(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_service no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -910,27 +990,39 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	optional parameters may be used to restrict the result of the query
 	(to matching services names, and services type).
 */
-/*int exec_cmd_servlist(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_servlist(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_servlist no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_setname(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_setname(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_setname no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_silence(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_silence(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_silence no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -941,9 +1033,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	See PRIVMSG for more details on replies and example.
 */
-/*int exec_cmd_squery(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_squery(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_squery no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -960,9 +1056,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	generates a WALLOPS message with <comment> included, so that other
 	users may be aware of the reason of this action.
 */
-/*int exec_cmd_squit(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_squit(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_squit no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -996,9 +1096,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	It is also RECOMMENDED that client and server access configuration be
 	published this way.
 */
-/*int exec_cmd_stats(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_stats(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_stats no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1015,9 +1119,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	If summon is not enabled in a server, it MUST return the
 	ERR_SUMMONDISABLED numeric.
 */
-/*int exec_cmd_summon(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_summon(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_summon no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1028,9 +1136,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_time(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_time(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_time no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1042,27 +1154,64 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	requesting it.  If the <topic> parameter is an empty string, the
 	topic for that channel will be removed.
 */
-/*int exec_cmd_topic(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_topic(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_topic no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
-	TRACE commaallowed in the <target> parameter.
+	TRACE command is used to find the route to specific server and
+	information about its peers.  Each server that processes this command
+	MUST report to the sender about it.  The replies from pass-through
+	links form a chain, which shows route to destination.  After sending
+	this reply back, the query MUST be sent to the next server until
+	given <target> server is reached.
+
+	TRACE command is used to find the route to specific server.  Each
+	server that processes this message MUST tell the sender about it by
+	sending a reply indicating it is a pass-through link, forming a chain
+	of replies.  After sending this reply back, it MUST then send the
+	TRACE message to the next server until given server is reached.  If
+	the <target> parameter is omitted, it is RECOMMENDED that TRACE
+	command sends a message to the sender telling which servers the local
+	server has direct connection to.
+
+	If the destination given by <target> is an actual server, the
+	destination server is REQUIRED to report all servers, services and
+	operators which are connected to it; if the command was issued by an
+	operator, the server MAY also report all users which are connected to
+	it.  If the destination given by <target> is a nickname, then only a
+	reply for that nickname is given.  If the <target> parameter is
+	omitted, it is RECOMMENDED that the TRACE command is parsed as
+	targeted to the processing server.
+
+	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_trace(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_trace(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_trace no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_uhnames(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_uhnames(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_uhnames no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1079,8 +1228,8 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	The <realname> may contain space characters.
 */
-/*int exec_cmd_user(Server* serv, User* usr, const char* cmd) {
-	char nick[USER_MAX_NICK_LEN + 1];
+static int exec_cmd_user(Server* serv, User* usr, const char* cmd) {
+	char* nick;
 	char* prefix;
 	char* user_name;
 	char* realname;
@@ -1109,18 +1258,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	about each nickname that it found.  The returned list has each reply
 	separated by a space.
 */
-/*int exec_cmd_userhost(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_userhost(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_userhost no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_userip(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_userip(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_userip no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1135,9 +1292,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	simply toggling an option and restarting the server.  The procedure
 	to enable this command SHOULD also include suitable large comments.
 */
-/*int exec_cmd_users(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_users(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_users no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1148,9 +1309,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_version(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_version(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_version no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1164,18 +1329,26 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	WALLOPS allows and recognizes only servers as the originators of
 	WALLOPS.
 */
-/*int exec_cmd_wallops(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_wallops(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_wallops no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
 /*
 	Extension magica de Eloy.
 */
-/*int exec_cmd_watch(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_watch(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_watch no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1193,9 +1366,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 	If the "o" parameter is passed only operators are returned according
 	to the <mask> supplied.
 */
-/*int exec_cmd_who(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_who(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_who no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1215,9 +1392,13 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_whois(Server* serv, User* usr, const char* cmd) {
+static int exec_cmd_whois(Server* serv, User* usr, const char* cmd) {
+	UNUSED(serv);
+	UNUSED(usr);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_whois no implementada\n");
 	return OK;
-}*/
+}
 
 // ================================================================================================
 
@@ -1234,7 +1415,72 @@ int serverrcv_privmsg(Server* serv, User* usr, char* str) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-/*int exec_cmd_whowas(Server* serv, User* usr, const char* cmd) {
-	//we have no history
+static int exec_cmd_whowas(Server* serv, User* usr, const char* cmd) {
+	// we have no history
 	return OK;
-}*/
+}
+
+// ================================================================================================
+int action_switch(Server* serv, User* usr, char* str) {
+	switch (IRC_CommandQuery(str)) {
+		default      	: return ERR; // Aqui habria que dar un error
+		case ADMIN   	: return exec_cmd_admin   (serv, usr, str);
+		case AWAY    	: return exec_cmd_away    (serv, usr, str);
+		case CNOTICE 	: return exec_cmd_cnotice (serv, usr, str);
+		case CONNECT 	: return exec_cmd_connect (serv, usr, str);
+		case CPRIVMSG	: return exec_cmd_cprivmsg(serv, usr, str);
+		case DIE     	: return exec_cmd_die     (serv, usr, str);
+		case ENCAP   	: return exec_cmd_encap   (serv, usr, str);
+		case ERROR   	: return exec_cmd_error   (serv, usr, str);
+		case HELP    	: return exec_cmd_help    (serv, usr, str);
+		case INFO    	: return exec_cmd_info    (serv, usr, str);
+		case INVITE  	: return exec_cmd_invite  (serv, usr, str);
+		case ISON    	: return exec_cmd_ison    (serv, usr, str);
+		case JOIN    	: return exec_cmd_join    (serv, usr, str);
+		case KICK    	: return exec_cmd_kick    (serv, usr, str);
+		case KILL    	: return exec_cmd_kill    (serv, usr, str);
+		case KNOCK   	: return exec_cmd_knock   (serv, usr, str);
+		case LINKS   	: return exec_cmd_links   (serv, usr, str);
+		case LIST    	: return exec_cmd_list    (serv, usr, str);
+		case LUSERS  	: return exec_cmd_lusers  (serv, usr, str);
+		case MODE    	: return exec_cmd_mode    (serv, usr, str);
+		case MOTD    	: return exec_cmd_motd    (serv, usr, str);
+		case NAMES   	: return exec_cmd_names   (serv, usr, str);
+		case NAMESX  	: return exec_cmd_namesx  (serv, usr, str);
+		case NICK    	: return exec_cmd_nick    (serv, usr, str);
+		case NOTICE  	: return exec_cmd_notice  (serv, usr, str);
+		case OPER    	: return exec_cmd_oper    (serv, usr, str);
+		case PART    	: return exec_cmd_part    (serv, usr, str);
+		case PASS    	: return exec_cmd_pass    (serv, usr, str);
+		case PING    	: return exec_cmd_ping    (serv, usr, str);
+		case PONG    	: return exec_cmd_pong    (serv, usr, str);
+		case PRIVMSG 	: return exec_cmd_privmsg (serv, usr, str);
+		case QUIT    	: return exec_cmd_quit    (serv, usr, str);
+		case REHASH  	: return exec_cmd_rehash  (serv, usr, str);
+		case RESTART 	: return exec_cmd_restart (serv, usr, str);
+		case RULES   	: return exec_cmd_rules   (serv, usr, str);
+		case SERVER  	: return exec_cmd_server  (serv, usr, str);
+		case SERVICE 	: return exec_cmd_service (serv, usr, str);
+		case SERVLIST	: return exec_cmd_servlist(serv, usr, str);
+		case SETNAME 	: return exec_cmd_setname (serv, usr, str);
+		case SILENCE 	: return exec_cmd_silence (serv, usr, str);
+		case SQUERY  	: return exec_cmd_squery  (serv, usr, str);
+		case SQUIT   	: return exec_cmd_squit   (serv, usr, str);
+		case STATS   	: return exec_cmd_stats   (serv, usr, str);
+		case SUMMON  	: return exec_cmd_summon  (serv, usr, str);
+		case TIME    	: return exec_cmd_time    (serv, usr, str);
+		case TOPIC   	: return exec_cmd_topic   (serv, usr, str);
+		case TRACE   	: return exec_cmd_trace   (serv, usr, str);
+		case UHNAMES 	: return exec_cmd_uhnames (serv, usr, str);
+		case USER    	: return exec_cmd_user    (serv, usr, str);
+		case USERHOST	: return exec_cmd_userhost(serv, usr, str);
+		case USERIP  	: return exec_cmd_userip  (serv, usr, str);
+		case USERS   	: return exec_cmd_users   (serv, usr, str);
+		case VERSION 	: return exec_cmd_version (serv, usr, str);
+		case WALLOPS 	: return exec_cmd_wallops (serv, usr, str);
+		case WATCH   	: return exec_cmd_watch   (serv, usr, str);
+		case WHO     	: return exec_cmd_who     (serv, usr, str);
+		case WHOIS   	: return exec_cmd_whois   (serv, usr, str);
+		case WHOWAS  	: return exec_cmd_whowas  (serv, usr, str);
+	}
+}

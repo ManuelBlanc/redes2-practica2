@@ -12,6 +12,7 @@ User* user_new(Server* serv, int sock);
 void user_delete(User* usr);
 
 int user_init_prefix(User* usr);
+int user_get_prefix(User*usr, char** prefix);
 
 // Mandar comandos a un usuario
 int user_send_cmd(User* usr, const char* str);
