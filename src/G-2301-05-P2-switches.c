@@ -7,6 +7,21 @@
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
+#define UNIMPLEMENTED_COMMAND(name, reason)                                                    	\
+static int exec_cmd_##name(Server* serv, User* usr, char* sprefix char* nick, char* cmd) {     	\
+        UNUSED(serv);                                                                          	\
+        UNUSED(usr);                                                                           	\
+        UNUSED(cmd);                                                                           	\
+        LOG(stderr, "Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);	\
+        return OK;                                                                             	\
+}                                                                                              	/**/
+
+static void malformed_command(Server* serv, User* usr, char* cmd_name, char* cmd_str) {
+	char buf[IRC_MAX_CMD_LEN+1];
+	IRC_ErrUnKnownCommand(buf, NULL, nick, str);
+	user_send_cmd(usr, buf);
+}
+
 // Se salta los dos puntos de una cadena (si estan ahi)
 static char* string_skip_colon(char* channel) {
 	return *channel == ':' ? channel+1 : channel;
@@ -22,7 +37,7 @@ long checksend_message_usr(User* dst, User* src, char* msg) {
 	if (msg == NULL) return ERR_NOTEXTTOSEND;
 	user_get_away(dst, &awaymsg);
 	if(awaymsg != NULL) return RPL_AWAY;
-	//user_get_prefix(src, &prefix);
+	user_get_prefix(src, &prefix);
 	user_get_nick(dst, &dst_nick);
 	IRC_Privmsg(buf, prefix, dst_nick, msg);
 	user_send_cmd(src, buf);
@@ -36,9 +51,9 @@ long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	char* chan;
 
 	opt = channel_can_send_message(dst, src);
-	if(opt != OK) return opt;
-	if(msg == NULL) return ERR_NOTEXTTOSEND;
-	//user_get_prefix(src, &prefix);
+	if (opt != OK) return opt;
+	if (msg == NULL) return ERR_NOTEXTTOSEND;
+	user_get_prefix(src, &prefix);
 	channel_get_name(dst, &chan);
 	IRC_Privmsg(buf, prefix, chan, msg);
 	return OK;
@@ -80,11 +95,34 @@ long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	omitted.  Each server MUST have the ability to forward ADMIN messages
 	to other servers.
 */
-static int exec_cmd_admin(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_admin no implementada\n");
+static int exec_cmd_admin(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
+	char* admin_info;
+
+	if (0 < IRCParse_Admin(str, NULL, &target)) {
+		return malformed_command(serv, usr, "admin", cmd);
+	}
+
+	server_get_admin_info(serv, &admin_info);
+
+	if (admin_info != NULL) {
+		// Aqui necesitamos acceder a la estructura server
+		// y obtener los campos:
+		// admin_me   admin_loc1   admin_info   admin_mail
+		IRC_RplAdminMe(buf, sprefix, nick, server, admin_me);
+		user_send_cmd(usr, buf);
+		IRC_RplAdminLoc1(buf, sprefix, nick, admin_loc1);
+		user_send_cmd(usr, buf);
+		IRC_RplAdminLoc2(buf, sprefix, nick, admin_loc2);
+		user_send_cmd(usr, buf);
+		IRC_RplAdmineMail(buf, sprefix, nick, admin_mail);
+		user_send_cmd(usr, buf);
+	}
+	else {
+		IRC_ErrNoAdminInfo(buf, sprefix, nick, server)
+		user_send_cmd(usr, buf);
+	}
+
+
 	return OK;
 }
 
@@ -106,26 +144,31 @@ static int exec_cmd_admin(Server* serv, User* usr, char* cmd) {
 	other servers.  To update the away status of a client across servers,
 	the user mode 'a' SHOULD be used instead.  (See Section 3.1.5)
 */
-static int exec_cmd_away(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_away no implementada\n");
+static int exec_cmd_away(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
+	char* prefix;
+	char* msg;
+
+	if (OK != IRCParse_Away(cmd, &prefix, &msg)) {
+		return malformed_command(serv, usr, "away", cmd);
+	}
+
+	// Ponemos o quitamos el away
+	user_set_away(usr, msg);
+
+	// Avisamos al cliente
+	if (msg != NULL) IRC_RplNowAway(cmd, sprefix, nick);
+	else             IRC_RplUnaway(cmd, sprefix, nick);
+	user_send_cmd(usr, buf);
+
 	return OK;
 }
 
 // ================================================================================================
 
 /*
-	Extension magica de Eloy
+	Extension del RFC (no implementado).
 */
-static int exec_cmd_cnotice(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_cnotice no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(cnotice, "Extension del RFC")
 
 // ================================================================================================
 
@@ -141,26 +184,15 @@ static int exec_cmd_cnotice(Server* serv, User* usr, char* cmd) {
 	The server receiving a remote CONNECT command SHOULD generate a
 	WALLOPS message describing the source and target of the request.
 */
-static int exec_cmd_connect(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_connect no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(connect, "Comando de interconexion de servidores")
+
 
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_cprivmsg(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_cprivmsg no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(cprivmsg, "Extension del RFC")
 
 // ================================================================================================
 
@@ -174,26 +206,14 @@ static int exec_cmd_cprivmsg(Server* serv, User* usr, char* cmd) {
 	the sending client is connected and MUST NOT be passed onto other
 	connected servers.
 */
-static int exec_cmd_die(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_die no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(die, "Comando opcional con riesgos de seguridad graves")
 
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_encap(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_encap no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(encap, "Extension del RFC")
 
 // ================================================================================================
 
@@ -216,26 +236,14 @@ static int exec_cmd_encap(Server* serv, User* usr, char* cmd) {
 	message SHOULD be encapsulated inside a NOTICE message, indicating
 	that the client was not responsible for the error.
 */
-static int exec_cmd_error(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_error no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(error, "Comando de interconexion de servidores")
 
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_help(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_help no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(help, "Extension del RFC")
 
 // ================================================================================================
 
@@ -247,11 +255,14 @@ static int exec_cmd_help(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_info(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_info no implementada\n");
+static int exec_cmd_info(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
+	char* target;
+
+	IRCParse_Info(cmd, NULL, &target)
+
+	IRC_RplInfo(char *command, char *prefix, char *nick, char *info)
+	IRC_RplEndOfInfo(char *command, char *prefix, char *nick)
+
 	return OK;
 }
 
@@ -271,7 +282,7 @@ static int exec_cmd_info(Server* serv, User* usr, char* cmd) {
 	notified.  (This is unlike the MODE changes, and is occasionally the
 	source of trouble for users.)
 */
-static int exec_cmd_invite(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_invite(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -298,7 +309,7 @@ static int exec_cmd_invite(Server* serv, User* usr, char* cmd) {
 	command and thus not passed onto other servers for further
 	processing.
 */
-static int exec_cmd_ison(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_ison(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -331,7 +342,7 @@ static int exec_cmd_ison(Server* serv, User* usr, char* cmd) {
 	a PART command (See Section 3.2.2) for each channel he is a member
 	of.
 */
-static int exec_cmd_join(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_join(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -354,7 +365,7 @@ static int exec_cmd_join(Server* serv, User* usr, char* cmd) {
 	users to clients.  This is necessarily to maintain backward
 	compatibility with old client software.
 */
-static int exec_cmd_kick(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_kick(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -400,7 +411,7 @@ static int exec_cmd_kick(Server* serv, User* usr, char* cmd) {
 	which is updated by each server it passes through, each prepending
 	its name to the path.
 */
-static int exec_cmd_kill(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_kill(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -411,9 +422,9 @@ static int exec_cmd_kill(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_knock(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_knock(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -432,7 +443,7 @@ static int exec_cmd_knock(Server* serv, User* usr, char* cmd) {
 	command is forwarded to the first server found that matches that name
 	(if any), and that server is then required to answer the query.
 */
-static int exec_cmd_links(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_links(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -452,7 +463,7 @@ static int exec_cmd_links(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_list(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_list(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -472,7 +483,7 @@ static int exec_cmd_list(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_lusers(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_lusers(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -512,9 +523,6 @@ static int exec_cmd_lusers(Server* serv, User* usr, char* cmd) {
 	The flag 's' is obsolete but MAY still be used.
 */
 static int exec_cmd_mode(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
 	/*char* nick;
 	char* channel_name;
 	char* user_target;
@@ -615,7 +623,7 @@ static int exec_cmd_mode(Server* serv, User* usr, char* cmd) {
 	Wildcards are allowed in the <target> parameter.
 
 */
-static int exec_cmd_motd(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_motd(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -642,7 +650,7 @@ static int exec_cmd_motd(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_names(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_names(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -653,15 +661,9 @@ static int exec_cmd_names(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_namesx(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_namesx no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(namesx, "Extension del RFC");
 
 // ================================================================================================
 
@@ -669,7 +671,7 @@ static int exec_cmd_namesx(Server* serv, User* usr, char* cmd) {
 	NICK command is used to give user a nickname or change the existing
 	one.
 */
-int exec_cmd_nick(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_nick(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -695,7 +697,7 @@ int exec_cmd_nick(Server* serv, User* usr, char* cmd) {
 
 	See PRIVMSG for more details on replies and examples.
 */
-static int exec_cmd_notice(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_notice(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -711,7 +713,7 @@ static int exec_cmd_notice(Server* serv, User* usr, char* cmd) {
 	Operator privileges.  Upon success, the user will receive a MODE
 	message (see section 3.1.5) indicating the new user modes.
 */
-static int exec_cmd_oper(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_oper(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -732,7 +734,7 @@ static int exec_cmd_oper(Server* serv, User* usr, char* cmd) {
 	target, but SHOULD NOT use lists when sending PART messages to
 	clients.
 */
-static int exec_cmd_part(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_part(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -748,7 +750,7 @@ static int exec_cmd_part(Server* serv, User* usr, char* cmd) {
 	the connection is made.  Currently this requires that user send a
 	PASS command before sending the NICK/USER combination.
 */
-int exec_cmd_pass(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_pass(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -772,7 +774,7 @@ int exec_cmd_pass(Server* serv, User* usr, char* cmd) {
 	represents the target of the ping, and the message gets forwarded
 	there.
 */
-static int exec_cmd_ping(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_ping(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -788,7 +790,7 @@ static int exec_cmd_ping(Server* serv, User* usr, char* cmd) {
 	parameter is the name of the entity who has responded to PING message
 	and generated this message.
 */
-static int exec_cmd_pong(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_pong(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -884,7 +886,7 @@ static int exec_cmd_privmsg(Server* serv, User* usr, char* cmd) {
 	A client session is terminated with a quit message.  The server
 	acknowledges this by sending an ERROR message to the client.
 */
-static int exec_cmd_quit(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_quit(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -899,7 +901,7 @@ static int exec_cmd_quit(Server* serv, User* usr, char* cmd) {
 	an operator to force the server to re-read and process its
 	configuration file.
 */
-static int exec_cmd_rehash(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_rehash(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -919,7 +921,7 @@ static int exec_cmd_rehash(Server* serv, User* usr, char* cmd) {
 	which the sending client is connected and MUST NOT be passed onto
 	other connected servers.
 */
-static int exec_cmd_restart(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_restart(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -930,9 +932,9 @@ static int exec_cmd_restart(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_rules(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_rules(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -943,9 +945,9 @@ static int exec_cmd_rules(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_server(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_server(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -973,7 +975,7 @@ static int exec_cmd_server(Server* serv, User* usr, char* cmd) {
 
 	The <type> parameter is currently reserved for future usage.
 */
-static int exec_cmd_service(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_service(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -989,7 +991,7 @@ static int exec_cmd_service(Server* serv, User* usr, char* cmd) {
 	optional parameters may be used to restrict the result of the query
 	(to matching services names, and services type).
 */
-static int exec_cmd_servlist(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_servlist(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1000,9 +1002,9 @@ static int exec_cmd_servlist(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_setname(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_setname(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1013,9 +1015,9 @@ static int exec_cmd_setname(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_silence(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_silence(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1032,7 +1034,7 @@ static int exec_cmd_silence(Server* serv, User* usr, char* cmd) {
 
 	See PRIVMSG for more details on replies and example.
 */
-static int exec_cmd_squery(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_squery(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1055,7 +1057,7 @@ static int exec_cmd_squery(Server* serv, User* usr, char* cmd) {
 	generates a WALLOPS message with <comment> included, so that other
 	users may be aware of the reason of this action.
 */
-static int exec_cmd_squit(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_squit(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1095,7 +1097,7 @@ static int exec_cmd_squit(Server* serv, User* usr, char* cmd) {
 	It is also RECOMMENDED that client and server access configuration be
 	published this way.
 */
-static int exec_cmd_stats(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_stats(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1118,7 +1120,7 @@ static int exec_cmd_stats(Server* serv, User* usr, char* cmd) {
 	If summon is not enabled in a server, it MUST return the
 	ERR_SUMMONDISABLED numeric.
 */
-static int exec_cmd_summon(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_summon(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1135,11 +1137,17 @@ static int exec_cmd_summon(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_time(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_time no implementada\n");
+static int exec_cmd_time(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
+	char time_buffer[100];
+
+	time_t     t  = time(NULL);
+	struct tm* tm = localtime(&t);
+	strftime(time_buffer, sizeof time_buffer, "%FT%TZ", tm); // ISO 8601
+
+	IRCParse_Time(cmd, NULL, NULL);
+	IRC_RplTime(buf, sprefix, nick, time_buffer);
+	user_send_cmd(usr, buf)
+
 	return OK;
 }
 
@@ -1153,11 +1161,37 @@ static int exec_cmd_time(Server* serv, User* usr, char* cmd) {
 	requesting it.  If the <topic> parameter is an empty string, the
 	topic for that channel will be removed.
 */
-static int exec_cmd_topic(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_topic no implementada\n");
+static int exec_cmd_topic(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
+	char* channel_name;
+	char* topic;
+	ChannelList chan_list;
+	Channel* channel;
+
+	IRCParse_Topic(cmd, NULL, &channel_name, &topic);
+
+	chan_list = server_get_channellist(serv);
+	chan_list = channellist_findByName(chan_list, channel_name);
+	if (chan_list == NULL) {
+
+
+		return ERR;
+	}
+
+
+	if (topic != NULL) channel_set_topic(channel, &topic, usr);
+	else               channel_get_topic(channel, &topic);
+
+
+	// Enviamos la respuesta adecuada
+	if (topic != NULL) {
+		IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
+	}
+	else {
+		IRC_RplNoTopic(buf, sprefix, nick, channel_name, topic);
+	}
+	user_send_cmd(usr, buf);
+	}
+
 	return OK;
 }
 
@@ -1191,26 +1225,14 @@ static int exec_cmd_topic(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_trace(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_trace no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(trace, "Comando para la interconexion de servidores")
 
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_uhnames(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_uhnames no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(uhnames, "Extension del RFC")
 
 // ================================================================================================
 
@@ -1227,20 +1249,21 @@ static int exec_cmd_uhnames(Server* serv, User* usr, char* cmd) {
 
 	The <realname> may contain space characters.
 */
-int exec_cmd_user(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_user(Server* serv, User* usr, char* buf, const char* cmd) {
+	char* nick;
 	char* prefix;
 	char* user_name;
 	char* realname;
 	char* mode;
-	char buf[512];
+	char buf[IRC_MAX_CMD_LEN+1];
 	if (0 != IRCParse_User(buf, &prefix, &user_name, &mode, &realname)){
-		IRC_ErrNeedMoreParams(buf, prefix, user_name, cmd);
+		IRC_ErrNeedMoreParams(buf, prefix, user_name, str);
 		user_send_cmd(usr, buf);
 		return ERR;
 	}
-	UserList usr_using = userlist_findByName(server_get_userlist(serv), user_name);
-	if (NULL == usr_using){
-
+	UserList usr_using = userlist_findByName(&serv->usrs, user_name);
+	if (NULL == usr_using) {
+		//setters...
 		server_add_user(serv, usr);
 		return OK;
 	}
@@ -1257,7 +1280,7 @@ int exec_cmd_user(Server* serv, User* usr, char* cmd) {
 	about each nickname that it found.  The returned list has each reply
 	separated by a space.
 */
-static int exec_cmd_userhost(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_userhost(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1268,15 +1291,9 @@ static int exec_cmd_userhost(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_userip(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_userip no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(userip, "Extension del RFC")
 
 // ================================================================================================
 
@@ -1291,7 +1308,7 @@ static int exec_cmd_userip(Server* serv, User* usr, char* cmd) {
 	simply toggling an option and restarting the server.  The procedure
 	to enable this command SHOULD also include suitable large comments.
 */
-static int exec_cmd_users(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_users(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1308,11 +1325,10 @@ static int exec_cmd_users(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_version(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_version no implementada\n");
+static int exec_cmd_version(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
+	char* target = NULL;
+	IRCParse_Version(cmd, NULL, &target);
+	IRC_RplVersion(buf, sprefix, nick, 0, 0, server, PACKAGE_STRING); // config.h
 	return OK;
 }
 
@@ -1328,7 +1344,7 @@ static int exec_cmd_version(Server* serv, User* usr, char* cmd) {
 	WALLOPS allows and recognizes only servers as the originators of
 	WALLOPS.
 */
-static int exec_cmd_wallops(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_wallops(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1339,15 +1355,9 @@ static int exec_cmd_wallops(Server* serv, User* usr, char* cmd) {
 // ================================================================================================
 
 /*
-	Extension magica de Eloy.
+	Extension del RFC (no implementado)..
 */
-static int exec_cmd_watch(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_watch no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(watch, "Extension del RFC")
 
 // ================================================================================================
 
@@ -1365,7 +1375,7 @@ static int exec_cmd_watch(Server* serv, User* usr, char* cmd) {
 	If the "o" parameter is passed only operators are returned according
 	to the <mask> supplied.
 */
-static int exec_cmd_who(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_who(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1391,7 +1401,7 @@ static int exec_cmd_who(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_whois(Server* serv, User* usr, char* cmd) {
+static int exec_cmd_whois(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
@@ -1414,12 +1424,14 @@ static int exec_cmd_whois(Server* serv, User* usr, char* cmd) {
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_whowas(Server* serv, User* usr, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_whowas no implementada\n");
-	// we have no history
+static int exec_cmd_whowas(Server* serv, User* usr, char* buf, char* sprefix char* nick, char* cmd) {
+
+	/*
+	IRCParse_Whowas(cmd, NULL, char **nickarray, int *count, char **target)
+	IRC_ErrWasNoSuchNick(buf, NULL, nick, char *nickname)
+	*/
+	IRC_RplEndOfWhoWas(buf, NULL, nick, nick)
+
 	return OK;
 }
 
@@ -1475,6 +1487,7 @@ int action_switch(Server* serv, User* usr, char* str) {
 		case TOPIC   	: return exec_cmd_topic   (serv, usr, str);
 		case TRACE   	: return exec_cmd_trace   (serv, usr, str);
 		case UHNAMES 	: return exec_cmd_uhnames (serv, usr, str);
+		case USER    	: return exec_cmd_user    (serv, usr, str);
 		case USERHOST	: return exec_cmd_userhost(serv, usr, str);
 		case USERIP  	: return exec_cmd_userip  (serv, usr, str);
 		case USERS   	: return exec_cmd_users   (serv, usr, str);
