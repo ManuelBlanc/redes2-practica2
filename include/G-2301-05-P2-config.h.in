@@ -63,6 +63,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Define to the name of the server. */
+#undef SIZE_NAME_SERVER
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 

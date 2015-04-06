@@ -12,7 +12,7 @@ long checksend_message_usr(User* dst, User* src, char* msg);
  * @param
  * @return
  */
-int action_switch(Server* serv, User* usr, char* str);
+int action_switch(Server* serv, User* usr, char* cmd);
 
 //Funciones de comandos usadas en user.c
 

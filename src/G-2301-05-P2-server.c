@@ -2,6 +2,7 @@
 /* std */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
 
 /* unistd */
@@ -20,10 +21,11 @@
 #include "G-2301-05-P2-channel.h"
 
 struct Server {
-        int                   sock;           /* Socket que recibe peticiones                 */
-        User*   	      usrs;	      /* Lista de usuarios                            */
-        Channel*	      chan;           /* Lista de canales                             */
-        pthread_mutex_t       switch_mutex;   /* Hilo para la funcion select()                */
+        int                   sock;                             /* Socket que recibe peticiones  */
+        char                  name[SIZE_NAME_SERVER];           /* Nombre del servidor           */
+        User*   	      usrs;	                        /* Lista de usuarios             */
+        Channel*	      chan;                             /* Lista de canales              */
+        pthread_mutex_t       switch_mutex;                     /* Hilo para la funcion select() */
 };
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
@@ -68,6 +70,7 @@ static void demonizar(void) {
 Server* server_new(){
 	Server* serv = malloc(sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
+        strncpy(serv->name, "GNB.himym", SIZE_NAME_SERVER);
 	return serv;
 }
 
@@ -108,6 +111,13 @@ int server_accept(Server* serv){
 	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
 	User* user = user_new(serv, sock);
 	return server_add_user(serv, user);
+}
+
+// Devuelve el topic.
+int server_get_name(Server* serv, char** name) {
+	if (serv == NULL) return ERR;
+	*name = serv->name;
+	return OK;
 }
 
 UserList server_get_userlist(Server* serv) {

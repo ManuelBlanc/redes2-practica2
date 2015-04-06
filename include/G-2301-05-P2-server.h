@@ -43,6 +43,14 @@ void server_up_semaforo(Server* serv);
 /* Funciones relacionadas con las listas de usuarios o canales */
 
 /**
+ * Devuelve el nombre del servidor
+ * @param serv servidor
+ * @param name donde se almacenara el nombre
+ * @return OK o ERR
+ */
+int server_get_name(Server* serv, char** name);
+
+/**
  * Devuelve la lista de usuarios
  * @param serv servidor
  * @return lista de usuarios
