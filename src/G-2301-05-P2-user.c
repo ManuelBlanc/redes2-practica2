@@ -17,36 +17,50 @@
 #include "G-2301-05-P2-config.h"
 #include "G-2301-05-P2-switches.h"
 
+enum UserConnState {
+	USERCS_RECEIVED_PASS = (1<<0),
+	USERCS_RECEIVED_NICK = (1<<1),
+	USERCS_RECEIVED_USER = (1<<3)
+};
 
 struct User {
-	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion         		*/
-	char        	prefix[USER_MAX_PRE_LEN+1];    	/* Prefijo                     		*/
-	char        	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                    		*/
-	char        	name[USER_MAX_NAME_LEN+1];     	/* Nombre                      		*/
-	char        	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                 		*/
-	char        	away_msg[USER_MAX_AWAY_LEN+1]; 	/* Mensaje de away             		*/
-	int         	sock_fd;                       	/* Descriptor del socket       		*/
-	int 		connection_flag; 		/* Flag para los comandos de registro 	*/
-	Server*     	server;                        	/* Servidor al que pertenece   		*/
-	struct User*	next;                          	/* Puntero al siguiente usuario		*/
-	pthread_t   	thread;                        	/* Hilo                        		*/
+	char         	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
+	char         	prefix[USER_MAX_PRE_LEN+1];    	/* Prefijo                           	*/
+	char         	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
+	char         	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
+	char         	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
+	char         	away_msg[USER_MAX_AWAY_LEN+1]; 	/* Mensaje de away                   	*/
+	int          	sock_fd;                       	/* Descriptor del socket             	*/
+	UserConnState	conn_state;                    	/* Flag para los comandos de registro	*/
+	Server*      	server;                        	/* Servidor al que pertenece         	*/
+	struct User* 	next;                          	/* Puntero al siguiente usuario      	*/
+	pthread_t    	thread;                        	/* Hilo                              	*/
 };
 
 static int connection_switch(Server* serv, User* usr, char* str) {
 	switch (IRC_CommandQuery(str)) {
-		default: return ERR;
-		case PASS:
-			exec_cmd_pass(serv, usr, str);
-			break;
-		case NICK:
-			exec_cmd_nick(serv, usr, str);
-			break;
-		case USER:
-			usr->connection_flag = 1;
-			exec_cmd_user(serv, usr, str);
-			break;
+
+		case PASS: /* 1 */
+			if ((USERS))
+			usr->conn_state |= USERCS_RECEIVED_PASS;
+			return exec_cmd_pass(serv, usr, str);
+
+		case NICK: /* 2a */
+			if ()
+			usr->conn_state |= USERCS_RECEIVED_NICK;
+			return exec_cmd_nick(serv, usr, str);
+
+		case SERVICE: /* 2a */
+			// No aceptamos conexiones de otros servidores!
+			return ERR;
+
+		case USER: /* 3 */
+			usr->conn_state |= USERCS_RECEIVED_USER;
+			return exec_cmd_user(serv, usr, str);
+
+		default:
+			return ERR;
 	}
-	return OK;
 }
 
 
@@ -62,8 +76,10 @@ static int userP_process_commands(User* usr, char* str) {
 				more_commands = 0;
 			case IRC_OK:
 				server_down_semaforo(usr->server);
-				if(!usr->connection_flag) connection_switch(usr->server, usr, cmd);
-				else action_switch(usr->server, usr, cmd);
+
+				if (!usr->connection_flag) connection_switch(usr->server, usr, cmd);
+				else                       action_switch(usr->server, usr, cmd);
+
 				server_up_semaforo(usr->server);
 				str = NULL;
 				break;

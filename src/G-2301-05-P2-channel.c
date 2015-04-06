@@ -304,6 +304,7 @@ int channel_join(Channel* chan, User* usr, const char* key) {
 // Abandona un canal. Si actor es distinto de NULL, es una expulsion forzosa.
 int channel_part(Channel* chan, User* usr, User* actor) {
 	UserChannelData* ucd;
+	if (chan == NULL || usr == NULL) return ERR_NEEDMOREPARAMS;
 
 	if (!channelP_find_user_data(chan, usr, &ucd)) {
 		return ERR_NOTONCHANNEL;
@@ -325,12 +326,12 @@ int channel_get_topic(Channel* chan, char** topic) {
 
 // Cambia el topic del canal.
 int channel_set_topic(Channel* chan, const char* topic, User* actor) {
-	if (chan == NULL) return ERR;
+	if (chan == NULL || topic == NULL) return ERR_NEEDMOREPARAMS;
 
 	// Solo los operadores pueden cambiar el topic?
 	if (FLAG_TOPIC & chan->flags) {
 		// Hay permisos suficientes?
-		if (!channelP_user_op_or_null(chan, actor)) return ERR;
+		if (!channelP_user_op_or_null(chan, actor)) return ERR_CHANOPRIVSNEEDED;
 	}
 
 	strncpy(chan->topic, topic, CHANNEL_MAX_TOPIC_LEN);
