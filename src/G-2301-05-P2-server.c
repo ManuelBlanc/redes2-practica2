@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 /* usr */
 #include "G-2301-05-P2-config.h"
@@ -22,7 +23,7 @@
 
 struct Server {
 	int            	sock;                         	/* Socket que recibe peticiones  */
-	char           	hostname[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           */
+	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           */
 	User*          	usrs;                         	/* Lista de usuarios             */
 	Channel*       	chan;                         	/* Lista de canales              */
 	pthread_mutex_t	switch_mutex;                 	/* Hilo para la funcion select() */
@@ -79,24 +80,33 @@ Server* server_new() {
 }
 
 void server_init(void) {
+        int ret;
 	struct sockaddr_in addr;
 
 	Server* serv = server_new();
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
-	addr.sin_port       	= 0;
+	addr.sin_port       	= htons(6667);
 
 	serv->sock = socket(AF_INET, SOCK_STREAM, 0);
-	bind(serv->sock, (struct sockaddr*) &addr, sizeof addr);
-	listen(serv->sock, 3); // Maximo 3 peticiones de conexion encoladas
+        LOG("Creado socket, con id = %i", serv->sock);
+	ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr);
+        LOG("Bindeado a la direccion, retorno: %i", ret);
+	ret = listen(serv->sock, 3); // Maximo 3 peticiones de conexion encoladas
+        LOG("Escuchando, retorno: %i", ret);
 
 	socklen_t len = sizeof addr;
 	getsockname(serv->sock, (struct sockaddr*) &addr, &len);
 
+        LOG("Escuchando conexiones por %s:%i",
+                inet_ntoa(addr.sin_addr),
+                ntohs(addr.sin_port));
+
 	while (1) {
-		LOG("Esperando peticiones de conexion");
+		LOG("Esperando la siguiente peticion de conexion");
 		server_accept(serv);
+                LOG("Aceptado un conexion!");
 	}
 }
 
