@@ -1081,7 +1081,7 @@ UNIMPLEMENTED_COMMAND(silence, "Extension del RFC")
 
 	See PRIVMSG for more details on replies and example.
 */
-UNIMPLEMENTED_COMMAND(setname, "Comando para la interconexion de servidores")
+UNIMPLEMENTED_COMMAND(squery, "Comando para la interconexion de servidores")
 
 
 // ================================================================================================
@@ -1184,9 +1184,9 @@ static int exec_cmd_time(Server* serv, User* usr, char* buf, char* sprefix, char
 	UNUSED(serv);
         char time_buffer[100];
 
-	if (OK != IRCParse_Time(cmd, NULL, &target)) {
+	/*if (OK != IRCParse_Time(cmd, NULL, &target)) {
 		return malformed_command(serv, usr, "time", cmd);
-	}
+	}*/
 
 	// Obtenemos el tiempo
 	{

@@ -63,7 +63,7 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to the name of the server. */
+/* Maximum server name length */
 #undef SERVER_MAX_NAME_LEN
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -85,7 +85,7 @@
 #undef USER_MAX_RNAME_LEN
 
 /* Version number of package */
-
+#undef VERSION
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
