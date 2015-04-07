@@ -1309,12 +1309,20 @@ int exec_cmd_user(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
         char* prefix;
 	char* user_name;
 	char* realname;
-	char* mode;
-	if (0 != IRCParse_User(cmd, &prefix, &user_name, &mode, &realname)){
-		IRC_ErrNeedMoreParams(buf, sprefix, user_name, cmd);
-		user_send_cmd(usr, buf);
-		return ERR;
+	char* mode = "0";
+
+	// Parameters: <user> <mode> <unused> <realname>
+	if (OK != IRCParse_User(cmd, &prefix, &user_name, &mode, &realname)) {
+		return malformed_command(serv, usr, "user", cmd);
+
 	}
+
+	// Parameters: <username> <hostname> <servername> <realname>
+	if (OK != IRCParse_User1459(cmd, &prefix, &user_name, NULL, NULL, &realname)) {
+		return malformed_command(serv, usr, "user", cmd);
+
+	}
+
 	UserList usr_using = userlist_findByName(server_get_userlist(serv), user_name);
 	if (NULL == usr_using) {
                 user_set_name(usr, user_name);

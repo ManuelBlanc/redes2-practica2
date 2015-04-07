@@ -17,11 +17,11 @@
 #include "G-2301-05-P2-config.h"
 #include "G-2301-05-P2-switches.h"
 
-enum UserConnState {
+typedef enum UserConnState {
 	USERCS_RECEIVED_PASS = (1<<0),
 	USERCS_RECEIVED_NICK = (1<<1),
 	USERCS_RECEIVED_USER = (1<<3)
-};
+} UserConnState;
 
 struct User {
 	char         	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
@@ -87,8 +87,8 @@ static int userP_process_commands(User* usr, char* str) {
 			case IRC_OK:
 				server_down_semaforo(usr->server);
 
-				if (!usr->connection_flag) connection_switch(usr->server, usr, cmd);
-				else                       action_switch(usr->server, usr, cmd);
+				if (!usr->conn_state) connection_switch(usr->server, usr, cmd);
+				else                  action_switch(usr->server, usr, cmd);
 
 				server_up_semaforo(usr->server);
 				str = NULL;
