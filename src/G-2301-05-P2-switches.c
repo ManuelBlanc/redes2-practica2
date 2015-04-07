@@ -15,7 +15,8 @@ static int exec_cmd_##name(Server* serv, User* usr, char* buf, char* sprefix, ch
         UNUSED(usr);                                                                                  	\
         UNUSED(sprefix);                                                                              	\
         UNUSED(nick);                                                                                 	\
-        UNUSED(cmd);                                                                                  	\
+        UNUSED(cmd);                                                                                    \
+        UNUSED(buf);                                                                                 	\
         LOG("Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);               	\
         return OK;                                                                                    	\
 }                                                                                                     	/**/
@@ -25,7 +26,7 @@ static int malformed_command(Server* serv, User* usr, char* cmd_name, char* cmd_
         char buf[IRC_MAX_CMD_LEN+1];
 	IRC_ErrUnKnownCommand(buf, NULL, cmd_name, cmd_str);
 	user_send_cmd(usr, buf);
-	return ERR
+	return ERR;
 }
 
 // Se salta los dos puntos de una cadena (si estan ahi)
@@ -335,7 +336,7 @@ static int exec_cmd_ison(Server* serv, User* usr, char* buf, char* sprefix, char
         char* nick_str;
         char** nick_list;
         int nick_count;
-        UserList ulist = server_get_channellist(serv);
+        UserList ulist = server_get_userlist(serv);
 
 	if (OK != IRCParse_Ison(cmd, NULL, &nick_str)) {
 		return malformed_command(serv, usr, "ison", cmd);
@@ -344,11 +345,11 @@ static int exec_cmd_ison(Server* serv, User* usr, char* buf, char* sprefix, char
 	IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
 	while (nick_count --> 0) {
 		// Si esta el usuario
-		if (userlist_findByName(nick_list[i]) != NULL) {
+		if (userlist_findByName(ulist, nick_list[nick_count]) != NULL) {
 			// Enviamos un mensaje avisando
-			IRC_RplIson(buf, sprefix, nick, nick_list[i], NULL);
+			IRC_RplIson(buf, sprefix, nick, nick_list[nick_count], NULL);
 			user_send_cmd(usr, buf);
-			free(nick_list[i]);
+			free(nick_list[nick_count]);
 		}
 	}
 
@@ -510,9 +511,13 @@ static int exec_cmd_links(Server* serv, User* usr, char* buf, char* sprefix, cha
 	Wildcards are allowed in the <target> parameter.
 */
 static int exec_cmd_list(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-
-
-
+        UNUSED(buf);
+        UNUSED(sprefix);
+        UNUSED(nick);
+        UNUSED(serv);
+        UNUSED(usr);
+        UNUSED(cmd);
+        fprintf(stderr, "Funcion exec_cmd_list no implementada\n");
 	return OK;
 }
 
@@ -1181,6 +1186,7 @@ static int exec_cmd_summon(Server* serv, User* usr, char* buf, char* sprefix, ch
 */
 static int exec_cmd_time(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(serv);
+        UNUSED(cmd);
         char time_buffer[100];
 
 	/*if (OK != IRCParse_Time(cmd, NULL, &target)) {
