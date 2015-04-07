@@ -7,6 +7,12 @@ typedef struct Server Server;
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
+typedef struct ServerAdmin {
+	char loc1[200]; 	/* Datos del administrador */
+	char loc2[200]; 	/* Datos del administrador */
+	char email[200];	/* Datos del administrador */
+} ServerAdmin;
+
 /* Funciones solo de servidor */
 
 /**
@@ -41,6 +47,8 @@ void server_up_semaforo(Server* serv);
 
 
 /* Funciones relacionadas con las listas de usuarios o canales */
+
+int server_get_admin(Server* serv, ServerAdmin* sa);
 
 /**
  * Devuelve el nombre del servidor
