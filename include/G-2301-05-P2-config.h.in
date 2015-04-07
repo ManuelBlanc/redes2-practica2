@@ -64,7 +64,7 @@
 #undef PACKAGE_VERSION
 
 /* Define to the name of the server. */
-#undef SIZE_NAME_SERVER
+#undef SERVER_MAX_NAME_LEN
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

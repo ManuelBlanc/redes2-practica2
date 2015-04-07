@@ -21,11 +21,11 @@
 #include "G-2301-05-P2-channel.h"
 
 struct Server {
-        int                   sock;                             /* Socket que recibe peticiones  */
-        char                  name[SIZE_NAME_SERVER];           /* Nombre del servidor           */
-        User*   	      usrs;	                        /* Lista de usuarios             */
-        Channel*	      chan;                             /* Lista de canales              */
-        pthread_mutex_t       switch_mutex;                     /* Hilo para la funcion select() */
+        int            	sock;                     	/* Socket que recibe peticiones  */
+        char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           */
+        User*          	usrs;                     	/* Lista de usuarios             */
+        Channel*       	chan;                     	/* Lista de canales              */
+        pthread_mutex_t	switch_mutex;             	/* Hilo para la funcion select() */
 };
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
@@ -70,7 +70,7 @@ static void demonizar(void) {
 Server* server_new(){
 	Server* serv = malloc(sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
-        strncpy(serv->name, "GNB.himym", SIZE_NAME_SERVER);
+        strncpy(serv->name, "GNB.himym", SERVER_MAX_NAME_LEN);
 	return serv;
 }
 

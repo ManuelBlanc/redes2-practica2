@@ -41,7 +41,10 @@ static int connection_switch(Server* serv, User* usr, char* str) {
 	switch (IRC_CommandQuery(str)) {
 
 		case PASS: /* 1 */
-			if ((USERS))
+			if ((USERCS_RECEIVED_PASS | USERCS_RECEIVED_NICK) & usr->conn_state) {
+				// Se ha recibido un pass cuando no se esperaba
+				// adios chato!
+			}
 			usr->conn_state |= USERCS_RECEIVED_PASS;
 			return exec_cmd_pass(serv, usr, str);
 

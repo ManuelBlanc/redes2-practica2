@@ -9,16 +9,16 @@
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
-#define UNIMPLEMENTED_COMMAND(name, reason)                                                    	\
-static int exec_cmd_##name(Server* serv, User* usr, char* sprefix, char* nick, char* cmd) {     	\
-        UNUSED(serv);                                                                          	\
-        UNUSED(usr);                                                                           	\
-        UNUSED(cmd);    \
-        UNUSED(nick);   \
-        UNUSED(sprefix);                                                                           	\
-        LOG("Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);	\
-        return OK;                                                                             	\
-}                                                                                              	/**/
+#define UNIMPLEMENTED_COMMAND(name, reason)                                                	\
+static int exec_cmd_##name(Server* serv, User* usr, char* sprefix, char* nick, char* cmd) {	\
+        UNUSED(serv);                                                                      	\
+        UNUSED(usr);                                                                       	\
+        UNUSED(sprefix);                                                                   	\
+        UNUSED(nick);                                                                      	\
+        UNUSED(cmd);                                                                       	\
+        LOG("Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);    	\
+        return OK;                                                                         	\
+}                                                                                          	/**/
 
 static void malformed_command(Server* serv, User* usr, char* cmd_name, char* cmd_str) {
 	UNUSED(serv);
@@ -204,7 +204,7 @@ UNIMPLEMENTED_COMMAND(connect, "Comando de interconexion de servidores")
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(cprivmsg, "Extension del RFC")
 
@@ -225,7 +225,7 @@ UNIMPLEMENTED_COMMAND(die, "Comando opcional con riesgos de seguridad graves")
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(encap, "Extension del RFC")
 
@@ -255,7 +255,7 @@ UNIMPLEMENTED_COMMAND(error, "Comando de interconexion de servidores")
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(help, "Extension del RFC")
 
@@ -333,13 +333,28 @@ static int exec_cmd_invite(Server* serv, User* usr, char* buf, char* sprefix, ch
 	processing.
 */
 static int exec_cmd_ison(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-        UNUSED(buf);
-        UNUSED(sprefix);
-        UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_ison no implementada\n");
+        char* nick_str;
+        char** nick_list;
+        int nick_count;
+        UserList ulist = server_get_channellist(serv);
+
+	if (OK != IRCParse_Ison(cmd, NULL, &nick_str)) {
+		return malformed_command(serv, usr, "ison", cmd);
+	}
+
+	IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
+	while (nick_count --> 0) {
+		// Si esta el usuario
+		if (userlist_findByName(nick_list[i]) != NULL) {
+			// Enviamos un mensaje avisando
+			IRC_RplIson(buf, sprefix, nick, nick_list[i], NULL);
+			user_send_cmd(usr, buf);
+			free(nick_list[i]);
+		}
+	}
+
+	free(nick_list);
+	free(nick_str);
 	return OK;
 }
 
@@ -457,7 +472,7 @@ static int exec_cmd_kill(Server* serv, User* usr, char* buf, char* sprefix, char
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(knock, "Extension del RFC")
 
@@ -496,13 +511,9 @@ static int exec_cmd_links(Server* serv, User* usr, char* buf, char* sprefix, cha
 	Wildcards are allowed in the <target> parameter.
 */
 static int exec_cmd_list(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-        UNUSED(buf);
-        UNUSED(sprefix);
-        UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_list no implementada\n");
+
+
+
 	return OK;
 }
 
@@ -711,7 +722,7 @@ static int exec_cmd_names(Server* serv, User* usr, char* buf, char* sprefix, cha
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(namesx, "Extension del RFC");
 
@@ -1002,14 +1013,14 @@ UNIMPLEMENTED_COMMAND(restart, "Comando opcional con riesgos de seguridad graves
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(rules, "Extension del RFC")
 
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(server, "Extension del RFC")
 
@@ -1049,14 +1060,14 @@ UNIMPLEMENTED_COMMAND(servlist, "Comando de interconexion entre servidores")
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(setname, "Extension del RFC")
 
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(silence, "Extension del RFC")
 
@@ -1270,7 +1281,7 @@ UNIMPLEMENTED_COMMAND(trace, "Comando para la interconexion de servidores")
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(uhnames, "Extension del RFC")
 
@@ -1333,7 +1344,7 @@ static int exec_cmd_userhost(Server* serv, User* usr, char* buf, char* sprefix, 
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(userip, "Extension del RFC")
 
@@ -1406,7 +1417,7 @@ static int exec_cmd_wallops(Server* serv, User* usr, char* buf, char* sprefix, c
 // ================================================================================================
 
 /*
-	Extension del RFC (no implementado)..
+	Extension del RFC (no implementado).
 */
 UNIMPLEMENTED_COMMAND(watch, "Extension del RFC")
 
