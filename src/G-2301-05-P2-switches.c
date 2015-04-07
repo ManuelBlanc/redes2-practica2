@@ -107,7 +107,7 @@ long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	omitted.  Each server MUST have the ability to forward ADMIN messages
 	to other servers.
 */
-static int exec_cmd_admin(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* admin_info;
         char* target;
 
@@ -157,7 +157,7 @@ static int exec_cmd_admin(Server* serv, User* usr, char* buf, char* sprefix, cha
 	other servers.  To update the away status of a client across servers,
 	the user mode 'a' SHOULD be used instead.  (See Section 3.1.5)
 */
-static int exec_cmd_away(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_AWAY(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* prefix;
 	char* msg;
 
@@ -268,7 +268,7 @@ UNIMPLEMENTED_COMMAND(help, "Extension del RFC")
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_info(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_INFO(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
@@ -301,14 +301,14 @@ static int exec_cmd_info(Server* serv, User* usr, char* buf, char* sprefix, char
 	notified.  (This is unlike the MODE changes, and is occasionally the
 	source of trouble for users.)
 */
-static int exec_cmd_invite(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_invite no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_INVITE no implementada\n");
 	return OK;
 }
 
@@ -331,7 +331,7 @@ static int exec_cmd_invite(Server* serv, User* usr, char* buf, char* sprefix, ch
 	command and thus not passed onto other servers for further
 	processing.
 */
-static int exec_cmd_ison(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         char* nick_str;
         char** nick_list;
         int nick_count;
@@ -382,14 +382,14 @@ static int exec_cmd_ison(Server* serv, User* usr, char* buf, char* sprefix, char
 	a PART command (See Section 3.2.2) for each channel he is a member
 	of.
 */
-static int exec_cmd_join(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_join no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_JOIN no implementada\n");
 	return OK;
 }
 
@@ -408,14 +408,14 @@ static int exec_cmd_join(Server* serv, User* usr, char* buf, char* sprefix, char
 	users to clients.  This is necessarily to maintain backward
 	compatibility with old client software.
 */
-static int exec_cmd_kick(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_KICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_kick no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_KICK no implementada\n");
 	return OK;
 }
 
@@ -457,14 +457,14 @@ static int exec_cmd_kick(Server* serv, User* usr, char* buf, char* sprefix, char
 	which is updated by each server it passes through, each prepending
 	its name to the path.
 */
-static int exec_cmd_kill(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_KILL(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_kill no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_KILL no implementada\n");
 	return OK;
 }
 
@@ -486,14 +486,14 @@ UNIMPLEMENTED_COMMAND(knock, "Extension del RFC")
 	command is forwarded to the first server found that matches that name
 	(if any), and that server is then required to answer the query.
 */
-static int exec_cmd_links(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_LINKS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_links no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_LINKS no implementada\n");
 	return OK;
 }
 
@@ -509,7 +509,7 @@ static int exec_cmd_links(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_list(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 
 
 
@@ -528,14 +528,14 @@ static int exec_cmd_list(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_lusers(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_LUSERS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_lusers no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_LUSERS no implementada\n");
 	return OK;
 }
 
@@ -570,7 +570,7 @@ static int exec_cmd_lusers(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 	The flag 's' is obsolete but MAY still be used.
 */
-static int exec_cmd_mode(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
@@ -677,14 +677,14 @@ static int exec_cmd_mode(Server* serv, User* usr, char* buf, char* sprefix, char
 	Wildcards are allowed in the <target> parameter.
 
 */
-static int exec_cmd_motd(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_MOTD(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_motd no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_MOTD no implementada\n");
 	return OK;
 }
 
@@ -707,14 +707,14 @@ static int exec_cmd_motd(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_names(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_NAMES(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_names no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_NAMES no implementada\n");
 	return OK;
 }
 
@@ -731,7 +731,7 @@ UNIMPLEMENTED_COMMAND(namesx, "Extension del RFC");
 	NICK command is used to give user a nickname or change the existing
 	one.
 */
-static int exec_cmd_nick(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
@@ -760,14 +760,14 @@ static int exec_cmd_nick(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	See PRIVMSG for more details on replies and examples.
 */
-static int exec_cmd_notice(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_NOTICE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_notice no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_NOTICE no implementada\n");
 	return OK;
 }
 
@@ -779,14 +779,14 @@ static int exec_cmd_notice(Server* serv, User* usr, char* buf, char* sprefix, ch
 	Operator privileges.  Upon success, the user will receive a MODE
 	message (see section 3.1.5) indicating the new user modes.
 */
-static int exec_cmd_oper(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_OPER(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_oper no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_OPER no implementada\n");
 	return OK;
 }
 
@@ -803,14 +803,14 @@ static int exec_cmd_oper(Server* serv, User* usr, char* buf, char* sprefix, char
 	target, but SHOULD NOT use lists when sending PART messages to
 	clients.
 */
-static int exec_cmd_part(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_part no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_PART no implementada\n");
 	return OK;
 }
 
@@ -822,14 +822,14 @@ static int exec_cmd_part(Server* serv, User* usr, char* buf, char* sprefix, char
 	the connection is made.  Currently this requires that user send a
 	PASS command before sending the NICK/USER combination.
 */
-static int exec_cmd_pass(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_PASS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_pass no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_PASS no implementada\n");
 	return OK;
 }
 
@@ -849,14 +849,14 @@ static int exec_cmd_pass(Server* serv, User* usr, char* buf, char* sprefix, char
 	represents the target of the ping, and the message gets forwarded
 	there.
 */
-static int exec_cmd_ping(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_PING(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_ping no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_PING no implementada\n");
 	return OK;
 }
 
@@ -868,14 +868,14 @@ static int exec_cmd_ping(Server* serv, User* usr, char* buf, char* sprefix, char
 	parameter is the name of the entity who has responded to PING message
 	and generated this message.
 */
-static int exec_cmd_pong(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_PONG(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_pong no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_PONG no implementada\n");
 	return OK;
 }
 
@@ -896,7 +896,7 @@ static int exec_cmd_pong(Server* serv, User* usr, char* buf, char* sprefix, char
 	only available to operators.
 */
 
-static int exec_cmd_privmsg(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         char* prefix;
 	char* target;
 	char* msg;
@@ -966,14 +966,14 @@ static int exec_cmd_privmsg(Server* serv, User* usr, char* buf, char* sprefix, c
 	A client session is terminated with a quit message.  The server
 	acknowledges this by sending an ERROR message to the client.
 */
-static int exec_cmd_quit(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_quit no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_QUIT no implementada\n");
 	return OK;
 }
 
@@ -984,14 +984,14 @@ static int exec_cmd_quit(Server* serv, User* usr, char* buf, char* sprefix, char
 	an operator to force the server to re-read and process its
 	configuration file.
 */
-static int exec_cmd_rehash(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_REHASH(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_rehash no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_REHASH no implementada\n");
 	return OK;
 }
 
@@ -1133,14 +1133,14 @@ UNIMPLEMENTED_COMMAND(squit, "Comando para la interconexion de servidores")
 	It is also RECOMMENDED that client and server access configuration be
 	published this way.
 */
-static int exec_cmd_stats(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_STATS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_stats no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_STATS no implementada\n");
 	return OK;
 }
 
@@ -1159,7 +1159,7 @@ static int exec_cmd_stats(Server* serv, User* usr, char* buf, char* sprefix, cha
 	If summon is not enabled in a server, it MUST return the
 	ERR_SUMMONDISABLED numeric.
 */
-static int exec_cmd_summon(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_SUMMON(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
@@ -1179,7 +1179,7 @@ static int exec_cmd_summon(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_time(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(serv);
         char time_buffer[100];
 
@@ -1211,7 +1211,7 @@ static int exec_cmd_time(Server* serv, User* usr, char* buf, char* sprefix, char
 	requesting it.  If the <topic> parameter is an empty string, the
 	topic for that channel will be removed.
 */
-static int exec_cmd_topic(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* channel_name;
 	char* topic;
 	ChannelList chan_list;
@@ -1299,7 +1299,7 @@ UNIMPLEMENTED_COMMAND(uhnames, "Extension del RFC")
 
 	The <realname> may contain space characters.
 */
-int exec_cmd_user(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(nick);
         char* prefix;
 	char* user_name;
@@ -1337,14 +1337,14 @@ int exec_cmd_user(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	about each nickname that it found.  The returned list has each reply
 	separated by a space.
 */
-static int exec_cmd_userhost(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_userhost no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_USERHOST no implementada\n");
 	return OK;
 }
 
@@ -1368,14 +1368,14 @@ UNIMPLEMENTED_COMMAND(userip, "Extension del RFC")
 	simply toggling an option and restarting the server.  The procedure
 	to enable this command SHOULD also include suitable large comments.
 */
-static int exec_cmd_users(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_USERS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_users no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_USERS no implementada\n");
 	return OK;
 }
 
@@ -1388,7 +1388,7 @@ static int exec_cmd_users(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_version(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_VERSION(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(usr);
         char* serv_name = NULL;
         char* target = NULL;
@@ -1410,14 +1410,14 @@ static int exec_cmd_version(Server* serv, User* usr, char* buf, char* sprefix, c
 	WALLOPS allows and recognizes only servers as the originators of
 	WALLOPS.
 */
-static int exec_cmd_wallops(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_WALLOPS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_wallops no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_WALLOPS no implementada\n");
 	return OK;
 }
 
@@ -1444,14 +1444,14 @@ UNIMPLEMENTED_COMMAND(watch, "Extension del RFC")
 	If the "o" parameter is passed only operators are returned according
 	to the <mask> supplied.
 */
-static int exec_cmd_who(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_WHO(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_who no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_WHO no implementada\n");
 	return OK;
 }
 
@@ -1473,14 +1473,14 @@ static int exec_cmd_who(Server* serv, User* usr, char* buf, char* sprefix, char*
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_whois(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_WHOIS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_whois no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_WHOIS no implementada\n");
 	return OK;
 }
 
@@ -1499,7 +1499,7 @@ static int exec_cmd_whois(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 	Wildcards are allowed in the <target> parameter.
 */
-static int exec_cmd_whowas(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(sprefix);
         UNUSED(usr);
         UNUSED(cmd);
@@ -1521,66 +1521,74 @@ int action_switch(Server* serv, User* usr, char* cmd) {
         char* nick;
         user_get_prefix(usr, &sprefix);
         user_get_nick(usr, &nick);
+
+// Definimos una macro para el case que imprima el mensaje
+#define CMD_CASE(CMD)                                                   	\
+        case CMD:                                                       	\
+            LOG("[Usuario %s] envio [Comando %s]", nick, #CMD);         	\
+            return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
+                                                                        	/**/
+
 	switch (IRC_CommandQuery(cmd)) {
-		default      	: return ERR; // Aqui habria que dar un error
-		case ADMIN   	: return exec_cmd_admin   (serv, usr, buf, sprefix, nick, cmd);
-		case AWAY    	: return exec_cmd_away    (serv, usr, buf, sprefix, nick, cmd);
-		case CNOTICE 	: return exec_cmd_cnotice (serv, usr, buf, sprefix, nick, cmd);
-		case CONNECT 	: return exec_cmd_connect (serv, usr, buf, sprefix, nick, cmd);
-		case CPRIVMSG	: return exec_cmd_cprivmsg(serv, usr, buf, sprefix, nick, cmd);
-		case DIE     	: return exec_cmd_die     (serv, usr, buf, sprefix, nick, cmd);
-		case ENCAP   	: return exec_cmd_encap   (serv, usr, buf, sprefix, nick, cmd);
-		case ERROR   	: return exec_cmd_error   (serv, usr, buf, sprefix, nick, cmd);
-		case HELP    	: return exec_cmd_help    (serv, usr, buf, sprefix, nick, cmd);
-		case INFO    	: return exec_cmd_info    (serv, usr, buf, sprefix, nick, cmd);
-		case INVITE  	: return exec_cmd_invite  (serv, usr, buf, sprefix, nick, cmd);
-		case ISON    	: return exec_cmd_ison    (serv, usr, buf, sprefix, nick, cmd);
-		case JOIN    	: return exec_cmd_join    (serv, usr, buf, sprefix, nick, cmd);
-		case KICK    	: return exec_cmd_kick    (serv, usr, buf, sprefix, nick, cmd);
-		case KILL    	: return exec_cmd_kill    (serv, usr, buf, sprefix, nick, cmd);
-		case KNOCK   	: return exec_cmd_knock   (serv, usr, buf, sprefix, nick, cmd);
-		case LINKS   	: return exec_cmd_links   (serv, usr, buf, sprefix, nick, cmd);
-		case LIST    	: return exec_cmd_list    (serv, usr, buf, sprefix, nick, cmd);
-		case LUSERS  	: return exec_cmd_lusers  (serv, usr, buf, sprefix, nick, cmd);
-		case MODE    	: return exec_cmd_mode    (serv, usr, buf, sprefix, nick, cmd);
-		case MOTD    	: return exec_cmd_motd    (serv, usr, buf, sprefix, nick, cmd);
-		case NAMES   	: return exec_cmd_names   (serv, usr, buf, sprefix, nick, cmd);
-		case NAMESX  	: return exec_cmd_namesx  (serv, usr, buf, sprefix, nick, cmd);
-		case NICK    	: return exec_cmd_nick    (serv, usr, buf, sprefix, nick, cmd);
-		case NOTICE  	: return exec_cmd_notice  (serv, usr, buf, sprefix, nick, cmd);
-		case OPER    	: return exec_cmd_oper    (serv, usr, buf, sprefix, nick, cmd);
-		case PART    	: return exec_cmd_part    (serv, usr, buf, sprefix, nick, cmd);
-		case PASS    	: return exec_cmd_pass    (serv, usr, buf, sprefix, nick, cmd);
-		case PING    	: return exec_cmd_ping    (serv, usr, buf, sprefix, nick, cmd);
-		case PONG    	: return exec_cmd_pong    (serv, usr, buf, sprefix, nick, cmd);
-		case PRIVMSG 	: return exec_cmd_privmsg (serv, usr, buf, sprefix, nick, cmd);
-		case QUIT    	: return exec_cmd_quit    (serv, usr, buf, sprefix, nick, cmd);
-		case REHASH  	: return exec_cmd_rehash  (serv, usr, buf, sprefix, nick, cmd);
-		case RESTART 	: return exec_cmd_restart (serv, usr, buf, sprefix, nick, cmd);
-		case RULES   	: return exec_cmd_rules   (serv, usr, buf, sprefix, nick, cmd);
-		case SERVER  	: return exec_cmd_server  (serv, usr, buf, sprefix, nick, cmd);
-		case SERVICE 	: return exec_cmd_service (serv, usr, buf, sprefix, nick, cmd);
-		case SERVLIST	: return exec_cmd_servlist(serv, usr, buf, sprefix, nick, cmd);
-		case SETNAME 	: return exec_cmd_setname (serv, usr, buf, sprefix, nick, cmd);
-		case SILENCE 	: return exec_cmd_silence (serv, usr, buf, sprefix, nick, cmd);
-		case SQUERY  	: return exec_cmd_squery  (serv, usr, buf, sprefix, nick, cmd);
-		case SQUIT   	: return exec_cmd_squit   (serv, usr, buf, sprefix, nick, cmd);
-		case STATS   	: return exec_cmd_stats   (serv, usr, buf, sprefix, nick, cmd);
-		case SUMMON  	: return exec_cmd_summon  (serv, usr, buf, sprefix, nick, cmd);
-		case TIME    	: return exec_cmd_time    (serv, usr, buf, sprefix, nick, cmd);
-		case TOPIC   	: return exec_cmd_topic   (serv, usr, buf, sprefix, nick, cmd);
-		case TRACE   	: return exec_cmd_trace   (serv, usr, buf, sprefix, nick, cmd);
-		case UHNAMES 	: return exec_cmd_uhnames (serv, usr, buf, sprefix, nick, cmd);
-		case USER    	: return exec_cmd_user    (serv, usr, buf, sprefix, nick, cmd);
-		case USERHOST	: return exec_cmd_userhost(serv, usr, buf, sprefix, nick, cmd);
-		case USERIP  	: return exec_cmd_userip  (serv, usr, buf, sprefix, nick, cmd);
-		case USERS   	: return exec_cmd_users   (serv, usr, buf, sprefix, nick, cmd);
-		case VERSION 	: return exec_cmd_version (serv, usr, buf, sprefix, nick, cmd);
-		case WALLOPS 	: return exec_cmd_wallops (serv, usr, buf, sprefix, nick, cmd);
-		case WATCH   	: return exec_cmd_watch   (serv, usr, buf, sprefix, nick, cmd);
-		case WHO     	: return exec_cmd_who     (serv, usr, buf, sprefix, nick, cmd);
-		case WHOIS   	: return exec_cmd_whois   (serv, usr, buf, sprefix, nick, cmd);
-		case WHOWAS  	: return exec_cmd_whowas  (serv, usr, buf, sprefix, nick, cmd);
+		default	: return ERR; // Aqui habria que dar un error
+		CMD_CASE(ADMIN   );
+		CMD_CASE(AWAY    );
+		CMD_CASE(CNOTICE );
+		CMD_CASE(CONNECT );
+		CMD_CASE(CPRIVMSG);
+		CMD_CASE(DIE     );
+		CMD_CASE(ENCAP   );
+		CMD_CASE(ERROR   );
+		CMD_CASE(HELP    );
+		CMD_CASE(INFO    );
+		CMD_CASE(INVITE  );
+		CMD_CASE(ISON    );
+		CMD_CASE(JOIN    );
+		CMD_CASE(KICK    );
+		CMD_CASE(KILL    );
+		CMD_CASE(KNOCK   );
+		CMD_CASE(LINKS   );
+		CMD_CASE(LIST    );
+		CMD_CASE(LUSERS  );
+		CMD_CASE(MODE    );
+		CMD_CASE(MOTD    );
+		CMD_CASE(NAMES   );
+		CMD_CASE(NAMESX  );
+		CMD_CASE(NICK    );
+		CMD_CASE(NOTICE  );
+		CMD_CASE(OPER    );
+		CMD_CASE(PART    );
+		CMD_CASE(PASS    );
+		CMD_CASE(PING    );
+		CMD_CASE(PONG    );
+		CMD_CASE(PRIVMSG );
+		CMD_CASE(QUIT    );
+		CMD_CASE(REHASH  );
+		CMD_CASE(RESTART );
+		CMD_CASE(RULES   );
+		CMD_CASE(SERVER  );
+		CMD_CASE(SERVICE );
+		CMD_CASE(SERVLIST);
+		CMD_CASE(SETNAME );
+		CMD_CASE(SILENCE );
+		CMD_CASE(SQUERY  );
+		CMD_CASE(SQUIT   );
+		CMD_CASE(STATS   );
+		CMD_CASE(SUMMON  );
+		CMD_CASE(TIME    );
+		CMD_CASE(TOPIC   );
+		CMD_CASE(TRACE   );
+		CMD_CASE(UHNAMES );
+		CMD_CASE(USER    );
+		CMD_CASE(USERHOST);
+		CMD_CASE(USERIP  );
+		CMD_CASE(USERS   );
+		CMD_CASE(VERSION );
+		CMD_CASE(WALLOPS );
+		CMD_CASE(WATCH   );
+		CMD_CASE(WHO     );
+		CMD_CASE(WHOIS   );
+		CMD_CASE(WHOWAS  );
 	}
 	return OK;
 }
