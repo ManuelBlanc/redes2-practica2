@@ -737,7 +737,7 @@ UNIMPLEMENTED_COMMAND(namesx, "Extension del RFC");
 	NICK command is used to give user a nickname or change the existing
 	one.
 */
-static int exec_cmd_nick(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+int exec_cmd_nick(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
@@ -828,7 +828,7 @@ static int exec_cmd_part(Server* serv, User* usr, char* buf, char* sprefix, char
 	the connection is made.  Currently this requires that user send a
 	PASS command before sending the NICK/USER combination.
 */
-static int exec_cmd_pass(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+int exec_cmd_pass(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);

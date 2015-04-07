@@ -16,8 +16,8 @@ int action_switch(Server* serv, User* usr, char* cmd);
 
 //Funciones de comandos usadas en user.c
 
-int exec_cmd_pass(Server* serv, User* usr, char* cmd);
-int exec_cmd_nick(Server* serv, User* usr, char* cmd);
-int exec_cmd_user(Server* serv, User* usr, char* cmd);
+int exec_cmd_pass(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd);
+int exec_cmd_nick(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd);
+int exec_cmd_user(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd);
 
 #endif /* SWITCHES_H */

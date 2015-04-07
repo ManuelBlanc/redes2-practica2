@@ -37,8 +37,9 @@ struct User {
 	pthread_t    	thread;                        	/* Hilo                              	*/
 };
 
-static int connection_switch(Server* serv, User* usr, char* str) {
-	switch (IRC_CommandQuery(str)) {
+static int connection_switch(Server* serv, User* usr, char* cmd) {
+	char buf[IRC_MAX_CMD_LEN+1];
+	switch (IRC_CommandQuery(cmd)) {
 
 		case PASS: /* 1 */
 			if ((USERCS_RECEIVED_PASS | USERCS_RECEIVED_NICK) & usr->conn_state) {
@@ -46,7 +47,8 @@ static int connection_switch(Server* serv, User* usr, char* str) {
 				return ERR;
 			}
 			usr->conn_state |= USERCS_RECEIVED_PASS;
-			return exec_cmd_pass(serv, usr, str);
+			return exec_cmd_pass(serv, usr, buf, NULL, NULL, cmd);
+
 
 		case NICK: /* 2a */
 			if (USERCS_RECEIVED_NICK & usr->conn_state) {
@@ -54,7 +56,7 @@ static int connection_switch(Server* serv, User* usr, char* str) {
 				return ERR;
 			}
 			usr->conn_state |= USERCS_RECEIVED_NICK;
-			return exec_cmd_nick(serv, usr, str);
+			return exec_cmd_nick(serv, usr, buf, NULL, NULL, cmd);
 
 		case SERVICE: /* 2a */
 			// No aceptamos conexiones de otros servidores!
@@ -66,7 +68,7 @@ static int connection_switch(Server* serv, User* usr, char* str) {
 				return ERR;
 			}
 			usr->conn_state |= USERCS_RECEIVED_USER;
-			return exec_cmd_user(serv, usr, str);
+			return exec_cmd_user(serv, usr, buf, NULL, NULL, cmd);
 
 		default:
 			return (USERCS_RECEIVED_USER & usr->conn_state) ? OK : ERR;
@@ -124,7 +126,7 @@ User* user_new(Server* serv, int sock) {
 	User* usr = ecalloc(1, sizeof *usr);
 	usr->server  = serv;
 	usr->sock_fd = sock;
-	usr->connection_flag = 0;
+	usr->conn_state = 0;
 	if (OK != pthread_create(&usr->thread, NULL, userP_reader_thread, usr)) {
 		free(usr);
 		return NULL;
