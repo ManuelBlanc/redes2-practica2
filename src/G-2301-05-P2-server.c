@@ -22,7 +22,7 @@
 
 struct Server {
 	int            	sock;                         	/* Socket que recibe peticiones  */
-	char           	hostname[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           */
+	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           */
 	User*          	usrs;                         	/* Lista de usuarios             */
 	Channel*       	chan;                         	/* Lista de canales              */
 	pthread_mutex_t	switch_mutex;                 	/* Hilo para la funcion select() */

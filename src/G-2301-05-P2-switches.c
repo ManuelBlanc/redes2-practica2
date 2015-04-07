@@ -109,30 +109,31 @@ long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	to other servers.
 */
 static int exec_cmd_admin(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* admin_info;
         char* target;
+        char* name_s;
+        ServerAdmin sa;
 
 	if (0 < IRCParse_Admin(cmd, NULL, &target)) {
                 return malformed_command(serv, usr, "admin", cmd);
 	}
 
-	server_get_admin_info(serv, &admin_info);
+        server_get_name(serv, &name_s);
 
-	if (admin_info != NULL) {
+	if (server_get_admin(serv, &sa) == OK) {
 		// Aqui necesitamos acceder a la estructura server
 		// y obtener los campos:
 		// admin_me   admin_loc1   admin_info   admin_mail
-		IRC_RplAdminMe(buf, sprefix, nick, server, admin->me);
+		IRC_RplAdminMe(buf, sprefix, nick, name_s, "Administrative info.");
 		user_send_cmd(usr, buf);
-		IRC_RplAdminLoc1(buf, sprefix, nick, admin->loc1);
+		IRC_RplAdminLoc1(buf, sprefix, nick, sa.loc1);
 		user_send_cmd(usr, buf);
-		IRC_RplAdminLoc2(buf, sprefix, nick, admin->loc2);
+		IRC_RplAdminLoc2(buf, sprefix, nick, sa.loc2);
 		user_send_cmd(usr, buf);
-		IRC_RplAdmineMail(buf, sprefix, nick, admin->mail);
+		IRC_RplAdmineMail(buf, sprefix, nick, sa.email);
 		user_send_cmd(usr, buf);
 	}
 	else {
-		IRC_ErrNoAdminInfo(buf, sprefix, nick, server);
+		IRC_ErrNoAdminInfo(buf, sprefix, nick, name_s);
 		user_send_cmd(usr, buf);
 	}
 
@@ -1221,22 +1222,20 @@ static int exec_cmd_topic(Server* serv, User* usr, char* buf, char* sprefix, cha
 	char* channel_name;
 	char* topic;
 	ChannelList chan_list;
-	Channel* channel;
 
 	IRCParse_Topic(cmd, NULL, &channel_name, &topic);
 
 	chan_list = server_get_channellist(serv);
 	chan_list = channellist_findByName(chan_list, channel_name);
 	if (chan_list == NULL) {
-
-
+                IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
 		return ERR;
 	}
 
 
 	// Ponemos o leemos el topic, dependiendo si el user lo proporciono
-	if (topic != NULL) channel_set_topic(channel, topic, usr);
-	else               channel_get_topic(channel, &topic);
+	if (topic != NULL) channel_set_topic(*chan_list, topic, usr);
+	else               channel_get_topic(*chan_list, &topic);
 
 
 	// Enviamos la respuesta adecuada
