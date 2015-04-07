@@ -43,13 +43,16 @@ static int connection_switch(Server* serv, User* usr, char* str) {
 		case PASS: /* 1 */
 			if ((USERCS_RECEIVED_PASS | USERCS_RECEIVED_NICK) & usr->conn_state) {
 				// Se ha recibido un pass cuando no se esperaba
-				// adios chato!
+				return ERR;
 			}
 			usr->conn_state |= USERCS_RECEIVED_PASS;
 			return exec_cmd_pass(serv, usr, str);
 
 		case NICK: /* 2a */
-			if ()
+			if (USERCS_RECEIVED_NICK & usr->conn_state) {
+				// Se ha recibido un nick cuando no se esperaba
+				return ERR;
+			}
 			usr->conn_state |= USERCS_RECEIVED_NICK;
 			return exec_cmd_nick(serv, usr, str);
 
@@ -58,11 +61,15 @@ static int connection_switch(Server* serv, User* usr, char* str) {
 			return ERR;
 
 		case USER: /* 3 */
+			if (USERCS_RECEIVED_USER & usr->conn_state) {
+				// Se ha recibido un nick cuando no se esperaba
+				return ERR;
+			}
 			usr->conn_state |= USERCS_RECEIVED_USER;
 			return exec_cmd_user(serv, usr, str);
 
 		default:
-			return ERR;
+			return (USERCS_RECEIVED_USER & usr->conn_state) ? OK : ERR;
 	}
 }
 

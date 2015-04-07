@@ -9,22 +9,23 @@
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-channel.h"
 
-#define UNIMPLEMENTED_COMMAND(name, reason)                                                	\
-static int exec_cmd_##name(Server* serv, User* usr, char* sprefix, char* nick, char* cmd) {	\
-        UNUSED(serv);                                                                      	\
-        UNUSED(usr);                                                                       	\
-        UNUSED(sprefix);                                                                   	\
-        UNUSED(nick);                                                                      	\
-        UNUSED(cmd);                                                                       	\
-        LOG("Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);    	\
-        return OK;                                                                         	\
-}                                                                                          	/**/
+#define UNIMPLEMENTED_COMMAND(name, reason)                                                           	\
+static int exec_cmd_##name(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {	\
+        UNUSED(serv);                                                                                 	\
+        UNUSED(usr);                                                                                  	\
+        UNUSED(sprefix);                                                                              	\
+        UNUSED(nick);                                                                                 	\
+        UNUSED(cmd);                                                                                  	\
+        LOG("Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);               	\
+        return OK;                                                                                    	\
+}                                                                                                     	/**/
 
-static void malformed_command(Server* serv, User* usr, char* cmd_name, char* cmd_str) {
+static int malformed_command(Server* serv, User* usr, char* cmd_name, char* cmd_str) {
 	UNUSED(serv);
         char buf[IRC_MAX_CMD_LEN+1];
 	IRC_ErrUnKnownCommand(buf, NULL, cmd_name, cmd_str);
 	user_send_cmd(usr, buf);
+	return ERR
 }
 
 // Se salta los dos puntos de una cadena (si estan ahi)
@@ -111,8 +112,7 @@ static int exec_cmd_admin(Server* serv, User* usr, char* buf, char* sprefix, cha
         char* target;
 
 	if (0 < IRCParse_Admin(cmd, NULL, &target)) {
-		malformed_command(serv, usr, "admin", cmd);
-                return ERR;
+                return malformed_command(serv, usr, "admin", cmd);
 	}
 
 	server_get_admin_info(serv, &admin_info);
@@ -121,13 +121,13 @@ static int exec_cmd_admin(Server* serv, User* usr, char* buf, char* sprefix, cha
 		// Aqui necesitamos acceder a la estructura server
 		// y obtener los campos:
 		// admin_me   admin_loc1   admin_info   admin_mail
-		IRC_RplAdminMe(buf, sprefix, nick, server, admin_me);
+		IRC_RplAdminMe(buf, sprefix, nick, server, admin->me);
 		user_send_cmd(usr, buf);
-		IRC_RplAdminLoc1(buf, sprefix, nick, admin_loc1);
+		IRC_RplAdminLoc1(buf, sprefix, nick, admin->loc1);
 		user_send_cmd(usr, buf);
-		IRC_RplAdminLoc2(buf, sprefix, nick, admin_loc2);
+		IRC_RplAdminLoc2(buf, sprefix, nick, admin->loc2);
 		user_send_cmd(usr, buf);
-		IRC_RplAdmineMail(buf, sprefix, nick, admin_mail);
+		IRC_RplAdmineMail(buf, sprefix, nick, admin->mail);
 		user_send_cmd(usr, buf);
 	}
 	else {
@@ -162,8 +162,7 @@ static int exec_cmd_away(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* msg;
 
 	if (OK != IRCParse_Away(cmd, &prefix, &msg)) {
-		malformed_command(serv, usr, "away", cmd);
-                return ERR;
+                return malformed_command(serv, usr, "away", cmd);
 	}
 
 	// Ponemos o quitamos el away
