@@ -1315,9 +1315,9 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	char* mode = "0";
 
 	// Primero probamos con RFC2812. Parameters: <user> <mode> <unused> <realname>
-	if (OK != IRCParse_User(cmd, &prefix, &user_name, &mode, &realname)) {
+	if (OK != IRCParse_User(cmd, NULL, &user_name, &mode, &realname)) {
 		// Si no funciona, probamos con el RFC1459. Parameters: <username> <hostname> <servername> <realname>
-		if (OK != IRCParse_User1459(cmd, &prefix, &user_name, NULL, NULL, &realname)) {
+		if (OK != IRCParse_User1459(cmd, NULL, &user_name, NULL, NULL, &realname)) {
 			return malformed_command(serv, usr, "user", cmd);
 		}
 	}
