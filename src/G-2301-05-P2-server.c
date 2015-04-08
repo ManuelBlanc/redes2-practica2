@@ -125,6 +125,7 @@ int server_accept(Server* serv){
 	socklen_t usrlen = sizeof user_addr;
 
 	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
+	// Si sock es -1 y errno es algo entoncces hay que repetir
 	User* user = user_new(serv, sock);
 	return server_add_user(serv, user);
 }
