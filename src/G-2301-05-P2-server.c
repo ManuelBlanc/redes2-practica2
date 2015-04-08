@@ -79,34 +79,43 @@ Server* server_new() {
 	return serv;
 }
 
+int socket_temp_segv = -1;
+static void on_segmentation_fault(int sig) {
+	UNUSED(sig);
+	close(socket_temp_segv);
+}
+
 void server_init(void) {
-        int ret;
+		int ret;
 	struct sockaddr_in addr;
 
 	Server* serv = server_new();
+
+	signal(SIGSEGV, on_segmentation_fault);
+
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
 	addr.sin_port       	= htons(6667);
 
-	serv->sock = socket(AF_INET, SOCK_STREAM, 0);
-        LOG("Creado socket, con id = %i", serv->sock);
+	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);
+		LOG("Creado socket, con id = %i", serv->sock);
 	ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr);
-        LOG("Bindeado a la direccion, retorno: %i", ret);
+		LOG("Bindeado a la direccion, retorno: %i", ret);
 	ret = listen(serv->sock, 3); // Maximo 3 peticiones de conexion encoladas
-        LOG("Escuchando, retorno: %i", ret);
+		LOG("Escuchando, retorno: %i", ret);
 
 	socklen_t len = sizeof addr;
 	getsockname(serv->sock, (struct sockaddr*) &addr, &len);
 
-        LOG("Escuchando conexiones por %s:%i",
-                inet_ntoa(addr.sin_addr),
-                ntohs(addr.sin_port));
+	LOG("Escuchando conexiones por %s:%i",
+		inet_ntoa(addr.sin_addr),
+		ntohs(addr.sin_port));
 
 	while (1) {
 		LOG("Esperando la siguiente peticion de conexion");
 		server_accept(serv);
-                LOG("Aceptado un conexion!");
+				LOG("Aceptado un conexion!");
 	}
 }
 
@@ -159,7 +168,7 @@ int server_is_nick_used(Server* serv, const char* nick) {
 }
 
 int server_add_user(Server* serv, User* user) {
-   	userlist_insert(&serv->usrs, user);
+	userlist_insert(&serv->usrs, user);
 	return OK;
 }
 
