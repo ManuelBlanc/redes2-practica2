@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 /* usr */
 #include "G-2301-05-P2-config.h"
@@ -96,8 +97,9 @@ void server_init(void) {
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
-	addr.sin_port       	= htons(6667);
+	addr.sin_port       	= 0;//htons(6667);
 
+//CDE para socket bind y listen
 	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);
 		LOG("Creado socket, con id = %i", serv->sock);
 	ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr);

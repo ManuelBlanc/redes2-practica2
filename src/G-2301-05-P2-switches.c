@@ -1310,14 +1310,15 @@ UNIMPLEMENTED_COMMAND(UHNAMES, "Extension del RFC")
 */
 int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(nick);
+        char* pre;
 	char* user_name;
 	char* realname;
-	char* mode = "0";
+	char* mode;
 
 	// Primero probamos con RFC2812. Parameters: <user> <mode> <unused> <realname>
-	if (OK != IRCParse_User(cmd, NULL, &user_name, &mode, &realname)) {
+	if (OK != IRCParse_User(cmd, &pre, &user_name, &mode, &realname)) {
 		// Si no funciona, probamos con el RFC1459. Parameters: <username> <hostname> <servername> <realname>
-		if (OK != IRCParse_User1459(cmd, NULL, &user_name, NULL, NULL, &realname)) {
+		if (OK != IRCParse_User1459(cmd, &pre, &user_name, NULL, NULL, &realname)) {
 			return malformed_command(serv, usr, "user", cmd);
 		}
 	}
