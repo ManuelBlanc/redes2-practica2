@@ -47,7 +47,7 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 				return ERR;
 			}
 			usr->conn_state |= USERCS_RECEIVED_PASS;
-			return exec_cmd_pass(serv, usr, buf, NULL, NULL, cmd);
+			return exec_cmd_PASS(serv, usr, buf, NULL, NULL, cmd);
 
 
 		case NICK: /* 2a */
@@ -56,7 +56,7 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 				return ERR;
 			}
 			usr->conn_state |= USERCS_RECEIVED_NICK;
-			return exec_cmd_nick(serv, usr, buf, NULL, NULL, cmd);
+			return exec_cmd_NICK(serv, usr, buf, NULL, NULL, cmd);
 
 		case SERVICE: /* 2a */
 			// No aceptamos conexiones de otros servidores!
@@ -68,7 +68,7 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 				return ERR;
 			}
 			usr->conn_state |= USERCS_RECEIVED_USER;
-			return exec_cmd_user(serv, usr, buf, NULL, NULL, cmd);
+			return exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
 
 		default:
 			return (USERCS_RECEIVED_USER & usr->conn_state) ? OK : ERR;

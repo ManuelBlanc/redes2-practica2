@@ -116,9 +116,6 @@ static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, cha
 	if (0 < IRCParse_Admin(cmd, NULL, &target)) {
                 return malformed_command(serv, usr, "admin", cmd);
 	}
-        char* target;
-        char* name_s;
-        ServerAdmin sa;
 
 	if (0 < IRCParse_Admin(cmd, NULL, &target)) {
                 return malformed_command(serv, usr, "admin", cmd);
@@ -190,7 +187,7 @@ static int exec_cmd_AWAY(Server* serv, User* usr, char* buf, char* sprefix, char
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(cnotice, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(CNOTICE, "Extension del RFC")
 
 // ================================================================================================
 
@@ -206,7 +203,7 @@ UNIMPLEMENTED_COMMAND(cnotice, "Extension del RFC")
 	The server receiving a remote CONNECT command SHOULD generate a
 	WALLOPS message describing the source and target of the request.
 */
-UNIMPLEMENTED_COMMAND(connect, "Comando de interconexion de servidores")
+UNIMPLEMENTED_COMMAND(CONNECT, "Comando de interconexion de servidores")
 
 
 // ================================================================================================
@@ -214,7 +211,7 @@ UNIMPLEMENTED_COMMAND(connect, "Comando de interconexion de servidores")
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(cprivmsg, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(CPRIVMSG, "Extension del RFC")
 
 // ================================================================================================
 
@@ -228,14 +225,14 @@ UNIMPLEMENTED_COMMAND(cprivmsg, "Extension del RFC")
 	the sending client is connected and MUST NOT be passed onto other
 	connected servers.
 */
-UNIMPLEMENTED_COMMAND(die, "Comando opcional con riesgos de seguridad graves")
+UNIMPLEMENTED_COMMAND(DIE, "Comando opcional con riesgos de seguridad graves")
 
 // ================================================================================================
 
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(encap, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(ENCAP, "Extension del RFC")
 
 // ================================================================================================
 
@@ -258,14 +255,14 @@ UNIMPLEMENTED_COMMAND(encap, "Extension del RFC")
 	message SHOULD be encapsulated inside a NOTICE message, indicating
 	that the client was not responsible for the error.
 */
-UNIMPLEMENTED_COMMAND(error, "Comando de interconexion de servidores")
+UNIMPLEMENTED_COMMAND(ERROR, "Comando de interconexion de servidores")
 
 // ================================================================================================
 
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(help, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(HELP, "Extension del RFC")
 
 // ================================================================================================
 
@@ -482,7 +479,7 @@ static int exec_cmd_KILL(Server* serv, User* usr, char* buf, char* sprefix, char
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(knock, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(KNOCK, "Extension del RFC")
 
 // ================================================================================================
 
@@ -599,7 +596,7 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 	long opt;
 
 	user_get_nick(usr, &nick);
-	if (OK != IRCParse_Mode(buf, &prefix, &channel_name, &mode, &user_target)){
+	if (OK != IRCParse_Mode(cmd, &prefix, &channel_name, &mode, &user_target)){
 		IRC_ErrUnKnownCommand(buf, prefix, nick, str);
 		user_send_cmd(usr, buf);
 		return ERR;
@@ -736,22 +733,50 @@ static int exec_cmd_NAMES(Server* serv, User* usr, char* buf, char* sprefix, cha
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(namesx, "Extension del RFC");
+UNIMPLEMENTED_COMMAND(NAMESX, "Extension del RFC");
 
 // ================================================================================================
 
 /*
 	NICK command is used to give user a nickname or change the existing
 	one.
+        ERR_NONICKNAMEGIVEN             ERR_ERRONEUSNICKNAME
+           ERR_NICKNAMEINUSE               ERR_NICKCOLLISION(no)
+           ERR_UNAVAILRESOURCE (no)            ERR_RESTRICTED(no)
 */
 int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
         UNUSED(buf);
         UNUSED(sprefix);
         UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_NICK no implementada\n");
+        char* nick_wanted;
+
+        if(0 != IRCParse_Nick(cmd, &sprefix, &nick_wanted)){
+                return malformed_command(serv, usr, nick_wanted, cmd);
+        }
+
+        if(nick_wanted == NULL){
+                IRC_ErrNoNickNameGiven(buf, sprefix, nick);
+                user_send_cmd(usr, buf);
+                return ERR;
+        }
+
+        UserList usrlist = server_get_userlist(serv);
+        UserList usr_match = userlist_findByName(usrlist, nick_wanted);
+
+        if(usr_match != NULL){
+                IRC_ErrNickNameInUse(buf, sprefix, nick, nick_wanted);
+                user_send_cmd(usr, buf);
+                return ERR;
+        }
+
+        int ret = user_set_name(usr, nick_wanted);
+
+        if(ret == ERR_ERRONEUSNICKNAME){
+                IRC_ErrErroneusNickName(buf, sprefix, nick, nick_wanted);
+                user_send_cmd(usr, buf);
+                return ERR;
+        }
+
 	return OK;
 }
 
@@ -1020,21 +1045,21 @@ static int exec_cmd_REHASH(Server* serv, User* usr, char* buf, char* sprefix, ch
 	which the sending client is connected and MUST NOT be passed onto
 	other connected servers.
 */
-UNIMPLEMENTED_COMMAND(restart, "Comando opcional con riesgos de seguridad graves")
+UNIMPLEMENTED_COMMAND(RESTART, "Comando opcional con riesgos de seguridad graves")
 
 // ================================================================================================
 
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(rules, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(RULES, "Extension del RFC")
 
 // ================================================================================================
 
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(server, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(SERVER, "Extension del RFC")
 
 // ================================================================================================
 
@@ -1056,7 +1081,7 @@ UNIMPLEMENTED_COMMAND(server, "Extension del RFC")
 
 	The <type> parameter is currently reserved for future usage.
 */
-UNIMPLEMENTED_COMMAND(service, "Comando de interconexion entre servidores")
+UNIMPLEMENTED_COMMAND(SERVICE, "Comando de interconexion entre servidores")
 
 // ================================================================================================
 
@@ -1066,7 +1091,7 @@ UNIMPLEMENTED_COMMAND(service, "Comando de interconexion entre servidores")
 	optional parameters may be used to restrict the result of the query
 	(to matching services names, and services type).
 */
-UNIMPLEMENTED_COMMAND(servlist, "Comando de interconexion entre servidores")
+UNIMPLEMENTED_COMMAND(SERVLIST, "Comando de interconexion entre servidores")
 
 
 // ================================================================================================
@@ -1074,14 +1099,14 @@ UNIMPLEMENTED_COMMAND(servlist, "Comando de interconexion entre servidores")
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(setname, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(SETNAME, "Extension del RFC")
 
 // ================================================================================================
 
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(silence, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(SILENCE, "Extension del RFC")
 
 
 // ================================================================================================
@@ -1093,7 +1118,7 @@ UNIMPLEMENTED_COMMAND(silence, "Extension del RFC")
 
 	See PRIVMSG for more details on replies and example.
 */
-UNIMPLEMENTED_COMMAND(squery, "Comando para la interconexion de servidores")
+UNIMPLEMENTED_COMMAND(SQUERY, "Comando para la interconexion de servidores")
 
 
 // ================================================================================================
@@ -1111,7 +1136,7 @@ UNIMPLEMENTED_COMMAND(squery, "Comando para la interconexion de servidores")
 	generates a WALLOPS message with <comment> included, so that other
 	users may be aware of the reason of this action.
 */
-UNIMPLEMENTED_COMMAND(squit, "Comando para la interconexion de servidores")
+UNIMPLEMENTED_COMMAND(SQUIT, "Comando para la interconexion de servidores")
 
 
 // ================================================================================================
@@ -1287,14 +1312,14 @@ static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 	Wildcards are allowed in the <target> parameter.
 */
-UNIMPLEMENTED_COMMAND(trace, "Comando para la interconexion de servidores")
+UNIMPLEMENTED_COMMAND(TRACE, "Comando para la interconexion de servidores")
 
 // ================================================================================================
 
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(uhnames, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(UHNAMES, "Extension del RFC")
 
 // ================================================================================================
 
@@ -1365,7 +1390,7 @@ static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, 
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(userip, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(USERIP, "Extension del RFC")
 
 // ================================================================================================
 
@@ -1438,7 +1463,7 @@ static int exec_cmd_WALLOPS(Server* serv, User* usr, char* buf, char* sprefix, c
 /*
 	Extension del RFC (no implementado).
 */
-UNIMPLEMENTED_COMMAND(watch, "Extension del RFC")
+UNIMPLEMENTED_COMMAND(WATCH, "Extension del RFC")
 
 // ================================================================================================
 
