@@ -1528,11 +1528,11 @@ int action_switch(Server* serv, User* usr, char* cmd) {
 	user_get_nick(usr, &nick);
 
 // Definimos una macro para el case que imprima el mensaje
-#define CMD_CASE(CMD)                                                   	\
-	case CMD:                                                       	\
-	    LOG("[Usuario %s] envio [Comando %s]", nick, #CMD);         	\
-	    return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
-										/**/
+#define CMD_CASE(CMD)                                                       	\
+        case CMD:                                                           	\
+                LOG("[Usuario \%s] envio [Comando %s]", nick, #CMD);        	\
+                return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
+                                                                            										/**/
 
 	switch (IRC_CommandQuery(cmd)) {
 		default	: return ERR; // Aqui habria que dar un error

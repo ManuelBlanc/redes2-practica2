@@ -44,21 +44,10 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 
 		case PASS: /* 1 */
 			LOG("Recibido PASS inicial");
-			if ((USERCS_RECEIVED_PASS | USERCS_RECEIVED_NICK) & usr->conn_state) {
-				// Se ha recibido un pass cuando no se esperaba
-				return ERR;
-			}
-			usr->conn_state |= USERCS_RECEIVED_PASS;
 			return exec_cmd_PASS(serv, usr, buf, NULL, NULL, cmd);
-
 
 		case NICK: /* 2a */
 			LOG("Recibido NICK inicial");
-			if (USERCS_RECEIVED_NICK & usr->conn_state) {
-				// Se ha recibido un nick cuando no se esperaba
-				return ERR;
-			}
-			usr->conn_state |= USERCS_RECEIVED_NICK;
 			return exec_cmd_NICK(serv, usr, buf, NULL, NULL, cmd);
 
 		case SERVICE: /* 2a */
@@ -68,10 +57,6 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 
 		case USER: /* 3 */
 			LOG("Recibido USER inicial");
-			if (USERCS_RECEIVED_USER & usr->conn_state) {
-				// Se ha recibido un nick cuando no se esperaba
-				return ERR;
-			}
 			usr->conn_state |= USERCS_RECEIVED_USER;
 			return exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
 
@@ -95,7 +80,9 @@ static int userP_process_commands(User* usr, char* str) {
 			case IRC_OK:
 				server_down_semaforo(usr->server);
 
-				if (!(USERCS_RECEIVED_USER & usr->conn_state)) {
+				LOG("Procesando el comando %s", cmd);
+
+				if (0 == (USERCS_RECEIVED_USER & usr->conn_state)) {
 					if (OK != connection_switch(usr->server, usr, cmd)) {
 						LOG("Handshake inicial fallido");
 					}
