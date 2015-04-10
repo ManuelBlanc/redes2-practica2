@@ -20,7 +20,7 @@
 typedef enum UserConnState {
 	USERCS_RECEIVED_PASS = (1<<0),
 	USERCS_RECEIVED_NICK = (1<<1),
-	USERCS_RECEIVED_USER = (1<<3)
+	USERCS_RECEIVED_USER = (1<<2)
 } UserConnState;
 
 struct User {
@@ -39,9 +39,11 @@ struct User {
 
 static int connection_switch(Server* serv, User* usr, char* cmd) {
 	char buf[IRC_MAX_CMD_LEN+1];
+	LOG("Switch inicial de conexion");
 	switch (IRC_CommandQuery(cmd)) {
 
 		case PASS: /* 1 */
+			LOG("Recibido PASS inicial");
 			if ((USERCS_RECEIVED_PASS | USERCS_RECEIVED_NICK) & usr->conn_state) {
 				// Se ha recibido un pass cuando no se esperaba
 				return ERR;
@@ -51,6 +53,7 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 
 
 		case NICK: /* 2a */
+			LOG("Recibido NICK inicial");
 			if (USERCS_RECEIVED_NICK & usr->conn_state) {
 				// Se ha recibido un nick cuando no se esperaba
 				return ERR;
@@ -59,10 +62,12 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 			return exec_cmd_NICK(serv, usr, buf, NULL, NULL, cmd);
 
 		case SERVICE: /* 2a */
+			LOG("Recibido SERVICE inicial");
 			// No aceptamos conexiones de otros servidores!
 			return ERR;
 
 		case USER: /* 3 */
+			LOG("Recibido USER inicial");
 			if (USERCS_RECEIVED_USER & usr->conn_state) {
 				// Se ha recibido un nick cuando no se esperaba
 				return ERR;
@@ -71,6 +76,7 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 			return exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
 
 		default:
+			LOG("Recibido PASS inicial");
 			return (USERCS_RECEIVED_USER & usr->conn_state) ? OK : ERR;
 	}
 }
@@ -89,9 +95,14 @@ static int userP_process_commands(User* usr, char* str) {
 			case IRC_OK:
 				server_down_semaforo(usr->server);
 
-				if (!usr->conn_state) connection_switch(usr->server, usr, cmd);
-				else                  action_switch(usr->server, usr, cmd);
-
+				if (!(USERCS_RECEIVED_USER & usr->conn_state)) {
+					if (OK != connection_switch(usr->server, usr, cmd)) {
+						LOG("Handshake inicial fallido");
+					}
+				}
+				else {
+					action_switch(usr->server, usr, cmd);
+				}
 				server_up_semaforo(usr->server);
 				str = NULL;
 				break;
@@ -278,7 +289,7 @@ UserList userlist_findByName(UserList list, const char* name) {
 	while (1) {
 		User* usr = userlist_head(list);
 		if (usr == NULL) break;
-		if (strncmp(name, usr->name, USER_MAX_NAME_LEN)) break;
+		if (0 == strncmp(name, usr->name, USER_MAX_NAME_LEN)) break;
 		list = userlist_tail(list);
 	}
 

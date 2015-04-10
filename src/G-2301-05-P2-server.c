@@ -83,11 +83,11 @@ Server* server_new() {
 int socket_temp_segv = -1;
 static void on_segmentation_fault(int sig) {
 	UNUSED(sig);
-	close(socket_temp_segv);
+	LOG("Recibido fallo de segmentacion. Cerrando el socket... %i", close(socket_temp_segv));
 }
 
 void server_init(void) {
-		int ret;
+	int ret;
 	struct sockaddr_in addr;
 
 	Server* serv = server_new();
@@ -97,7 +97,7 @@ void server_init(void) {
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
-	addr.sin_port       	= 0;//htons(6667);
+	addr.sin_port       	= htons(6667);
 
 //CDE para socket bind y listen
 	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);

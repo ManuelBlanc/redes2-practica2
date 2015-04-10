@@ -463,7 +463,7 @@ ChannelList channellist_findByName(ChannelList list, const char* name) {
 	while (1) {
 		Channel* chan = channellist_head(list);
 		if (chan == NULL) break;
-		if (strncmp(name, chan->name, CHANNEL_MAX_NAME_LEN)) break;
+		if (0 == strncmp(name, chan->name, CHANNEL_MAX_NAME_LEN)) break;
 		list = channellist_tail(list);
 	}
 
