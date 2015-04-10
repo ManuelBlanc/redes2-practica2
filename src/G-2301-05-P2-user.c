@@ -62,7 +62,7 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 
 		default:
 			LOG("Comando no reconcido en el handshake");
-			if(!strncmp(cmd, "CAP ", 4)) return OK;
+			if (!strncmp(cmd, "CAP ", 4)) return OK;
 			return (USERCS_RECEIVED_USER & usr->conn_state) ? OK : ERR;
 	}
 }
@@ -275,16 +275,34 @@ User* userlist_extract(UserList list) {
 }
 
 // Busca un elemento por su nombre.
-UserList userlist_findByName(UserList list, const char* name) {
+UserList userlist_findByNickname(UserList list, const char* name) {
 	if (list == NULL || name == NULL) return NULL;
+	char* str = IRC_ToLower(name);
 
 	while (1) {
 		User* usr = userlist_head(list);
 		if (usr == NULL) break;
-		if (0 == strncmp(name, usr->name, USER_MAX_NAME_LEN)) break;
+		if (0 == strncmp(str, usr->nick, USER_MAX_NICK_LEN)) break;
 		list = userlist_tail(list);
 	}
 
+	free(name);
+	return list;
+}
+
+// Busca un elemento por su nombre.
+UserList userlist_findByUsername(UserList list, const char* name) {
+	if (list == NULL || name == NULL) return NULL;
+	char* str = IRC_ToLower(name);
+
+	while (1) {
+		User* usr = userlist_head(list);
+		if (usr == NULL) break;
+		if (0 == strncmp(str, usr->name, USER_MAX_NAME_LEN)) break;
+		list = userlist_tail(list);
+	}
+
+	free(name);
 	return list;
 }
 

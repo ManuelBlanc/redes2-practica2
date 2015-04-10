@@ -42,8 +42,9 @@ int user_set_away(User* usr, const char*  message);
 */
 
 int     	userlist_insert(UserList list, User* user);
-User*    	userlist_extract(UserList list);
-UserList	userlist_findByName(UserList list, const char* name);
+User*   	userlist_extract(UserList list);
+UserList	userlist_findByUsername(UserList list, const char* name);
+UserList	userlist_findByNickname(UserList list, const char* name);
 void    	userlist_deleteAll(UserList list);
 
 #endif /* USER_H */

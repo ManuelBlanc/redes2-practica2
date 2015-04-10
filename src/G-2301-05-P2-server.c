@@ -102,12 +102,17 @@ void server_init(void) {
 	addr.sin_port       	= htons(6667);
 
 //CDE para socket bind y listen
+
 	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);
-		LOG("Creado socket, con id = %i", serv->sock);
-	ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr);
-		LOG("Bindeado a la direccion, retorno: %i", ret);
+	LOG("Creado socket() -> %i", serv->sock);
+
+	while (-1 == (ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr))) {
+		LOG("Fallado el bind a %s:%i, reintentando en un segundo.",
+				inet_ntoa(addr.sin_addr),
+				ntohs(addr.sin_port));
+		sleep(1);
+	}
 	ret = listen(serv->sock, 3); // Maximo 3 peticiones de conexion encoladas
-		LOG("Escuchando, retorno: %i", ret);
 
 	socklen_t len = sizeof addr;
 	getsockname(serv->sock, (struct sockaddr*) &addr, &len);
@@ -117,9 +122,8 @@ void server_init(void) {
 		ntohs(addr.sin_port));
 
 	while (1) {
-		LOG("Esperando la siguiente peticion de conexion");
 		server_accept(serv);
-				LOG("Aceptado un conexion!");
+		LOG("Aceptado una conexion!");
 	}
 }
 
