@@ -61,7 +61,8 @@ static int connection_switch(Server* serv, User* usr, char* cmd) {
 			return exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
 
 		default:
-			LOG("Recibido PASS inicial");
+			LOG("Comando no reconcido en el handshake");
+			if(!strncmp(cmd, "CAP ", 4)) return OK;
 			return (USERCS_RECEIVED_USER & usr->conn_state) ? OK : ERR;
 	}
 }
@@ -109,14 +110,18 @@ static void* userP_reader_thread(void* data) {
 	User* usr = data;
 	ssize_t len;
 	size_t len_buf;
+	char* nick;
 
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
 		len = recv(usr->sock_fd, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf, 0);
-		if (len <= 0) return NULL; // Se cierra la conexion
+		if (len <= 0) break; // Se cierra la conexion
 		usr->buffer_recv[len+len_buf] = '\0';
 		userP_process_commands(usr, usr->buffer_recv);
 	}
+	user_get_nick(usr, &nick);
+	LOG("Hilo de usuario %s ha muerto", nick);
+	return NULL;
 }
 
 // Crea una nueva estructura usuario a partir de un socket.

@@ -722,7 +722,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
         UNUSED(nick);
         char* nick_wanted;
 
-        if(0 != IRCParse_Nick(cmd, &sprefix, &nick_wanted)){
+        if(0 > IRCParse_Nick(cmd, &sprefix, &nick_wanted)){
                 return malformed_command(serv, usr, nick_wanted, cmd);
         }
 
@@ -735,7 +735,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
         UserList usrlist = server_get_userlist(serv);
         UserList usr_match = userlist_findByName(usrlist, nick_wanted);
 
-        if(usr_match != NULL){
+        if(*usr_match != NULL){
                 IRC_ErrNickNameInUse(buf, sprefix, nick, nick_wanted);
                 user_send_cmd(usr, buf);
                 return ERR;
@@ -913,7 +913,7 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	long opt;
 
 	user_get_nick(usr, &nick);
-	if(0 != IRCParse_Privmsg(cmd, &prefix, &target, &msg)){
+	if(0 > IRCParse_Privmsg(cmd, &prefix, &target, &msg)){
 		IRC_ErrUnKnownCommand(buf, sprefix, nick, cmd);
 		user_send_cmd(usr, buf);
 		return ERR;
@@ -1315,16 +1315,18 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	char* realname;
 	char* mode;
 
+        char *bla, *ble;
+
 	// Primero probamos con RFC2812. Parameters: <user> <mode> <unused> <realname>
-	if (OK != IRCParse_User(cmd, &pre, &user_name, &mode, &realname)) {
+	if (0 > IRCParse_User(cmd, &pre, &user_name, &mode, &realname)) {
 		// Si no funciona, probamos con el RFC1459. Parameters: <username> <hostname> <servername> <realname>
-		if (OK != IRCParse_User1459(cmd, &pre, &user_name, NULL, NULL, &realname)) {
+		if (0 > IRCParse_User1459(cmd, &pre, &user_name, &bla, &ble, &realname)) {
 			return malformed_command(serv, usr, "user", cmd);
 		}
 	}
 
 	UserList usr_using = userlist_findByName(server_get_userlist(serv), user_name);
-	if (NULL == usr_using) {
+	if (NULL == *usr_using) {
 		user_set_name(usr, user_name);
 		server_add_user(serv, usr);
 		return OK;
@@ -1530,7 +1532,7 @@ int action_switch(Server* serv, User* usr, char* cmd) {
 // Definimos una macro para el case que imprima el mensaje
 #define CMD_CASE(CMD)                                                       	\
         case CMD:                                                           	\
-                LOG("[Usuario \%s] envio [Comando %s]", nick, #CMD);        	\
+                LOG("[Usuario \%s] envio [Comando %s]", nick, cmd);        	\
                 return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
                                                                             										/**/
 

@@ -84,6 +84,7 @@ int socket_temp_segv = -1;
 static void on_segmentation_fault(int sig) {
 	UNUSED(sig);
 	LOG("Recibido fallo de segmentacion. Cerrando el socket... %i", close(socket_temp_segv));
+	exit(EXIT_FAILURE);
 }
 
 void server_init(void) {
@@ -93,7 +94,8 @@ void server_init(void) {
 	Server* serv = server_new();
 
 	signal(SIGSEGV, on_segmentation_fault);
-
+	signal(SIGINT, on_segmentation_fault);
+	signal(SIGTERM, on_segmentation_fault);
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;

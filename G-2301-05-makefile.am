@@ -1,6 +1,6 @@
 
 ACLOCAL_AMFLAGS = -I scripts/
-AM_CFLAGS = -Wall -Wextra -Werror -pthread
+AM_CFLAGS = -Wall -Wextra -Werror -pthread -O0
 
 AM_YFLAGS = -d
 
