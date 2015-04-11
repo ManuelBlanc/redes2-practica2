@@ -14,7 +14,7 @@
 #define GREEN(str) 	"\033[32m" str "\033[0m"
 #define YELLOW(str)	"\033[33m" str "\033[0m"
 
-void _assert(int test, const char* test_str, const char* msg, const char* file, int line, const char* func) {
+void _assert(int test, char* test_str, char* msg, const char* file, int line, const char* func) {
 	if (test) return;
 	fprintf(stderr, "===========================================================\n"	);
 	fprintf(stderr, "  "RED("Ha fallado una asercion.")" Informacion adicional:\n" 	);
@@ -38,7 +38,7 @@ static void normalize_whitespace(char* str) {
 }
 
 static FILE* log_file;
-void _log(const char* file, int line, const char* func, const char* fmt, ...) {
+void _log(const char* file, int line, const char* func, char* fmt, ...) {
 	static char log_buffer[512];
 	int len;
 	va_list argptr;

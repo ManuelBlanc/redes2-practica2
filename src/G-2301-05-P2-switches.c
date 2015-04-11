@@ -718,7 +718,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	UNUSED(nick);
 	char* nick_wanted;
 
-	if (0 != IRCParse_Nick(cmd, &sprefix, &nick_wanted)){
+	if (0 > IRCParse_Nick(cmd, &sprefix, &nick_wanted)){
 		return malformed_command(serv, usr, "NICK", cmd);
 	}
 

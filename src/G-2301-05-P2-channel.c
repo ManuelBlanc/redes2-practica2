@@ -65,7 +65,7 @@ typedef struct Channel {
 //is used as parameter separator and command is used as a list item
 //separator by the protocol).  A colon (':') can also be used as a
 //delimiter for the channel mask.  Channel names are case insensitive.
-Channel* channel_new(Server* server, const char* name) {
+Channel* channel_new(Server* server, char* name) {
 	Channel* chan;
 	if (server == NULL || name == NULL) return NULL;
 
@@ -173,7 +173,7 @@ int channel_can_send_message(Channel* chan, User* usr) {
 }
 
 // Manda un comando a todos los usuarios del canal.
-int channel_send_cmd(Channel* chan, const char* str) {
+int channel_send_cmd(Channel* chan, char* str) {
 	UserChannelData* ucd;
 	if (chan == NULL) return ERR;
 	ucd = chan->usrs;
@@ -185,7 +185,7 @@ int channel_send_cmd(Channel* chan, const char* str) {
 }
 
 // Manda un comando (con formateo) a todos los usuarios del canal.
-int channel_send_cmdf(Channel* chan, const char* fmt, ...) {
+int channel_send_cmdf(Channel* chan, char* fmt, ...) {
 	if (chan == NULL) return ERR;
 	char buffer[512];
 	va_list ap;
@@ -268,7 +268,7 @@ int channel_unset_flag_user(Channel* chan, User* usr, char flag, User* actor) {
 }
 
 // Ingresa un usuario en el canal, con la clave proporcionada.
-int channel_join(Channel* chan, User* usr, const char* key) {
+int channel_join(Channel* chan, User* usr, char* key) {
 	UserChannelData* ucd;
 	if (chan == NULL || usr == NULL) return ERR_NEEDMOREPARAMS;
 
@@ -325,7 +325,7 @@ int channel_get_topic(Channel* chan, char** topic) {
 }
 
 // Cambia el topic del canal.
-int channel_set_topic(Channel* chan, const char* topic, User* actor) {
+int channel_set_topic(Channel* chan, char* topic, User* actor) {
 	if (chan == NULL || topic == NULL) return ERR_NEEDMOREPARAMS;
 
 	// Solo los operadores pueden cambiar el topic?
@@ -353,7 +353,7 @@ int channel_get_key(Channel* chan, char** key) {
 }
 
 // Cambia la contraseña del canal.
-int channel_set_key(Channel* chan, const char* key, User* actor) {
+int channel_set_key(Channel* chan, char* key, User* actor) {
 	if (chan == NULL) return ERR;
 
 	// Hay permisos suficientes?
@@ -457,7 +457,7 @@ Channel* channellist_extract(ChannelList list) {
 }
 
 // Busca un elemento por su nombre.
-ChannelList channellist_findByName(ChannelList list, const char* name) {
+ChannelList channellist_findByName(ChannelList list, char* name) {
 	if (list == NULL || name == NULL) return NULL;
 
 	while (1) {

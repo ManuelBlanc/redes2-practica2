@@ -168,15 +168,16 @@ int user_get_prefix(User* usr, char** prefix) {
 }
 
 // Envia un comando al usuario.
-int user_send_cmd(User* usr, const char* str) {
+int user_send_cmd(User* usr, char* str) {
 	if (usr == NULL) return ERR;
+	LOG("Enviando: %s", str);
 	ssize_t bytesSent = send(usr->sock_fd, str, strlen(str), 0);
 	if (bytesSent < -1) return -1;
 	return OK;
 }
 
 // Envia un comando con formato a un usuario.
-int user_send_cmdf(User* usr, const char* fmt, ...) {
+int user_send_cmdf(User* usr, char* fmt, ...) {
 	if (usr == NULL) return ERR;
 	char buffer[IRC_MAX_CMD_LEN+1];
 	va_list ap;
@@ -195,7 +196,7 @@ int user_get_nick(User* usr, char** nick) {
 }
 
 // Cambia el nick del usuario.
-int user_set_nick(User* usr, const char* nick) {
+int user_set_nick(User* usr, char* nick) {
 	if (usr == NULL) return ERR;
 	strncpy(usr->nick, nick, USER_MAX_NICK_LEN);
 	return OK;
@@ -209,7 +210,7 @@ int user_get_name(User* usr, char** name) {
 }
 
 // Cambia el nombre del usuario.
-int user_set_name(User* usr, const char* name) {
+int user_set_name(User* usr, char* name) {
 	if (usr == NULL) return ERR;
 	strncpy(usr->name, name, USER_MAX_NAME_LEN);
 	return OK;
@@ -223,7 +224,7 @@ int user_get_rname(User* usr, char** rname) {
 }
 
 // Cambia el nombre real del usuario.
-int user_set_rname(User* usr, const char* rname) {
+int user_set_rname(User* usr, char* rname) {
 	if (usr == NULL) return ERR;
 	strncpy(usr->rname, rname, USER_MAX_RNAME_LEN);
 	return OK;
@@ -237,7 +238,7 @@ int user_get_away(User* usr, char** away_msg) {
 }
 
 // Cambia el estado de away del usuario.
-int user_set_away(User* usr, const char* away_msg) {
+int user_set_away(User* usr, char* away_msg) {
 	if (usr == NULL) return ERR;
 	strncpy(usr->away_msg, away_msg, USER_MAX_AWAY_LEN);
 	return OK;
@@ -275,34 +276,30 @@ User* userlist_extract(UserList list) {
 }
 
 // Busca un elemento por su nombre.
-UserList userlist_findByNickname(UserList list, const char* name) {
+UserList userlist_findByNickname(UserList list, char* name) {
 	if (list == NULL || name == NULL) return NULL;
-	char* str = IRC_ToLower(name);
 
 	while (1) {
 		User* usr = userlist_head(list);
 		if (usr == NULL) break;
-		if (0 == strncmp(str, usr->nick, USER_MAX_NICK_LEN)) break;
+		if (0 == strncasecmp(name, usr->nick, USER_MAX_NICK_LEN)) break;
 		list = userlist_tail(list);
 	}
 
-	free(name);
 	return list;
 }
 
 // Busca un elemento por su nombre.
-UserList userlist_findByUsername(UserList list, const char* name) {
+UserList userlist_findByUsername(UserList list, char* name) {
 	if (list == NULL || name == NULL) return NULL;
-	char* str = IRC_ToLower(name);
 
 	while (1) {
 		User* usr = userlist_head(list);
 		if (usr == NULL) break;
-		if (0 == strncmp(str, usr->name, USER_MAX_NAME_LEN)) break;
+		if (0 == strncasecmp(name, usr->name, USER_MAX_NAME_LEN)) break;
 		list = userlist_tail(list);
 	}
 
-	free(name);
 	return list;
 }
 
