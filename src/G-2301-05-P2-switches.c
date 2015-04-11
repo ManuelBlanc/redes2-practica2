@@ -37,20 +37,20 @@ static char* string_skip_colon(char* channel) {
 long checksend_message_usr(User* dst, User* src, char* msg) {
 	char buf[512];
 	char* awaymsg;
-	char* prefix = NULL;//para que compile sin la fun de get prefix
+	char* prefix = NULL;
 	char* dst_nick;
 
 	if (dst == NULL) return ERR;
 	if (msg == NULL) return ERR_NOTEXTTOSEND;
 
 	user_get_away(dst, &awaymsg);
-	if (awaymsg != NULL) return RPL_AWAY;
+	if (awaymsg != NULL || awaymsg[0]!='\0') return RPL_AWAY;
 
 	user_get_prefix(src, &prefix);
 	user_get_nick(dst, &dst_nick);
-
+//prefix del server?
 	IRC_Privmsg(buf, prefix, dst_nick, msg);
-	user_send_cmd(src, buf);
+	user_send_cmd(dst, buf);
 
 	return OK;
 }
@@ -69,6 +69,8 @@ long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	user_get_prefix(src, &prefix);
 	channel_get_name(dst, &chan);
 	IRC_Privmsg(buf, prefix, chan, msg);
+        //mandar con un for a todos los del canal???
+
 	return OK;
 }
 
@@ -83,9 +85,10 @@ long checksend_message_chan(Channel* dst, User* src, char* msg) {
 static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* target;
 	char* name_s;
+        char* pre;
 	ServerAdmin sa;
 
-	if (0 < IRCParse_Admin(cmd, NULL, &target)) {
+	if (0 > IRCParse_Admin(cmd, &pre, &target)) {
 		return malformed_command(serv, usr, "ADMIN", cmd);
 	}
 
@@ -737,7 +740,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		return ERR;
 	}
 
-	int ret = user_set_name(usr, nick_wanted);
+	int ret = user_set_nick(usr, nick_wanted);
 	if (ret == ERR_ERRONEUSNICKNAME) {
 		IRC_ErrErroneusNickName(buf, sprefix, nick, nick_wanted);
 		user_send_cmd(usr, buf);
@@ -1322,6 +1325,7 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	UserList usr_using = userlist_findByNickname(server_get_userlist(serv), user_name);
 	if (NULL == *usr_using) {
 		user_set_name(usr, user_name);
+                user_set_rname(usr, realname);
 		server_add_user(serv, usr);
 		return OK;
 	}
@@ -1520,7 +1524,7 @@ int action_switch(Server* serv, User* usr, char* cmd) {
 	char buf[IRC_MAX_CMD_LEN + 1];
 	char* sprefix;
 	char* nick;
-	user_get_prefix(usr, &sprefix);
+	server_get_name(serv, &sprefix);
 	user_get_nick(usr, &nick);
 
 // Definimos una macro para el case que imprima el mensaje

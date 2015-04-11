@@ -257,7 +257,11 @@ int userlist_insert(UserList list, User* usr) {
 	if (list == NULL || usr == NULL) return ERR;
 
 	// Comprobamos que NO este ya en una lista
-	if (usr->next != NULL) return ERR;
+	while(1) {
+		if (userlist_head(list) == NULL) break;
+		if (userlist_head(list) == usr)  return ERR;
+		list = userlist_tail(list);
+	}
 
 	usr->next = userlist_head(list);
 	*list = usr;

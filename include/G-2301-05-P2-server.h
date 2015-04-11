@@ -66,11 +66,32 @@ int server_get_name(Server* serv, char** name);
 UserList server_get_userlist(Server* serv);
 
 /**
+ * Devuelve la lista de usuarios desconectados
+ * @param serv servidor
+ * @return lista de usuarios desconectados
+ */
+UserList server_get_disconnectlist(Server* serv);
+
+/**
  * Devuelve la lista de canales
  * @param serv servidor
  * @return lista de canales
  */
 ChannelList server_get_channellist(Server* serv);
+
+/**
+ * Devuelve el numero de usuarios conectados
+ * @param serv servidor
+ * @return numero de usuarios
+ */
+int server_get_num_users(Server* serv);
+
+/**
+ * Devuelve el numero de canales que existen
+ * @param serv servidor
+ * @return numero de canales
+ */
+int server_get_num_channels(Server* serv);
 
 /**
  * Añade un nuevo usuario a la lista de usuarios conectados

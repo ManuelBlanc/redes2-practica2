@@ -23,12 +23,15 @@
 #include "G-2301-05-P2-channel.h"
 
 struct Server {
+	int 		num_chan; 			/* Numero de canales operativos	 */
+	int 		num_users;			/* Numero de conexiones abiertas */
 	int            	sock;                         	/* Socket que recibe peticiones  */
 	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           */
 	User*          	usrs;                         	/* Lista de usuarios             */
+	User*          	out;                         	/* Usuarios desconectados	 */
 	Channel*       	chan;                         	/* Lista de canales              */
-	pthread_mutex_t	switch_mutex;                 	/* Hilo para la funcion select() */
-	ServerAdmin    	admin_data;                   	/* Datos del administrador	*/
+	pthread_mutex_t	switch_mutex;                 	/* Mutex general		 */
+	ServerAdmin    	admin_data;                   	/* Datos del administrador	 */
 };
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
@@ -73,6 +76,8 @@ static void demonizar(void) {
 Server* server_new() {
 	Server* serv = ecalloc(1, sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
+	serv->num_users = 0;
+	serv->num_chan = 0;
 	strncpy(serv->name,           	"GNB.himym", SERVER_MAX_NAME_LEN);
 	strncpy(serv->admin_data.loc1,	"Nueva York, USA", 200);
 	strncpy(serv->admin_data.loc2,	"Goliath National Bank", 200);
@@ -142,7 +147,15 @@ int server_accept(Server* serv){
 	socklen_t usrlen = sizeof user_addr;
 
 	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
-	// Si sock es -1 y errno es algo entoncces hay que repetir
+	if(sock == -1){
+		return ERR;
+	}
+	// Si sock es -1 y errno es algo entonces hay que repetir
+	if(SERVER_MAX_USERS <= serv->num_users) {
+		send(sock, "Servidor al maximo de su capacidad, intentelo mas tarde.", 58, 0);
+		return ERR;
+	}
+
 	User* user = user_new(serv, sock);
 	return server_add_user(serv, user);
 }
@@ -165,6 +178,11 @@ UserList server_get_userlist(Server* serv) {
 	return (&serv->usrs);
 }
 
+UserList server_get_disconnectlist(Server* serv) {
+	if(NULL == serv) return NULL;
+	return (&serv->out);
+}
+
 ChannelList server_get_channellist(Server* serv) {
 	if(NULL == serv) return NULL;
 	return (&serv->chan);
@@ -175,8 +193,17 @@ int server_is_nick_used(Server* serv, char* nick) {
 	return OK;
 }
 
+int server_get_num_users(Server* serv) {
+	return serv->num_users;
+}
+
+int server_get_num_channels(Server* serv) {
+	return serv->num_chan;
+}
+
 int server_add_user(Server* serv, User* user) {
 	userlist_insert(&serv->usrs, user);
+	serv->num_users++;
 	return OK;
 }
 
@@ -184,7 +211,9 @@ int server_delete_user(Server* serv, char* name) {
 	UserList usr = userlist_findByNickname(&serv->usrs, name);
 	if (usr == NULL) return ERR;
 	User* usr2 = userlist_extract(usr);
-	user_delete(usr2);
+	userlist_insert(&serv->out, usr2);
+	//user_delete(usr2);
+	serv->num_users--;
 	return OK;
 }
 
@@ -192,6 +221,7 @@ int server_add_channel(Server* serv, char* name) {
 	ChannelList chan = channellist_findByName(&serv->chan, name);
 	if (chan != NULL) return ERR;
 	channellist_insert(&serv->chan, channel_new(serv, name));
+	serv->num_chan++;
 	return OK;
 }
 
@@ -200,6 +230,7 @@ int server_delete_channel(Server* serv, char* name) {
 	if (chan == NULL) return ERR;
 	Channel* chan2 = channellist_extract(chan);
 	channel_delete(chan2);
+	serv->num_chan--;
 	return OK;
 }
 
