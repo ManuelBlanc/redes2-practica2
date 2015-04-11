@@ -13,6 +13,7 @@
 #define RED(str)   	"\033[31m" str "\033[0m"
 #define GREEN(str) 	"\033[32m" str "\033[0m"
 #define YELLOW(str)	"\033[33m" str "\033[0m"
+#define PINK(str)  	"\033[1;35m" str "\033[0m"
 
 void _assert(int test, const char* test_str, const char* msg, const char* file, int line, const char* func) {
 	if (test) return;
@@ -43,7 +44,7 @@ void _log(const char* file, int line, const char* func, const char* fmt, ...) {
 	int len;
 	va_list argptr;
 
-	len = snprintf(log_buffer, sizeof log_buffer, GREEN("%s()")" @ "YELLOW("%s")":"RED("%i")": ", func, file, line);
+	len = snprintf(log_buffer, sizeof log_buffer, GREEN("%s()")"@"YELLOW("%s")":"RED("%i")": ["PINK("%ld")"]:", func, file, line, gettid());
 	if (len < 0) return; // Ha ocurrido un error
 	if (len > (int)(sizeof log_buffer)) len = sizeof log_buffer;
 

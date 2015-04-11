@@ -2,10 +2,6 @@
 # Redes2 - Practica 2
 [![Build Status](https://magnum.travis-ci.com/ManuelBlanc/redes2-practica2.svg?token=EUmKBkq6WKaWf4LZVtbE)](https://magnum.travis-ci.com/ManuelBlanc/redes2-practica2)
 
-### Como compilar
-auto
-automake
-
 ### Organizacion
 
 ### Comandos utiles de `git`
