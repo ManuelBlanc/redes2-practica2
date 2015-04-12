@@ -218,7 +218,7 @@ static int exec_cmd_INFO(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	server_get_name(serv, &serv_name);
 
-	if (!strncasecmp(serv_name, target, SERVER_MAX_NAME_LEN)) {
+	if (strncasecmp(serv_name, target, SERVER_MAX_NAME_LEN)) {
 		IRC_ErrNoSuchServer(buf, sprefix, nick, target);
 		user_send_cmd(usr, buf);
 		goto cleanup;
@@ -307,12 +307,14 @@ static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* prefix = NULL;
 	char* nick_str = NULL;
 	char** nick_list = NULL;
+        char error;
 	int nick_count;
 	UserList ulist = server_get_userlist(serv);
 
 	PARSE_PROTECT("ISON", IRCParse_Ison(cmd, &prefix, &nick_str))
 
-	IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
+	long err = IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
+        IRC_perror(&error, err);
 	while (nick_count --> 0) {
 		// Si esta el usuario
 		User* usr = userlist_head(userlist_findByNickname(ulist, nick_list[nick_count]));
@@ -328,7 +330,6 @@ static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char
 	free(prefix);
 	free(nick_str);
 	free(nick_list);
-	free(nick_str);
 	return OK;
 }
 
@@ -1140,14 +1141,14 @@ static long checksend_message_usr(User* dst, User* src, char* msg) {
 	if (NULL == dst) return ERR;
 	if (NULL == msg) return ERR_NOTEXTTOSEND;
 
-	user_get_away(dst, &awaymsg);
-	if (NULL != awaymsg) return RPL_AWAY;
-
 	user_get_prefix(src, &prefix);
 	user_get_nick(dst, &dst_nick);
 
 	IRC_Privmsg(buf, prefix, dst_nick, msg);
-	user_send_cmd(src, buf);
+	user_send_cmd(dst, buf);
+
+	user_get_away(dst, &awaymsg);
+	if (NULL != awaymsg) return RPL_AWAY;
 
 	return OK;
 }
