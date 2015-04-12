@@ -253,15 +253,26 @@ long user_set_rname(User* usr, char* rname) {
 // Devuelve el mensaje de away (si esta away).
 long user_get_away(User* usr, char** away_msg) {
 	if (NULL == usr) return ERR;
-	*away_msg = strdup(usr->away_msg);
-	return (NULL == away_msg);
+	if (UF_AWAY & usr->flags) {
+		*away_msg = strdup(usr->away_msg);
+		return 1;
+	}
+	else {
+		*away_msg = NULL;
+		return 0;
+	}
 }
 
 // Cambia el estado de away del usuario.
 long user_set_away(User* usr, char* away_msg) {
 	if (NULL == usr) return ERR;
-	if (NULL == away_msg)
-	strncpy(usr->away_msg, away_msg, USER_MAX_AWAY_LEN);
+	if (NULL == away_msg) {
+		usr->flags &= ~UF_AWAY;
+	}
+	else {
+		usr->flag |= UF_AWAY;
+		strncpy(usr->away_msg, away_msg, USER_MAX_AWAY_LEN);
+	}
 	return OK;
 }
 
