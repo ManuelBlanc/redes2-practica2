@@ -23,16 +23,16 @@
 #include "G-2301-05-P2-channel.h"
 
 struct Server {
-	int 		num_chan; 			/* Numero de canales operativos	 	*/
-	int 		num_users;			/* Numero de conexiones abiertas 	*/
-	int 		num_out;			/* Numero users desconectados guardados */
-	int            	sock;                         	/* Socket que recibe peticiones  	*/
-	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           	*/
-	User*          	usrs;                         	/* Lista de usuarios             	*/
-	User*          	out;                         	/* Usuarios desconectados	 	*/
-	Channel*       	chan;                         	/* Lista de canales              	*/
-	pthread_mutex_t	switch_mutex;                 	/* Mutex general		 	*/
-	ServerAdmin*   	admin_data;                   	/* Datos del administrador	 	*/
+	int            	num_chan;                 	/* Numero de canales operativos        	*/
+	int            	num_users;                	/* Numero de conexiones abiertas       	*/
+	int            	num_out;                  	/* Numero users desconectados guardados	*/
+	int            	sock;                     	/* Socket que recibe peticiones        	*/
+	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor                 	*/
+	User*          	usrs;                     	/* Lista de usuarios                   	*/
+	User*          	out;                      	/* Usuarios desconectados              	*/
+	Channel*       	chan;                     	/* Lista de canales                    	*/
+	pthread_mutex_t	switch_mutex;             	/* Mutex general                       	*/
+	ServerAdmin    	admin_data;               	/* Datos del administrador             	*/
 };
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
@@ -80,10 +80,10 @@ Server* server_new() {
 	serv->num_users = 0;
 	serv->num_chan = 0;
 	serv->num_out = 0;
-	strncpy(serv->name,           	"GNB.himym", SERVER_MAX_NAME_LEN);
-	strncpy(serv->admin_data->loc1,	"Nueva York, USA", 200);
-	strncpy(serv->admin_data->loc2,	"Goliath National Bank", 200);
-	strncpy(serv->admin_data->email,"barney@awesome.himym", 200);
+	strncpy(serv->name,            	"GNB.himym",            	SERVER_MAX_NAME_LEN);
+	strncpy(serv->admin_data.loc1, 	"Nueva York, USA",      	200);
+	strncpy(serv->admin_data.loc2, 	"Goliath National Bank",	200);
+	strncpy(serv->admin_data.email,	"barney@awesome.himym", 	200);
 	return serv;
 }
 
@@ -115,8 +115,8 @@ void server_init(void) {
 
 	while (-1 == (ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr))) {
 		LOG("Fallado el bind a %s:%i, reintentando en un segundo.",
-				inet_ntoa(addr.sin_addr),
-				ntohs(addr.sin_port));
+			inet_ntoa(addr.sin_addr),
+			ntohs(addr.sin_port));
 		sleep(1);
 	}
 	ret = listen(serv->sock, 3); // Maximo 3 peticiones de conexion encoladas
@@ -165,13 +165,14 @@ int server_accept(Server* serv){
 // Devuelve el topic.
 int server_get_name(Server* serv, char** name) {
 	if (serv == NULL) return ERR;
-	*name = serv->name;
+	*name = strdup(serv->name);
 	return OK;
 }
-//puntero
+
 int server_get_admin(Server* serv, ServerAdmin** sa) {
 	if (serv == NULL) return ERR;
-	*sa = serv->admin_data;
+	*sa = emalloc(sizeof **sa);
+	memcpy(*sa, serv->admin_data, sizeof **sa);
 	return OK;
 }
 
@@ -191,7 +192,7 @@ ChannelList server_get_channellist(Server* serv) {
 }
 
 int server_is_nick_used(Server* serv, char* nick) {
-	if(NULL == userlist_findByNickname(&serv->usrs, nick)) return ERR;
+	if (NULL == userlist_findByNickname(&serv->usrs, nick)) return ERR;
 	return OK;
 }
 
@@ -204,7 +205,7 @@ int server_get_num_channels(Server* serv) {
 }
 
 int server_get_motd(char** motd_path) {
-	*motd_path = "MOTD.txt";
+	*motd_path = strdup("MOTD.txt");
 	return OK;
 }
 
