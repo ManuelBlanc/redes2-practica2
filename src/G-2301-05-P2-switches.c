@@ -430,8 +430,11 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
         channel_send_cmd(chan, buf);
 	// Join con exito, debemos mandar el topic y los usuarios
 	channel_get_topic(chan, &topic);//si hay
-        if(topic != NULL && topic[0]!='\0')
-	IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
+        if(topic != NULL && topic[0]!='\0') {
+	        IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
+                user_send_cmd(usr, buf);
+        }
+
 
         if(channel_has_flag(chan, 'p')) {
                 channel_type = '@';
@@ -445,6 +448,7 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
         while(namelist[i] != NULL) {
                 IRC_RplNamReply(buf, sprefix, nick, &channel_type, channel_name, namelist[i]);
                 user_send_cmd(usr, buf);
+                i++;
         }
 
 	IRC_RplEndOfNames(buf, sprefix, nick, channel_name);
