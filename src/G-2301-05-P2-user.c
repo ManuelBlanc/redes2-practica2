@@ -270,7 +270,7 @@ long user_set_away(User* usr, char* away_msg) {
 		usr->flags &= ~UF_AWAY;
 	}
 	else {
-		usr->flag |= UF_AWAY;
+		usr->flags |= UF_AWAY;
 		strncpy(usr->away_msg, away_msg, USER_MAX_AWAY_LEN);
 	}
 	return OK;

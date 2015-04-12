@@ -43,14 +43,14 @@ long checksend_message_usr(User* dst, User* src, char* msg) {
 	if (dst == NULL) return ERR;
 	if (msg == NULL) return ERR_NOTEXTTOSEND;
 
-	user_get_away(dst, &awaymsg);
-	if (awaymsg != NULL && awaymsg[0]!='\0') return RPL_AWAY;
-
 	user_get_prefix(src, &prefix);
 	user_get_nick(dst, &dst_nick);
 //prefix del server?
 	IRC_Privmsg(buf, prefix, dst_nick, msg);
 	user_send_cmd(dst, buf);
+
+        user_get_away(dst, &awaymsg);
+	if (awaymsg != NULL && awaymsg[0]!='\0') return RPL_AWAY;
 
 	return OK;
 }
