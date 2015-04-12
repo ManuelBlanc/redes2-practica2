@@ -238,15 +238,21 @@ int server_add_disconnect(Server* serv, User* usr) {
 }
 
 long server_add_or_create_channel(Server* serv, char* name, ChannelList chan) {
-	if(name == NULL || name[0] == '\0') return ERR_NOSUCHCHANNEL;
+	// Comprobamos argumentos
+	if (serv == NULL || chan == NULL) return ERR;
+	if (name == NULL || name[0] == '\0') return ERR_NOSUCHCHANNEL;
 
+	// Buscamos el canal y lo devolvemos si ya existe
 	*chan = channellist_head(channellist_findByName(&serv->chan, name));
-	if (chan != NULL && *chan != NULL) return OK;
+	if (*chan != NULL) return OK;
 
-	if(name[0] != '#' && name[0] != '!' && name[0] != '&' && name[0] != '+')
-	return ERR_NOSUCHCHANNEL;
+	// No existe, lo creamos
+	// Primero comprobamos que el nombre sea valido
+	if (strchr("#!&+", name[0])) return ERR_NOSUCHCHANNEL;
+
+	// Creacion e insercion en la lista
 	*chan = channel_new(serv, name);
-	if(chan == NULL) return ERR_UNAVAILRESOURCE;
+	if (chan == NULL) return ERR_UNAVAILRESOURCE;
 	channellist_insert(&serv->chan, *chan);
 	serv->num_chan++;
 	return OK;
