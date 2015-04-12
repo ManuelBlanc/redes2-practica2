@@ -28,6 +28,9 @@ long channel_unset_flag_user(Channel* chan, User* usr, char flag, User* actor);
 // Puede un usuario mandar mensajes?
 long channel_can_send_message(Channel* chan, User* usr);
 
+// Devuelve una lista con los nombre de todos los usuarios
+long channel_get_user_names(Channel* chan, char*** usr_array);
+
 // Mandar comandos
 long channel_send_cmd(Channel* chan, char* str);
 long channel_send_cmdf(Channel* chan, char* fmt, ...)

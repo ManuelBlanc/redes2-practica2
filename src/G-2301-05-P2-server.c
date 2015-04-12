@@ -172,7 +172,7 @@ int server_get_name(Server* serv, char** name) {
 int server_get_admin(Server* serv, ServerAdmin** sa) {
 	if (serv == NULL) return ERR;
 	*sa = emalloc(sizeof **sa);
-	memcpy(*sa, serv->admin_data, sizeof **sa);
+	memcpy(*sa, &serv->admin_data, sizeof **sa);
 	return OK;
 }
 
