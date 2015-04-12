@@ -108,7 +108,7 @@ cleanup:
 */
 static int exec_cmd_AWAY(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(serv);
-        char* prefix = NULL;
+	char* prefix = NULL;
 	char* msg = NULL;
 
 	PARSE_PROTECT("AWAY", IRCParse_Away(cmd, &prefix, &msg));
@@ -264,7 +264,7 @@ cleanup:
 static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* invitee_nick = NULL;
 	char* channel_name = NULL;
-        char* prefix = NULL;
+	char* prefix = NULL;
 
 	PARSE_PROTECT("INVITE", IRCParse_Invite(cmd, &prefix, &invitee_nick, &channel_name));
 
@@ -316,14 +316,14 @@ static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* prefix = NULL;
 	char* nick_str = NULL;
 	char** nick_list = NULL;
-        char error;
+	char error;
 	int nick_count;
 	UserList ulist = server_get_userlist(serv);
 
 	PARSE_PROTECT("ISON", IRCParse_Ison(cmd, &prefix, &nick_str))
 
 	long err = IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
-        IRC_perror(&error, err);
+	IRC_perror(&error, err);
 	while (nick_count --> 0) {
 		// Si esta el usuario
 		User* usr = userlist_head(userlist_findByNickname(ulist, nick_list[nick_count]));
@@ -372,15 +372,25 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* channel_name = NULL;
 	char* channel_key = NULL;
 	char* topic = NULL;
-        char* msg = NULL;
-        char channel_type;
-        char** namelist = NULL;
-        int i = 0;
+	char* msg = NULL;
+	char** namelist = NULL;
 
 	PARSE_PROTECT("JOIN", IRCParse_Join(cmd, &prefix, &channel_name, &channel_key, &msg));
 
-	// Intentamos obtener el canal si ya existe
-	Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
+	Channel* chan;
+	// Creamos o obtenemos el canal que buscamos
+	switch (server_add_or_create_channel(serv, channel_name, &chan)) {
+		case ERR_UNAVAILRESOURCE:
+			IRC_ErrUnavailResource(buf, sprefix, nick, channel_name);
+			user_send_cmd(usr, buf);
+			goto cleanup;
+		case ERR_NOSUCHCHANNEL:
+			IRC_ErrNoSuchChannel(buf, sprefix, nick, channel_name);
+			user_send_cmd(usr, buf);
+			goto cleanup;
+		case OK:
+			break;
+	}
 
 	// Si ya existe, intentamos unirnos
 	if (NULL != chan) {
@@ -409,56 +419,45 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 				user_send_cmd(usr, buf);
 				break;
 			case OK:
-                                break;
-		}
-	}
-	else { // El canal no existe
-
-		switch (server_add_or_create_channel(serv, channel_name, &chan)) {
-                        case ERR_UNAVAILRESOURCE:
-			        IRC_ErrUnavailResource(buf, sprefix, nick, channel_name);
-                                user_send_cmd(usr, buf);
-			        goto cleanup;
-                        case ERR_NOSUCHCHANNEL:
-                                IRC_ErrNoSuchChannel(buf, sprefix, nick, channel_name);
-                                user_send_cmd(usr, buf);
-                                goto cleanup;
+				break;
 		}
 	}
 
-        IRC_Join(buf, sprefix, channel_name, channel_key, msg);
-        channel_send_cmd(chan, buf);
-	// Join con exito, debemos mandar el topic y los usuarios
-	channel_get_topic(chan, &topic);//si hay
-        if(topic != NULL && topic[0]!='\0') {
-	        IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
-                user_send_cmd(usr, buf);
-        }
+	// Join con exito, avisamos a todos los usuarios del canal
+	IRC_Join(buf, sprefix, channel_name, channel_key, msg);
+	channel_send_cmd(chan, buf);
 
+	// Enviamos el topic ( si existe)
+	channel_get_topic(chan, &topic);
+	if (NULL != topic) {
+		IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
+		user_send_cmd(usr, buf);
+	}
 
-        if(channel_has_flag(chan, 'p')) {
-                channel_type = '@';
-        } else if(channel_has_flag(chan, 's')) {
-                channel_type = '*';
-        } else {
-                channel_type = '=';
-        }
+	// Buscamos el tipo del canal para la lista de usuarios
+	char* channel_type;
+	     if (channel_has_flag(chan, 'p')) channel_type = "@";
+	else if (channel_has_flag(chan, 's')) channel_type = "*";
+	else                                  channel_type = "=";
 
-        channel_get_user_names(chan, &namelist);
-        while(namelist[i] != NULL) {
-                IRC_RplNamReply(buf, sprefix, nick, &channel_type, channel_name, namelist[i]);
-                user_send_cmd(usr, buf);
-                i++;
-        }
+	// Obtenemos la lista de usuarios
+	channel_get_user_names(chan, &namelist);
+	char** namelist2 = namelist;
+	while (*namelist2) {
+		IRC_RplNamReply(buf, sprefix, nick, channel_type, channel_name, *namelist2);
+		user_send_cmd(usr, buf);
+		namelist++;
+	}
 
 	IRC_RplEndOfNames(buf, sprefix, nick, channel_name);
-        user_send_cmd(usr, buf);
+	user_send_cmd(usr, buf);
 
 cleanup:
 	free(topic);
 	free(prefix);
 	free(channel_name);
 	free(channel_key);
+	free(namelist);
 	return OK;
 }
 
@@ -476,9 +475,9 @@ cleanup:
 	The server MUST NOT send KICK messages with multiple channels or
 	users to clients.  This is necessarily to maintain backward
 	compatibility with old client software.
-        ERR_NEEDMOREPARAMS              ERR_NOSUCHCHANNEL
-           ERR_BADCHANMASK                 ERR_CHANOPRIVSNEEDED
-           ERR_USERNOTINCHANNEL            ERR_NOTONCHANNEL
+	ERR_NEEDMOREPARAMS  	ERR_NOSUCHCHANNEL
+	ERR_BADCHANMASK     	ERR_CHANOPRIVSNEEDED
+	ERR_USERNOTINCHANNEL	ERR_NOTONCHANNEL
 */
 static int exec_cmd_KICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 
@@ -490,19 +489,23 @@ static int exec_cmd_KICK(Server* serv, User* usr, char* buf, char* sprefix, char
 	PARSE_PROTECT("KICK", IRCParse_Kick(cmd, &prefix, &channel_name, &target_user, &comment));
 
 	User* target = userlist_head(userlist_findByNickname(server_get_userlist(serv), target_user));
-	if (NULL == target) {
-
-	}
-
 	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
-	if (NULL == channel) {
 
-	}
+	// Por defecto la razon es el el nombre de quien kickea
+	if (NULL == comment) user_get_name(usr, &comment);
 
-	switch (channel_part(channel, usr, usr)) {
+	switch (channel_part(channel, target, usr)) {
+		case ERR_NEEDMOREPARAMS:
+			IRC_ErrNeedMoreParams(buf, sprefix, nick, channel_name);
+			user_send_cmd(usr, buf);
+			break;
+		case ERR_CHANOPRIVSNEEDED:
+			IRC_ErrChanOPrivsNeeded(buf, sprefix, nick, channel_name);
+			user_send_cmd(usr, buf);
+			break;
 		case ERR_NOSUCHCHANNEL:
-                        IRC_ErrNoSuchChannel(buf, sprefix, nick, channel_name);
-                	user_send_cmd(usr, buf);
+			IRC_ErrNoSuchChannel(buf, sprefix, nick, channel_name);
+			user_send_cmd(usr, buf);
 			break;
 		case ERR_NOTONCHANNEL:
 			IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
@@ -724,8 +727,10 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 	}
 	else {
 		User* recv = userlist_findByNickname(&serv->usrs, user_target);
+
 		if (NULL != recv) opt = user_send_message(recv, nick, msg);
 		else opt = ERR_NOSUCHNICK;
+
 		switch (opt) {
 			default: break;
 			case ERR_NOTEXTTOSEND:
@@ -862,7 +867,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	PARSE_PROTECT("NICK", IRCParse_Nick(cmd, &prefix, &nick_wanted));
 
 	if (NULL == nick_wanted || '\0' == *nick_wanted) {
-	        IRC_ErrNoNickNameGiven(buf, sprefix, nick);
+		IRC_ErrNoNickNameGiven(buf, sprefix, nick);
 		user_send_cmd(usr, buf);
 		return ERR;
 	}
@@ -964,9 +969,9 @@ static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char
 		Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 		switch (channel_part(channel, usr, NULL)) {
 			case ERR_NOSUCHCHANNEL:
-                                IRC_ErrNoSuchChannel(buf, sprefix, nick, channel_name);
-                                user_send_cmd(usr, buf);
-                                break;
+				IRC_ErrNoSuchChannel(buf, sprefix, nick, channel_name);
+				user_send_cmd(usr, buf);
+				break;
 			case ERR_NOTONCHANNEL:
 				IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
 				user_send_cmd(usr, buf);
@@ -1390,7 +1395,7 @@ static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char
 	UNUSED(cmd);
 	char* prefix;
 	char time_buffer[100];
-        char* target;
+	char* target;
 
 	PARSE_PROTECT("TIME", IRCParse_Time(cmd, &prefix, &target))
 
@@ -1525,7 +1530,7 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		// En caso contrario lo registramos
 		user_set_name(usr, user_name);
 		user_set_rname(usr, realname);
-                user_init_prefix(usr);
+		user_init_prefix(usr);
 		server_add_user(serv, usr);
 	}
 
@@ -1692,7 +1697,7 @@ static int exec_cmd_WHO(Server* serv, User* usr, char* buf, char* sprefix, char*
 */
 static int exec_cmd_WHOIS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(serv);
-        char* prefix = NULL;
+	char* prefix = NULL;
 	char* target = NULL;
 	char* maskarray = NULL;
 
@@ -1734,33 +1739,40 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 	UserList ulist = server_get_disconnectlist(serv);
 
+	// Iteramos por todos los nicknames
 	while (nick_count --> 0) {
-		int count = max_count;
 		char* dc_nick = nick_list[nick_count];
 
+		// Y por cada usuario, lo buscamos en la lista de desconectados
 		User* dc_user;
-		while (1) {
-			dc_user = userlist_head(userlist_findByNickname(ulist, dc_nick));
-			if (count --> 0) break;
-			if (NULL == dc_user) break;
+		dc_user = userlist_head(userlist_findByNickname(ulist, dc_nick));
 
-			char* dc_name = NULL;
-			//char* dc_host = NULL;
-			char* dc_rname = NULL;
-
-			user_get_name(dc_user, &dc_name);
-			//user_get_host(dc_user, &dc_host);
-			user_get_rname(dc_user, &dc_rname);
-
-			IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, "dc_host", dc_rname);
-			user_send_cmd(usr, buf);
-
-			free(dc_name);
-			//free(dc_host);
-			free(dc_rname);
+		// Si no esta, liberamos su dc_nick y continuamos
+		if (NULL == dc_user) {
+			free(dc_nick);
+			continue;
 		}
-		free(nick);
+
+		// Encontrado! Hallamos sus datos y enviamos un mensaje
+		char* dc_name = NULL;
+		char* dc_host = NULL;
+		char* dc_rname = NULL;
+
+		user_get_name(dc_user, &dc_name);
+		user_get_host(dc_user, &dc_host);
+		user_get_rname(dc_user, &dc_rname);
+
+		IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, "dc_host", dc_rname);
+		user_send_cmd(usr, buf);
+
+		// Liberacion
+		free(dc_name);
+		free(dc_host);
+		free(dc_rname);
+		free(dc_nick);
 	}
+
+	// Fin de lista y limpieza
 	IRC_RplEndOfWhoWas(buf, sprefix, nick, nick);
 	user_send_cmd(usr, buf);
 
@@ -1780,11 +1792,11 @@ int action_switch(Server* serv, User* usr, char* cmd) {
 	user_get_nick(usr, &nick);
 
 // Definimos una macro para el case que imprima el mensaje
-#define CMD_CASE(CMD)                                                       	\
-        case CMD:                                                           	\
-                LOG("[Usuario \%s] envio [Comando %s]", nick, cmd);         	\
-                return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
-                                                                            										/**/
+#define CMD_CASE(CMD)                                           	\
+case CMD:                                                       	\
+    LOG("[Usuario \%s] envio [Comando %s]", nick, cmd);         	\
+    return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
+                                                                	//
 
 	switch (IRC_CommandQuery(cmd)) {
 		default	: return ERR; // Aqui habria que dar un error
