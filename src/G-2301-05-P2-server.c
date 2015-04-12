@@ -226,8 +226,8 @@ int server_delete_user(Server* serv, char* name) {
 
 int server_add_disconnect(Server* serv, User* usr) {
 	if (serv->num_out == SERVER_MAX_OUT){
-		User* usr2 = userlist_extractLast(&serv->out);
-		user_delete(usr2);
+		User* aux = userlist_extract(&serv->out);
+		user_delete(aux);
 	} else {
 		serv->num_out++;
 	}

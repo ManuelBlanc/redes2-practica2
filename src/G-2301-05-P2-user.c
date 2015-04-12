@@ -363,24 +363,6 @@ User* userlist_extract(UserList list) {
 	return usr;
 }
 
-User* userlist_extractLast(UserList list) {
-	User* usr;
-	UserList aux;
-	if (NULL == list) return NULL;
-
-	while(1) {
-		if (userlistP_head(list) == NULL) return NULL;
-		aux = userlistP_tail(list);
-		if (*aux == NULL) break;
-		list = userlistP_tail(list);
-	}
-
-	usr = userlistP_head(list);
-	*list = usr->next;
-	usr->next = NULL;
-	return usr;
-}
-
 // Busca un elemento por su nombre.
 UserList userlist_findByNickname(UserList list, char* name) {
 	if (NULL == list || NULL == name) return NULL;

@@ -45,7 +45,6 @@ User*    userlist_head(UserList list);
 UserList userlist_tail(UserList list);
 int      userlist_insert(UserList list, User* user);
 User*    userlist_extract(UserList list);
-User*    userlist_extractLast(UserList list);
 UserList userlist_findByUsername(UserList list, char* name);
 UserList userlist_findByNickname(UserList list, char* name);
 void     userlist_deleteAll(UserList list);
