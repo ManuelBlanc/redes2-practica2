@@ -48,7 +48,7 @@ void server_up_semaforo(Server* serv);
 
 /* Funciones relacionadas con las listas de usuarios o canales */
 
-int server_get_admin(Server* serv, ServerAdmin* sa);
+int server_get_admin(Server* serv, ServerAdmin** sa);
 
 /**
  * Devuelve el nombre del servidor

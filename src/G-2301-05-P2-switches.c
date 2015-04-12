@@ -1,77 +1,39 @@
 #include <time.h>
-
+#include <string.h>
+#include <stdlib.h>
 /* redes2 */
 #include <redes2/irc.h>
 
 /* usr */
 #include "G-2301-05-P2-config.h"
-#include "G-2301-05-P2-server.h"
-#include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-util.h"
 #include "G-2301-05-P2-channel.h"
+#include "G-2301-05-P2-user.h"
+#include "G-2301-05-P2-server.h"
 
 #define UNIMPLEMENTED_COMMAND(name, reason)                                                           	\
 static int exec_cmd_##name(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {	\
-        UNUSED(serv);                                                                                 	\
-        UNUSED(usr);                                                                                  	\
-        UNUSED(sprefix);                                                                              	\
-        UNUSED(nick);                                                                                 	\
-        UNUSED(cmd);                                                                                  	\
-        UNUSED(buf);                                                                                  	\
-        LOG("Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);               	\
-        return OK;                                                                                    	\
+    UNUSED(serv);                                                                                     	\
+    UNUSED(usr);                                                                                      	\
+    UNUSED(sprefix);                                                                                  	\
+    UNUSED(nick);                                                                                     	\
+    UNUSED(cmd);                                                                                      	\
+    UNUSED(buf);                                                                                      	\
+    LOG("Recibido un %s de %s, ignorandolo por la razon: %s", #name, nick, reason);                   	\
+    return OK;                                                                                        	\
 }                                                                                                     	/**/
 
-static int malformed_command(Server* serv, User* usr, char* cmd_name, char* cmd_str) {
-	UNUSED(serv);
-	char buf[IRC_MAX_CMD_LEN+1];
-	IRC_ErrUnKnownCommand(buf, NULL, cmd_name, cmd_str);
-	user_send_cmd(usr, buf);
-	return ERR;
-}
+#define PARSE_PROTECT(cmd_name, parse)                                     	\
+if (0 > (parse)) {                                                         	\
+    LOG("Error al parsear un comando %s recibido de %s", (cmd_name), nick);	\
+    IRC_ErrNeedMoreParams(buf, sprefix, nick, (cmd_name));                 	\
+    user_send_cmd(usr, buf);                                               	\
+    return ERR;                                                            	\
+}                                                                          	//
 
 // Se salta los dos puntos de una cadena (si estan ahi)
 static char* string_skip_colon(char* channel) {
-	return *channel == ':' ? channel+1 : channel;
-}
-
-long checksend_message_usr(User* dst, User* src, char* msg) {
-	char buf[512];
-	char* awaymsg;
-	char* prefix = NULL;
-	char* dst_nick;
-
-	if (dst == NULL) return ERR;
-	if (msg == NULL) return ERR_NOTEXTTOSEND;
-
-	user_get_prefix(src, &prefix);
-	user_get_nick(dst, &dst_nick);
-//prefix del server?
-	IRC_Privmsg(buf, prefix, dst_nick, msg);
-	user_send_cmd(dst, buf);
-
-        user_get_away(dst, &awaymsg);
-	if (awaymsg != NULL && awaymsg[0]!='\0') return RPL_AWAY;
-
-	return OK;
-}
-
-long checksend_message_chan(Channel* dst, User* src, char* msg) {
-	long opt;
-	char buf[512];
-	char* prefix = NULL;//para que compile sin la fun de get prefix
-	char* chan;
-
-	opt = channel_can_send_message(dst, src);
-
-	if (opt != OK) return opt;
-	if (msg == NULL) return ERR_NOTEXTTOSEND;
-
-	user_get_prefix(src, &prefix);
-	channel_get_name(dst, &chan);
-	IRC_Privmsg(buf, prefix, chan, msg);
-        //mandar con un for a todos los del canal???
-
-	return OK;
+	return ':' == *channel ? channel+1 : channel;
 }
 
 // ================================================================================================
@@ -83,36 +45,37 @@ long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	to other servers.
 */
 static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* target;
-	char* name_s;
-        char* pre;
-	ServerAdmin sa;
+	char* target = NULL;
+	char* serv_name = NULL;
+	char* prefix = NULL;
+	ServerAdmin* serv_admin = NULL;
 
-	if (0 > IRCParse_Admin(cmd, &pre, &target)) {
-		return malformed_command(serv, usr, "ADMIN", cmd);
-	}
+	PARSE_PROTECT("ADMIN", IRCParse_Admin(cmd, &prefix, &target));
 
-	server_get_name(serv, &name_s);
-
-	if (server_get_admin(serv, &sa) == OK) {
+	// Obtenemos los datos de manera segura
+	server_get_name(serv, &serv_name);
+	if (OK == server_get_admin(serv, &serv_admin)) {
 		// Aqui necesitamos acceder a la estructura server
 		// y obtener los campos:
 		// admin_me   admin_loc1   admin_info   admin_mail
-		IRC_RplAdminMe(buf, sprefix, nick, name_s, "Administrative info.");
+		IRC_RplAdminMe(buf, sprefix, nick, serv_name, "Administrative info.");
 		user_send_cmd(usr, buf);
-		IRC_RplAdminLoc1(buf, sprefix, nick, sa.loc1);
+		IRC_RplAdminLoc1(buf, sprefix, nick, serv_admin->loc1);
 		user_send_cmd(usr, buf);
-		IRC_RplAdminLoc2(buf, sprefix, nick, sa.loc2);
+		IRC_RplAdminLoc2(buf, sprefix, nick, serv_admin->loc2);
 		user_send_cmd(usr, buf);
-		IRC_RplAdmineMail(buf, sprefix, nick, sa.email);
+		IRC_RplAdmineMail(buf, sprefix, nick, serv_admin->email);
 		user_send_cmd(usr, buf);
 	}
 	else {
-		IRC_ErrNoAdminInfo(buf, sprefix, nick, name_s);
+		IRC_ErrNoAdminInfo(buf, sprefix, nick, serv_name);
 		user_send_cmd(usr, buf);
 	}
 
-
+	free(target);
+	free(serv_name);
+	free(prefix);
+	free(serv_admin);
 	return OK;
 }
 
@@ -135,21 +98,22 @@ static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, cha
 	the user mode 'a' SHOULD be used instead.  (See Section 3.1.5)
 */
 static int exec_cmd_AWAY(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* prefix;
-	char* msg;
+	UNUSED(serv);
+        char* prefix = NULL;
+	char* msg = NULL;
 
-	if (0 > IRCParse_Away(cmd, &prefix, &msg)) {
-		return malformed_command(serv, usr, "AWAY", cmd);
-	}
+	PARSE_PROTECT("AWAY", IRCParse_Away(cmd, &prefix, &msg));
 
 	// Ponemos o quitamos el away
 	user_set_away(usr, msg);
 
 	// Avisamos al cliente
-	if (msg != NULL) IRC_RplNowAway(buf, sprefix, nick);
+	if (NULL != msg) IRC_RplNowAway(buf, sprefix, nick);
 	else             IRC_RplUnaway(buf, sprefix, nick);
 	user_send_cmd(usr, buf);
 
+	free(prefix);
+	free(msg);
 	return OK;
 }
 
@@ -246,19 +210,29 @@ UNIMPLEMENTED_COMMAND(HELP, "Extension del RFC")
 	Wildcards are allowed in the <target> parameter.
 */
 static int exec_cmd_INFO(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(cmd);
-	UNUSED(usr);
-	/*char* target;
+	char* prefix = NULL;
+	char* target = NULL;
+	char* serv_name = NULL;
 
-	IRCParse_Info(cmd, NULL, &target);
+	PARSE_PROTECT("INFO", IRCParse_Info(cmd, &prefix, &target));
 
-	IRC_RplInfo(char *command, char *prefix, char *nick, char *info);
-	IRC_RplEndOfInfo(char *command, char *prefix, char *nick);
-*/
+	server_get_name(serv, &serv_name);
+
+	if (!strncasecmp(serv_name, target, SERVER_MAX_NAME_LEN)) {
+		IRC_ErrNoSuchServer(buf, sprefix, nick, target);
+		user_send_cmd(usr, buf);
+		goto cleanup;
+	}
+
+	IRC_RplInfo(buf, sprefix, nick, PACKAGE_STRING);
+	user_send_cmd(usr, buf);
+	IRC_RplEndOfInfo(buf, sprefix, nick);
+	user_send_cmd(usr, buf);
+
+cleanup:
+	free(serv_name);
+	free(prefix);
+	free(target);
 	return OK;
 }
 
@@ -279,13 +253,34 @@ static int exec_cmd_INFO(Server* serv, User* usr, char* buf, char* sprefix, char
 	source of trouble for users.)
 */
 static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_INVITE no implementada\n");
+	char* invitee_nick = NULL;
+	char* channel_name = NULL;
+        char* prefix = NULL;
+
+	PARSE_PROTECT("INVITE", IRCParse_Invite(cmd, &prefix, &invitee_nick, &channel_name));
+
+	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
+	// Comprobamos si ya existe ese canal
+	if (NULL != channel) {
+		// Solo se puede invitar a un canal ya existente si se esta dentro de el
+		if (!channel_has_user(channel, usr)) {
+			IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
+			user_send_cmd(usr, buf);
+			goto cleanup;
+		}
+	}
+
+	// Invitamos al usuario
+	IRC_Invite(buf, sprefix, nick, channel_name);
+	user_send_cmd(usr, buf);
+
+	// Avisamos al "anfitrion"
+	IRC_RplInviting(buf, sprefix, nick, channel_name, invitee_nick);
+	user_send_cmd(usr, buf);
+
+cleanup:
+	free(invitee_nick);
+	free(channel);
 	return OK;
 }
 
@@ -309,26 +304,29 @@ static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, ch
 	processing.
 */
 static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* nick_str;
-	char** nick_list;
+	char* prefix = NULL;
+	char* nick_str = NULL;
+	char** nick_list = NULL;
 	int nick_count;
 	UserList ulist = server_get_userlist(serv);
 
-	if (0 > IRCParse_Ison(cmd, NULL, &nick_str)) {
-		return malformed_command(serv, usr, "ISON", cmd);
-	}
+	PARSE_PROTECT("ISON", IRCParse_Ison(cmd, &prefix, &nick_str))
 
 	IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
 	while (nick_count --> 0) {
 		// Si esta el usuario
-		if (userlist_findByNickname(ulist, nick_list[nick_count]) != NULL) {
+		User* usr = userlist_head(userlist_findByNickname(ulist, nick_list[nick_count]));
+		if (NULL != usr) {
 			// Enviamos un mensaje avisando
 			IRC_RplIson(buf, sprefix, nick, nick_list[nick_count], NULL);
 			user_send_cmd(usr, buf);
 			free(nick_list[nick_count]);
 		}
+		free(nick_list[nick_count]);
 	}
 
+	free(prefix);
+	free(nick_str);
 	free(nick_list);
 	free(nick_str);
 	return OK;
@@ -578,12 +576,12 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 	if (NULL != user_target) {
 		if (mode[0] == '+') {
 			User* target = userlist_findByNickname(&serv->usrs, user_target);
-			if(target == NULL) opt = ERR_USERSDONTMATCH;
+			if(NULL == target) opt = ERR_USERSDONTMATCH;
 			else opt = channel_set_flag_user(chan, target, mode, usr);
 		}
 		else if (mode[0] == '-') {
 			User* target = userlist_findByNickname(&serv->usrs, user_target);
-			if(target == NULL) opt = ERR_USERSDONTMATCH;
+			if(NULL == target) opt = ERR_USERSDONTMATCH;
 			else opt = channel_unset_flag_user(chan, target, mode, usr);
 		}
 		else {
@@ -659,13 +657,44 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 
 */
 static int exec_cmd_MOTD(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_MOTD no implementada\n");
+	char* prefix;
+	char* target;
+	char* serv_name;
+	char* motd_path;
+	char motd_buffer[80 + 1];
+
+	PARSE_PROTECT("MOTD", IRCParse_Motd(cmd, &prefix, &target));
+
+	server_get_name(serv, &serv_name);
+	server_get_motd(&motd_path);
+
+	// Abrimos el fichero del MotD
+	FILE* motd_file = fopen(motd_path, "r");
+	if (NULL == motd_file) {
+		IRC_ErrNoMotd(buf, sprefix, nick);
+		user_send_cmd(usr, buf);
+		goto cleanup;
+	}
+
+	// Inicio
+	IRC_RplMotdStart(buf, sprefix, nick, serv_name);
+	user_send_cmd(usr, buf);
+
+	// Cuerpo
+	while (NULL != fgets(motd_buffer, sizeof motd_buffer, motd_file)) {
+		IRC_RplMotd(buf, sprefix, nick, motd_buffer);
+		user_send_cmd(usr, buf);
+	}
+
+	// Fin
+	IRC_RplEndOfMotd(buf, sprefix, nick);
+	user_send_cmd(usr, buf);
+
+cleanup:
+	free(prefix);
+	free(target);
+	free(serv_name);
+	free(motd_path);
 	return OK;
 }
 
@@ -711,18 +740,17 @@ UNIMPLEMENTED_COMMAND(NAMESX, "Extension del RFC");
 /*
 	NICK command is used to give user a nickname or change the existing
 	one.
-        ERR_NONICKNAMEGIVEN             ERR_ERRONEUSNICKNAME
-           ERR_NICKNAMEINUSE               ERR_NICKCOLLISION(no)
-           ERR_UNAVAILRESOURCE (no)            ERR_RESTRICTED(no)
+	ERR_NONICKNAMEGIVEN     	ERR_ERRONEUSNICKNAME
+	ERR_NICKNAMEINUSE       	ERR_NICKCOLLISION(no)
+	ERR_UNAVAILRESOURCE (no)	ERR_RESTRICTED(no)
 */
 int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* nick_wanted;
+	char* prefix = NULL;
+	char* nick_wanted = NULL;
 
-	if (0 > IRCParse_Nick(cmd, &sprefix, &nick_wanted)){
-		return malformed_command(serv, usr, "NICK", cmd);
-	}
+	PARSE_PROTECT("NICK", IRCParse_Nick(cmd, &prefix, &nick_wanted));
 
-	if (nick_wanted == NULL || *nick_wanted == '\0') {
+	if (NULL == nick_wanted || '\0' == *nick_wanted) {
 	        IRC_ErrNoNickNameGiven(buf, sprefix, nick);
 		user_send_cmd(usr, buf);
 		return ERR;
@@ -731,18 +759,20 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	UserList usrlist = server_get_userlist(serv);
 	UserList usr_match = userlist_findByNickname(usrlist, nick_wanted);
 
-	if (*usr_match != NULL){
+	if (NULL != *usr_match) {
 		IRC_ErrNickNameInUse(buf, sprefix, nick, nick_wanted);
 		user_send_cmd(usr, buf);
 		return ERR;
 	}
 
-	if (IRC_OK != IRC_IsValid(nick_wanted, 0, NULL, IRC_USER)) {
+	if (OK != user_set_nick(usr, nick_wanted)) {
 		IRC_ErrErroneusNickName(buf, sprefix, nick, nick_wanted);
 		user_send_cmd(usr, buf);
 		return ERR;
 	}
-        user_set_nick(usr, nick_wanted);
+
+	free(prefix);
+	free(nick_wanted);
 	return OK;
 }
 
@@ -808,13 +838,39 @@ static int exec_cmd_OPER(Server* serv, User* usr, char* buf, char* sprefix, char
 	clients.
 */
 static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_PART no implementada\n");
+	char* prefix = NULL;
+	char* channel_str = NULL;
+	char* msg = NULL;
+	char** channel_list = NULL;
+	int channel_count;
+
+	PARSE_PROTECT("PART", IRCParse_Part(cmd, &prefix, &channel_str, &msg));
+	IRCParse_ParseLists(channel_str, &channel_list, &channel_count);
+
+	while (channel_count --> 0) {
+		char* channel_name = channel_list[channel_count];
+		ChannelList channel = channellist_findByName(server_get_channellist(serv), channel_name);
+		switch (channel_part(*channel, usr, NULL)) {
+			case ERR_NOSUCHCHANNEL:
+                                IRC_ErrNoSuchChannel(cmd, sprefix, nick, channel_name);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_NOTONCHANNEL:
+				IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
+				user_send_cmd(usr, buf);
+				break;
+			case OK:
+				IRC_Part(buf, prefix, channel_name, msg);
+				channel_send_cmd(*channel, buf);
+				break;
+		}
+		free(channel_name);
+	}
+
+	free(prefix);
+	free(channel_str);
+	free(msg);
+	free(channel_list);
 	return OK;
 }
 
@@ -900,15 +956,16 @@ static int exec_cmd_PONG(Server* serv, User* usr, char* buf, char* sprefix, char
 	only available to operators.
 */
 
+static long checksend_message_usr(User* dst, User* src, char* msg);
+static long checksend_message_chan(Channel* dst, User* src, char* msg);
+
 static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* prefix;
-	char* target;
-	char* msg;
+	char* prefix = NULL;
+	char* target = NULL;
+	char* msg = NULL;
 	long opt;
 
-	if (0 > IRCParse_Privmsg(cmd, &prefix, &target, &msg)){
-		return malformed_command(serv, usr, "PRIVMSG", cmd);
-	}
+	PARSE_PROTECT("PRIVMSG", IRCParse_Privmsg(cmd, &prefix, &target, &msg));
 
 	// Es un canal?
 	string_skip_colon(target);
@@ -916,9 +973,11 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 		// Lo buscamos en los canales
 		ChannelList chan = channellist_findByName(server_get_channellist(serv), target);
 		//Envia el mensaje o devuelve un codigo de error
+
 		if (NULL != chan) opt = checksend_message_chan(*chan, usr, msg);
 		else opt = ERR_CANNOTSENDTOCHAN;
-		switch(opt) {
+
+		switch (opt) {
 			default: break;
 			case ERR_NOTEXTTOSEND:
 				IRC_ErrNoTextToSend(buf, sprefix, target);
@@ -939,8 +998,10 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 		char* awaymsg = NULL;
 		UserList recv = userlist_findByNickname(server_get_userlist(serv), target);
 		//user_send_cmd(User* usr, char* cmd)
+
 		if (NULL != *recv) opt = checksend_message_usr(*recv, usr, msg);
 		else opt = ERR_NOSUCHNICK;
+
 		switch(opt) {
 			default: break;
 			case ERR_NOTEXTTOSEND:
@@ -958,6 +1019,48 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 				break;
 		}
 	}
+
+	free(prefix);
+	free(target);
+	free(msg);
+	return OK;
+}
+
+static long checksend_message_usr(User* dst, User* src, char* msg) {
+	char buf[512];
+	char* awaymsg;
+	char* prefix;
+	char* dst_nick;
+
+	if (NULL == dst) return ERR;
+	if (NULL == msg) return ERR_NOTEXTTOSEND;
+
+	user_get_away(dst, &awaymsg);
+	if (NULL != awaymsg) return RPL_AWAY;
+
+	user_get_prefix(src, &prefix);
+	user_get_nick(dst, &dst_nick);
+
+	IRC_Privmsg(buf, prefix, dst_nick, msg);
+	user_send_cmd(src, buf);
+
+	return OK;
+}
+
+static long checksend_message_chan(Channel* dst, User* src, char* msg) {
+	long opt;
+	char buf[512];
+	char* prefix;
+	char* chan;
+
+	opt = channel_can_send_message(dst, src);
+
+	if (OK != opt) return opt;
+	if (NULL == msg) return ERR_NOTEXTTOSEND;
+
+	user_get_prefix(src, &prefix);
+	channel_get_name(dst, &chan);
+	IRC_Privmsg(buf, prefix, chan, msg);
 	return OK;
 }
 
@@ -985,16 +1088,7 @@ static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char
 	an operator to force the server to re-read and process its
 	configuration file.
 */
-static int exec_cmd_REHASH(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_REHASH no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(REHASH, "No usamos ficheros de configuracion, comando inutil")
 
 // ================================================================================================
 
@@ -1161,13 +1255,12 @@ static int exec_cmd_STATS(Server* serv, User* usr, char* buf, char* sprefix, cha
 	ERR_SUMMONDISABLED numeric.
 */
 static int exec_cmd_SUMMON(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
 	UNUSED(serv);
-	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_SUMMON no implementada\n");
+
+	IRC_ErrSummonDisabled(buf, sprefix, nick);
+	user_send_cmd(usr, buf);
+
 	return OK;
 }
 
@@ -1183,13 +1276,11 @@ static int exec_cmd_SUMMON(Server* serv, User* usr, char* buf, char* sprefix, ch
 static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(serv);
 	UNUSED(cmd);
+	char* prefix;
 	char time_buffer[100];
+        char* target;
 
-	/*
-	if (0 > IRCParse_Time(cmd, NULL, &target)) {
-		return malformed_command(serv, usr, "TIME", cmd);
-	}
-	*/
+	PARSE_PROTECT("TIME", IRCParse_Time(cmd, &prefix, &target))
 
 	// Obtenemos el tiempo
 	{
@@ -1202,6 +1293,8 @@ static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char
 	IRC_RplTime(buf, sprefix, nick, time_buffer);
 	user_send_cmd(usr, buf);
 
+	free(target);
+	free(prefix);
 	return OK;
 }
 
@@ -1218,30 +1311,25 @@ static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char
 static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* channel_name;
 	char* topic;
-	ChannelList chan_list;
+	Channel* channel;
 
 	IRCParse_Topic(cmd, NULL, &channel_name, &topic);
 
-	chan_list = server_get_channellist(serv);
-	chan_list = channellist_findByName(chan_list, channel_name);
-	if (chan_list == NULL) {
+	channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
+	if (NULL == channel) {
 		IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
 		return ERR;
 	}
 
 
 	// Ponemos o leemos el topic, dependiendo si el user lo proporciono
-	if (topic != NULL) channel_set_topic(*chan_list, topic, usr);
-	else               channel_get_topic(*chan_list, &topic);
+	if (NULL != topic) channel_set_topic(channel, topic, usr);
+	else               channel_get_topic(channel, &topic);
 
 
 	// Enviamos la respuesta adecuada
-	if (topic != NULL) {
-		IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
-	}
-	else {
-		IRC_RplNoTopic(buf, sprefix, nick, channel_name, topic);
-	}
+	if (NULL != topic) IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
+	else               IRC_RplNoTopic(buf, sprefix, nick, channel_name, topic);
 	user_send_cmd(usr, buf);
 
 	return OK;
@@ -1302,32 +1390,40 @@ UNIMPLEMENTED_COMMAND(UHNAMES, "Extension del RFC")
 	The <realname> may contain space characters.
 */
 int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
+	char* pre = NULL;
+	char* user_name = NULL;
+	char* mode = NULL;
+	char* realname = NULL;
+	char* hostname = NULL;
+	char* servername = NULL;
 	UNUSED(nick);
-        char* pre;
-	char* user_name;
-	char* realname;
-	char* mode;
-
-        char *bla, *ble;
 
 	// Primero probamos con RFC2812. Parameters: <user> <mode> <unused> <realname>
 	if (0 > IRCParse_User(cmd, &pre, &user_name, &mode, &realname)) {
 		// Si no funciona, probamos con el RFC1459. Parameters: <username> <hostname> <servername> <realname>
-		if (0 > IRCParse_User1459(cmd, &pre, &user_name, &bla, &ble, &realname)) {
-			return malformed_command(serv, usr, "USER", cmd);
-		}
+		PARSE_PROTECT("USER", IRCParse_User1459(cmd, &pre, &user_name, &hostname, &servername, &realname));
 	}
 
 	UserList usr_using = userlist_findByUsername(server_get_userlist(serv), user_name);
-	if (NULL == *usr_using) {
-		user_set_name(usr, user_name);
-                user_set_rname(usr, realname);
-		server_add_user(serv, usr);
-		return OK;
+	if (NULL != *usr_using) {
+		// Ya esta registrado? Enviamos error
+		IRC_ErrAlreadyRegistred(buf, sprefix, user_name);
+		user_send_cmd(usr, buf);
 	}
-	IRC_ErrAlreadyRegistred(buf, sprefix, user_name);
-	user_send_cmd(usr, buf);
-	return ERR;
+	else {
+		// En caso contrario lo registramos
+		user_set_name(usr, user_name);
+		user_set_rname(usr, realname);
+		server_add_user(serv, usr);
+	}
+
+	free(pre);
+	free(user_name);
+	free(mode);
+	free(realname);
+	free(hostname);
+	free(servername);
+	return OK;
 }
 
 // ================================================================================================
@@ -1391,15 +1487,20 @@ static int exec_cmd_USERS(Server* serv, User* usr, char* buf, char* sprefix, cha
 */
 static int exec_cmd_VERSION(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(usr);
-	char* serv_name = NULL;
+	char* prefix = NULL;
 	char* target = NULL;
-        char* pre = NULL;
+	char* serv_name = NULL;
 
-	IRCParse_Version(cmd, &pre, &target);
+	PARSE_PROTECT("VERSION", IRCParse_Version(cmd, &prefix, &target));
+
 	server_get_name(serv, &serv_name);
 	IRC_RplVersion(buf, sprefix, nick, 0, serv_name, PACKAGE_STRING); // config.h
-        user_send_cmd(usr, buf);
-        return OK;
+	user_send_cmd(usr, buf);
+
+	free(prefix);
+	free(target);
+	free(serv_name);
+	return OK;
 }
 
 // ================================================================================================
@@ -1504,17 +1605,13 @@ static int exec_cmd_WHOIS(Server* serv, User* usr, char* buf, char* sprefix, cha
 	Wildcards are allowed in the <target> parameter.
 */
 static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(sprefix);
-	UNUSED(usr);
-	UNUSED(cmd);
 	UNUSED(serv);
-
-	/*
-	IRCParse_Whowas(cmd, NULL, char **nickarray, int *count, char **target)
-	IRC_ErrWasNoSuchNick(buf, NULL, nick, char *nickname)
-	*/
-	IRC_RplEndOfWhoWas(buf, NULL, nick, nick);
-
+	UNUSED(usr);
+	UNUSED(buf);
+	UNUSED(sprefix);
+	UNUSED(nick);
+	UNUSED(cmd);
+	fprintf(stderr, "Funcion exec_cmd_WHOWAS no implementada\n");
 	return OK;
 }
 
@@ -1529,7 +1626,7 @@ int action_switch(Server* serv, User* usr, char* cmd) {
 // Definimos una macro para el case que imprima el mensaje
 #define CMD_CASE(CMD)                                                       	\
         case CMD:                                                           	\
-                LOG("[Usuario \%s] envio [Comando %s]", nick, cmd);        	\
+                LOG("[Usuario \%s] envio [Comando %s]", nick, cmd);         	\
                 return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
                                                                             										/**/
 

@@ -210,42 +210,56 @@ long user_send_cmdf(User* usr, char* fmt, ...) {
 
 // Devuelve el nick del usuario.
 long user_get_nick(User* usr, char** nick) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == nick) return ERR_NEEDMOREPARAMS;
+
 	*nick = strdup(usr->nick);
 	return OK;
 }
 
 // Cambia el nick del usuario.
 long user_set_nick(User* usr, char* nick) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == nick) return ERR_NEEDMOREPARAMS;
+
+	// Comprobamos la validez
+	long ret = IRC_IsValid(nick, 0, NULL, IRC_USER);
+	if (IRC_OK != ret) return ret;
+
 	strncpy(usr->nick, nick, USER_MAX_NICK_LEN);
 	return OK;
 }
 
 // Devuelve el nombre del usuario.
 long user_get_name(User* usr, char** name) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == name) return ERR_NEEDMOREPARAMS;
+
 	*name = strdup(usr->name);
 	return OK;
 }
 
 // Cambia el nombre del usuario.
 long user_set_name(User* usr, char* name) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == name) return ERR_NEEDMOREPARAMS;
+
+	// Comprobamos la validez
+	long ret = IRC_IsValid(name, 0, NULL, IRC_USER);
+	if (IRC_OK != ret) return ret;
+
 	strncpy(usr->name, name, USER_MAX_NAME_LEN);
 	return OK;
 }
 
 // Devuelve el nombre real del usuario.
 long user_get_rname(User* usr, char** rname) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == rname) return ERR_NEEDMOREPARAMS;
+
 	*rname = strdup(usr->rname);
 	return (NULL == rname);
 }
 
 // Cambia el nombre real del usuario.
 long user_set_rname(User* usr, char* rname) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == rname) return ERR_NEEDMOREPARAMS;
+
 	strncpy(usr->rname, rname, USER_MAX_RNAME_LEN);
 	return OK;
 }
