@@ -130,9 +130,10 @@ int server_add_disconnect(Server* serv, User* usr);
  * Añade un nuevo canal a la lista de canales existentes
  * @param serv servidor
  * @param name nombre del nuevo canal
+ * @param chan canal pedido
  * @return codigo de error
  */
-int server_add_channel(Server* serv, char* name);
+long server_add_or_create_channel(Server* serv, char* name, ChannelList chan);
 
 /**
  * Elimina un canal de la lista de canales existentes

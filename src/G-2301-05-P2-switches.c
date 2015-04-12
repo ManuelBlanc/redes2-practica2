@@ -374,7 +374,8 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* topic = NULL;
         char* msg = NULL;
         char channel_type;
-        char* namelist = NULL;
+        char** namelist = NULL;
+        int i = 0;
 
 	PARSE_PROTECT("JOIN", IRCParse_Join(cmd, &prefix, &channel_name, &channel_key, &msg));
 
@@ -412,10 +413,16 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 		}
 	}
 	else { // El canal no existe
-		chan = channel_new(serv, channel_name);
-		if (chan == NULL) {
-			IRC_ErrUnavailResource(buf, sprefix, nick, channel_name);
-			goto cleanup;
+
+		switch (server_add_or_create_channel(serv, channel_name, &chan)) {
+                        case ERR_UNAVAILRESOURCE:
+			        IRC_ErrUnavailResource(buf, sprefix, nick, channel_name);
+                                user_send_cmd(usr, buf);
+			        goto cleanup;
+                        case ERR_NOSUCHCHANNEL:
+                                IRC_ErrNoSuchChannel(buf, sprefix, nick, channel_name);
+                                user_send_cmd(usr, buf);
+                                goto cleanup;
 		}
 	}
 
@@ -434,9 +441,11 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
                 channel_type = '=';
         }
 
-        //channel_get_user_names(chan, &namelist);
-        IRC_RplNamReply(buf, sprefix, nick, &channel_type, channel_name, namelist);
-        user_send_cmd(usr, buf);
+        channel_get_user_names(chan, &namelist);
+        while(namelist[i] != NULL) {
+                IRC_RplNamReply(buf, sprefix, nick, &channel_type, channel_name, namelist[i]);
+                user_send_cmd(usr, buf);
+        }
 
 	IRC_RplEndOfNames(buf, sprefix, nick, channel_name);
         user_send_cmd(usr, buf);

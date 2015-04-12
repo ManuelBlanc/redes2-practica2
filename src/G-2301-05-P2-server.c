@@ -14,7 +14,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
-
+/* redes2 */
+#include <redes2/irc.h>
 /* usr */
 #include "G-2301-05-P2-config.h"
 #include "G-2301-05-P2-util.h"
@@ -236,10 +237,17 @@ int server_add_disconnect(Server* serv, User* usr) {
 	return OK;
 }
 
-int server_add_channel(Server* serv, char* name) {
-	ChannelList chan = channellist_findByName(&serv->chan, name);
-	if (chan != NULL) return ERR;
-	channellist_insert(&serv->chan, channel_new(serv, name));
+long server_add_or_create_channel(Server* serv, char* name, ChannelList chan) {
+	if(name == NULL || name[0] == '\0') return ERR_NOSUCHCHANNEL;
+
+	*chan = channellist_head(channellist_findByName(&serv->chan, name));
+	if (chan != NULL && *chan != NULL) return OK;
+
+	if(name[0] != '#' && name[0] != '!' && name[0] != '&' && name[0] != '+')
+	return ERR_NOSUCHCHANNEL;
+	*chan = channel_new(serv, name);
+	if(chan == NULL) return ERR_UNAVAILRESOURCE;
+	channellist_insert(&serv->chan, *chan);
 	serv->num_chan++;
 	return OK;
 }
