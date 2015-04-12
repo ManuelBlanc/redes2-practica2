@@ -184,7 +184,7 @@ long user_init_prefix(User* usr) {
 
 long user_get_prefix(User* usr, char** prefix) {
 	if (NULL == usr) return ERR;
-	*prefix = usr->prefix;
+	*prefix = strdup(usr->prefix);
 	return OK;
 }
 
@@ -211,7 +211,7 @@ long user_send_cmdf(User* usr, char* fmt, ...) {
 // Devuelve el nick del usuario.
 long user_get_nick(User* usr, char** nick) {
 	if (NULL == usr) return ERR;
-	*nick = usr->nick;
+	*nick = strdup(usr->nick);
 	return OK;
 }
 
@@ -225,7 +225,7 @@ long user_set_nick(User* usr, char* nick) {
 // Devuelve el nombre del usuario.
 long user_get_name(User* usr, char** name) {
 	if (NULL == usr) return ERR;
-	*name = usr->name;
+	*name = strdup(usr->name);
 	return OK;
 }
 
@@ -239,7 +239,7 @@ long user_set_name(User* usr, char* name) {
 // Devuelve el nombre real del usuario.
 long user_get_rname(User* usr, char** rname) {
 	if (NULL == usr) return ERR;
-	*rname = usr->rname;
+	*rname = strdup(usr->rname);
 	return (NULL == rname);
 }
 
@@ -253,7 +253,7 @@ long user_set_rname(User* usr, char* rname) {
 // Devuelve el mensaje de away (si esta away).
 long user_get_away(User* usr, char** away_msg) {
 	if (NULL == usr) return ERR;
-	*away_msg = usr->away_msg;
+	*away_msg = strdup(usr->away_msg);
 	return (NULL == away_msg);
 }
 
@@ -268,7 +268,7 @@ long user_set_away(User* usr, char* away_msg) {
 // Cambia de una letra de flag de usuario a su mascara correspondiente.
 static UserFlags userP_char_to_flag(char flag) {
 	switch (flag) {
-		//case 'a': return UF_AWAY; <-- Solo se puede cambiar con _set_away
+		case 'a': return UF_AWAY;
 		case 'i': return UF_INVISIBLE;
 		case 'w': return UF_WALLOP;
 		case 'r': return UF_RESTRICTED;
@@ -296,6 +296,12 @@ long user_set_flag(User* usr, char flag, User* actor) {
 	UserFlags flag_mask;
 	if (NULL == chan || NULL == usr) return ERR_NEEDMOREPARAMS;
 
+	// No puedes cambiar tu flag de away con MODE
+	if ('a' == flag) return ERR_NOPRIVILEGES;
+
+	// No puedes hacerte operador!!
+	if ('o' == flag || 'O' == flag) return ERR_NOPRIVILEGES;
+
 	// Convertimos la flag a una mascara
 	flag_mask = userP_char_to_flag(flag);
 	if (0 == flag_mask) return ERR_UMODEUNKNOWNFLAG;
@@ -309,6 +315,11 @@ long user_set_flag(User* usr, char flag, User* actor) {
 long user_unset_flag(User* usr, char flag, User* actor) {
 	UserFlags flag_mask;
 	if (NULL == chan || NULL == usr) return ERR_NEEDMOREPARAMS;
+
+	// No puedes cambiar tu flag de away con MODE
+	if ('a' == flag) return ERR_NOPRIVILEGES;
+	// No puedes quitarte la flag de restricted
+	if ('r' == flag) return ERR_NOPRIVILEGES;
 
 	// Convertimos la flag a una mascara
 	flag_mask = userP_char_to_flag(flag);
@@ -325,7 +336,7 @@ long user_unset_flag(User* usr, char flag, User* actor) {
 
 
 #define userlistP_head(list)	(*(list))
-#define userlistP_tail(list)
+#define userlistP_tail(list)	(&userlistP_head(list)->next)
 
 User userlist_head(UserList list) {
 	return (NULL != list) ? userlistP_head(list) : NULL;

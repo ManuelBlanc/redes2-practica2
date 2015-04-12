@@ -12,6 +12,9 @@ typedef struct Channel** ChannelList;
 Channel* channel_new(Server* server, char* name);
 void channel_delete(Channel* chan);
 
+// Borra un usuario de la lista enlazada del canal
+long channel_remove_user(Channel* chan, User* usr);
+
 // Unirse y abandonar (o kickear) del canal
 long channel_join(Channel* chan, User* usr, char* key);
 long channel_part(Channel* chan, User* usr, User* actor);

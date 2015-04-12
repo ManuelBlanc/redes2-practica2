@@ -95,8 +95,7 @@ static long channelP_add_user(Channel* chan, User* usr, UserChannelData** ucdDst
 }
 
 // Busca y borra un usuario de la lista interna de usuarios.
-/*
-static long channelP_remove_user(Channel* chan, User* usr) {
+long channel_remove_user(Channel* chan, User* usr) {
 	UserChannelData** ucd = &chan->usrs;
 	while (NULL != *ucd) {
 		UserChannelData* usrNext = *ucd;
@@ -108,7 +107,6 @@ static long channelP_remove_user(Channel* chan, User* usr) {
 	}
 	return ERR;
 }
-*/
 
 // Busca y devuelve un usuario de la lista interna de usuarios.
 static long channelP_find_user_data(Channel* chan, User* usr, UserChannelData** ucd) {
@@ -440,7 +438,7 @@ long channel_unset_flags(Channel* chan, char flag, User* actor) {
 
 // Macros
 #define channellistP_head(list)	(*(list))
-#define channellistP_tail(list)
+#define channellistP_tail(list) (&channellistP_head(list)->next)
 
 Channel channellist_head(ChannelList list) {
 	return (NULL != list) ? channellistP_head(list) : NULL;
