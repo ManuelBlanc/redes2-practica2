@@ -52,8 +52,16 @@ static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 	PARSE_PROTECT("ADMIN", IRCParse_Admin(cmd, &prefix, &target));
 
-	// Obtenemos los datos de manera segura
 	server_get_name(serv, &serv_name);
+
+	// Comprobamos que nos este destinado a nosotros
+	if (strncasecmp(serv_name, target, SERVER_MAX_NAME_LEN)) {
+		IRC_ErrNoSuchServer(buf, sprefix, nick, target);
+		user_send_cmd(usr, buf);
+		goto cleanup;
+	}
+
+	// Obtenemos los datos de manera segura
 	if (OK == server_get_admin(serv, &serv_admin)) {
 		// Aqui necesitamos acceder a la estructura server
 		// y obtener los campos:
@@ -405,7 +413,7 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 	else { // El canal no existe
 		chan = channel_new(serv, channel_name);
 		if (chan == NULL) {
-			IRC_ErrNeedMoreParams(buf, sprefix, nick, "JOIN");
+			IRC_ErrUnavailResource(buf, sprefix, nick, channel_name);
 			goto cleanup;
 		}
 	}
@@ -537,16 +545,7 @@ static int exec_cmd_KICK(Server* serv, User* usr, char* buf, char* sprefix, char
 	which is updated by each server it passes through, each prepending
 	its name to the path.
 */
-static int exec_cmd_KILL(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_KILL no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(KILL, "No aceptamos kills de clientes")
 
 // ================================================================================================
 
@@ -566,16 +565,7 @@ UNIMPLEMENTED_COMMAND(KNOCK, "Extension del RFC")
 	command is forwarded to the first server found that matches that name
 	(if any), and that server is then required to answer the query.
 */
-static int exec_cmd_LINKS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_LINKS no implementada\n");
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(LINKS, "Comando de interconexion de servidores")
 
 // ================================================================================================
 
@@ -762,10 +752,10 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 
 */
 static int exec_cmd_MOTD(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* prefix;
-	char* target;
-	char* serv_name;
-	char* motd_path;
+	char* prefix = NULL;
+	char* target = NULL;
+	char* serv_name = NULL;
+	char* motd_path = NULL;
 	char motd_buffer[80 + 1];
 
 	PARSE_PROTECT("MOTD", IRCParse_Motd(cmd, &prefix, &target));
@@ -794,6 +784,8 @@ static int exec_cmd_MOTD(Server* serv, User* usr, char* buf, char* sprefix, char
 	// Fin
 	IRC_RplEndOfMotd(buf, sprefix, nick);
 	user_send_cmd(usr, buf);
+
+	fclose(motd_file);
 
 cleanup:
 	free(prefix);
@@ -906,7 +898,7 @@ static int exec_cmd_NOTICE(Server* serv, User* usr, char* buf, char* sprefix, ch
 	UNUSED(serv);
 	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_NOTICE no implementada\n");
+	fprintf(stderr, "Funcion exec_cmd_NOTICE no implementada. Copipaste de PRIVMSG\n");
 	return OK;
 }
 
@@ -1417,11 +1409,10 @@ static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char
 static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* channel_name;
 	char* topic;
-	Channel* channel;
 
 	IRCParse_Topic(cmd, NULL, &channel_name, &topic);
 
-	channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
+	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 	if (NULL == channel) {
 		IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
 		return ERR;
@@ -1716,13 +1707,53 @@ static int exec_cmd_WHOIS(Server* serv, User* usr, char* buf, char* sprefix, cha
 	Wildcards are allowed in the <target> parameter.
 */
 static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_WHOWAS no implementada\n");
+	char* prefix = NULL;
+	char* nicks_str = NULL;
+	int max_count;
+	char* target = NULL;
+	char** nick_list = NULL
+	int nick_count;
+
+	PARSE_PROTECT("WHOWAS", IRCParse_Whowas(cmd, &prefix, &nicks_str, &count, &target));
+
+	IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
+
+	UserList ulist = server_get_disconnectlist(serv);
+
+	while (nick_count --> 0) {
+		int count = max_count;
+		char* dc_nick = nick_list[nick_count];
+
+		User* dc_user;
+		while (1) {
+			dc_user = userlist_head(userlist_findByNickname(ulist, dc_nick));
+			if (count --> 0) break;
+			if (NULL == user) break;
+
+			char* dc_name = NULL;
+			char* dc_host = NULL;
+			char* dc_rname = NULL;
+
+			user_get_name(user &dc_name);
+			user_get_host(user &dc_host);
+			user_get_rname(user &dc_rname);
+
+			IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, dc_host, dc_rname)
+			user_send_cmd(usr, buf);
+
+			free(dc_name);
+			free(dc_host);
+			free(dc_rname);
+		}
+		free(nick);
+	}
+	IRC_RplEndOfWhoWas(buf, sprefix, nick, nick);
+	user_send_cmd(usr, buf);
+
+	free(prefix);
+	free(nicks_str);
+	free(target);
+	free(nick_list);
 	return OK;
 }
 

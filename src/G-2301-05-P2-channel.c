@@ -88,7 +88,7 @@ static long channelP_add_user(Channel* chan, User* usr, UserChannelData** ucdDst
 	ucd->flags     = 0;
 	ucd->inChannel = 0;
 	ucd->next      = chan->usrs;
-	chan->usrs = ucd;
+	chan->usrs     = ucd;
 
 	*ucdDst = ucd;
 	return OK;
@@ -163,6 +163,21 @@ long channel_can_send_message(Channel* chan, User* usr) {
 
 	return OK; // Podemos mandar mensajes!!
 }
+
+long channel_get_user_names(Channel* chan, char*** usr_array_ret) {
+	if (NULL == chan || NULL == usr_array) return ERR;
+
+	char** usr_array = *usr_array_ret = emalloc((sizeof *usr_array) * (chan->usr_cnt+1));
+
+	UserChannelData* cud = chan->usrs;
+	while (NULL != cud) {
+		ASSERT(OK == user_get_nick(cud->usr, *usr_array++), "Si fallase esto estariamos en serios problemas");
+		cud = cud->next;
+	}
+	*usr_array++ = NULL;
+	return OK;
+}
+
 
 // Manda un comando a todos los usuarios del canal.
 long channel_send_cmd(Channel* chan, char* str) {
@@ -274,7 +289,9 @@ long channel_join(Channel* chan, User* usr, char* key) {
 	if (NULL == chan || NULL == usr) return ERR_NEEDMOREPARAMS;
 
 	// Esta el canal lleno?
-	if (chan->usr_cnt == chan->usr_max) return ERR_CHANNELISFULL;
+	if (CF_USERLIMIT & chan->flags) {
+		if (chan->usr_cnt == chan->usr_max) return ERR_CHANNELISFULL;
+	}
 
 	// Buscamos o creamos al usuario
 	channelP_find_or_create(chan, usr, &ucd);
