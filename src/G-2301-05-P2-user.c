@@ -183,14 +183,18 @@ long user_init_prefix(User* usr) {
 }
 
 long user_get_prefix(User* usr, char** prefix) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == prefix) return ERR;
+	if (NULL == usr->prefix) {
+		*prefix = NULL
+		return ERR;
+	}
 	*prefix = strdup(usr->prefix);
 	return OK;
 }
 
 // Envia un comando al usuario.
 long user_send_cmd(User* usr, char* str) {
-	if (NULL == usr) return ERR;
+	if (NULL == usr || NULL == str) return ERR;
 	ssize_t bytesSent = send(usr->sock_fd, str, strlen(str), 0);
 	if (bytesSent < -1) return -1;
 	return OK;
@@ -243,6 +247,11 @@ long user_set_name(User* usr, char* name) {
 	// Comprobamos la validez
 	long ret = IRC_IsValid(name, 0, NULL, IRC_USER);
 	if (IRC_OK != ret) return ret;
+
+	// Si no tenemos nick, lo inicializamos con el name tambien
+	if ('\0' == usr->nick[0]) {
+		strncpy(usr->nick, name, USER_MAX_NICK_LEN_LEN);
+	}
 
 	strncpy(usr->name, name, USER_MAX_NAME_LEN);
 	return OK;
