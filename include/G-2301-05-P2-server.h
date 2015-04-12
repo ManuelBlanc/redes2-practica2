@@ -94,6 +94,13 @@ int server_get_num_users(Server* serv);
 int server_get_num_channels(Server* serv);
 
 /**
+ * Guarda en un argumento el nombre del fichero donde se encuentra el motd
+ * @param motd_path nombre del fichero
+ * @return OK
+ */
+int server_get_motd(char** motd_path);
+
+/**
  * Añade un nuevo usuario a la lista de usuarios conectados
  * @param serv servidor
  * @param usr nuevo usuario
@@ -108,6 +115,14 @@ int server_add_user(Server* serv, User* usr);
  * @return codigo de error
  */
 int server_delete_user(Server* serv, char* name);
+
+/**
+ * Añade un nuevo usuario a la lista de usuarios desconectados
+ * @param serv servidor
+ * @param usr usuario desconectado
+ * @return codigo de error
+ */
+int server_add_disconnect(Server* serv, User* usr);
 
 /* Funciones relacionadas con la lista de canales */
 

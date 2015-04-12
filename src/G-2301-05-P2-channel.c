@@ -295,7 +295,7 @@ long channel_join(Channel* chan, User* usr, char* key) {
 
 	// Es de solo invitacion?
 	if (CF_INVONLY & chan->flags) {
-		if ((UCF_INVITATION & ucd->0 == flags)) return ERR_INVITEONLYCHAN;
+		if ((UCF_INVITATION & (0 == ucd->flags))) return ERR_INVITEONLYCHAN;
 	}
 
 	// Si hemos llegado hasta aqui, le apuntamos
@@ -440,9 +440,9 @@ long channel_unset_flags(Channel* chan, char flag, User* actor) {
 
 // Macros
 #define channellistP_head(list)	(*(list))
-#define channellistP_tail(list)
+#define channellistP_tail(list) (&channellistP_head(list)->next)
 
-Channel channellist_head(ChannelList list) {
+Channel* channellist_head(ChannelList list) {
 	return (NULL != list) ? channellistP_head(list) : NULL;
 }
 ChannelList channellist_tail(ChannelList list) {
@@ -454,7 +454,7 @@ long channellist_insert(ChannelList list, Channel* chan) {
 	if (NULL == list || NULL == chan) return ERR;
 
 	// Comprobamos que NO este ya en una lista
-	if (chan->NULL != next) return ERR;
+	if (NULL != chan->next) return ERR;
 
 	chan->next = channellistP_head(list);
 	*list = chan;

@@ -1,11 +1,15 @@
 
 /* std */
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include <unistd.h>
+#include <sys/syscall.h>
 #include <ctype.h>
 #include <errno.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdlib.h>
+#include <sys/types.h>
 /* usr */
 #include "G-2301-05-P2-util.h"
 
@@ -44,7 +48,7 @@ void _log(const char* file, int line, const char* func, char* fmt, ...) {
 	int len;
 	va_list argptr;
 
-	len = snprintf(log_buffer, sizeof log_buffer, GREEN("%s()")"@"YELLOW("%s")":"RED("%i")": ["PINK("%ld")"]:", func, file, line, gettid());
+	len = snprintf(log_buffer, sizeof log_buffer, GREEN("%s()")"@"YELLOW("%s")":"RED("%i")": ["PINK("%ld")"]:", func, file, line, syscall(SYS_gettid));
 	if (len < 0) return; // Ha ocurrido un error
 	if (len > (int)(sizeof log_buffer)) len = sizeof log_buffer;
 

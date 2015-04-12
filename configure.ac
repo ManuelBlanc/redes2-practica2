@@ -47,5 +47,6 @@ AC_DEFINE([USER_MAX_RNAME_LEN],   	50, 	[Maximum user real name length])	#
 AC_DEFINE([USER_MAX_PRE_LEN],     	83, 	[Maximum user prefix length])   	# RFC2812 2.3
 AC_DEFINE([SERVER_MAX_NAME_LEN],  	50, 	[Maximum server name length])   	#
 AC_DEFINE([SERVER_MAX_USERS],  		150, 	[Maximum connections])		   	#
+AC_DEFINE([SERVER_MAX_OUT],  		50, 	[Maximum info disconnections saved])		   	#
 
 AC_OUTPUT

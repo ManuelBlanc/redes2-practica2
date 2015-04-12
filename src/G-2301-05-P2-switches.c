@@ -44,7 +44,7 @@ long checksend_message_usr(User* dst, User* src, char* msg) {
 	if (msg == NULL) return ERR_NOTEXTTOSEND;
 
 	user_get_away(dst, &awaymsg);
-	if (awaymsg != NULL || awaymsg[0]!='\0') return RPL_AWAY;
+	if (awaymsg != NULL && awaymsg[0]!='\0') return RPL_AWAY;
 
 	user_get_prefix(src, &prefix);
 	user_get_nick(dst, &dst_nick);
@@ -716,9 +716,6 @@ UNIMPLEMENTED_COMMAND(NAMESX, "Extension del RFC");
            ERR_UNAVAILRESOURCE (no)            ERR_RESTRICTED(no)
 */
 int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
 	char* nick_wanted;
 
 	if (0 > IRCParse_Nick(cmd, &sprefix, &nick_wanted)){
@@ -740,13 +737,12 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		return ERR;
 	}
 
-	int ret = user_set_nick(usr, nick_wanted);
-	if (ret == ERR_ERRONEUSNICKNAME) {
+	if (IRC_OK != IRC_IsValid(nick_wanted, 0, NULL, IRC_USER)) {
 		IRC_ErrErroneusNickName(buf, sprefix, nick, nick_wanted);
 		user_send_cmd(usr, buf);
 		return ERR;
 	}
-
+        user_set_nick(usr, nick_wanted);
 	return OK;
 }
 
@@ -943,7 +939,7 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 		char* awaymsg = NULL;
 		UserList recv = userlist_findByNickname(server_get_userlist(serv), target);
 		//user_send_cmd(User* usr, char* cmd)
-		if (NULL != recv) opt = checksend_message_usr(*recv, usr, msg);
+		if (NULL != *recv) opt = checksend_message_usr(*recv, usr, msg);
 		else opt = ERR_NOSUCHNICK;
 		switch(opt) {
 			default: break;
@@ -1322,7 +1318,7 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		}
 	}
 
-	UserList usr_using = userlist_findByNickname(server_get_userlist(serv), user_name);
+	UserList usr_using = userlist_findByUsername(server_get_userlist(serv), user_name);
 	if (NULL == *usr_using) {
 		user_set_name(usr, user_name);
                 user_set_rname(usr, realname);
@@ -1397,10 +1393,13 @@ static int exec_cmd_VERSION(Server* serv, User* usr, char* buf, char* sprefix, c
 	UNUSED(usr);
 	char* serv_name = NULL;
 	char* target = NULL;
-	IRCParse_Version(cmd, NULL, &target);
+        char* pre = NULL;
+
+	IRCParse_Version(cmd, &pre, &target);
 	server_get_name(serv, &serv_name);
 	IRC_RplVersion(buf, sprefix, nick, 0, serv_name, PACKAGE_STRING); // config.h
-	return OK;
+        user_send_cmd(usr, buf);
+        return OK;
 }
 
 // ================================================================================================

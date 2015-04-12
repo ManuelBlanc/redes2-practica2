@@ -23,15 +23,16 @@
 #include "G-2301-05-P2-channel.h"
 
 struct Server {
-	int 		num_chan; 			/* Numero de canales operativos	 */
-	int 		num_users;			/* Numero de conexiones abiertas */
-	int            	sock;                         	/* Socket que recibe peticiones  */
-	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           */
-	User*          	usrs;                         	/* Lista de usuarios             */
-	User*          	out;                         	/* Usuarios desconectados	 */
-	Channel*       	chan;                         	/* Lista de canales              */
-	pthread_mutex_t	switch_mutex;                 	/* Mutex general		 */
-	ServerAdmin    	admin_data;                   	/* Datos del administrador	 */
+	int 		num_chan; 			/* Numero de canales operativos	 	*/
+	int 		num_users;			/* Numero de conexiones abiertas 	*/
+	int 		num_out;			/* Numero users desconectados guardados */
+	int            	sock;                         	/* Socket que recibe peticiones  	*/
+	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor           	*/
+	User*          	usrs;                         	/* Lista de usuarios             	*/
+	User*          	out;                         	/* Usuarios desconectados	 	*/
+	Channel*       	chan;                         	/* Lista de canales              	*/
+	pthread_mutex_t	switch_mutex;                 	/* Mutex general		 	*/
+	ServerAdmin    	admin_data;                   	/* Datos del administrador	 	*/
 };
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
@@ -78,6 +79,7 @@ Server* server_new() {
 	pthread_mutex_init(&serv->switch_mutex, NULL);
 	serv->num_users = 0;
 	serv->num_chan = 0;
+	serv->num_out = 0;
 	strncpy(serv->name,           	"GNB.himym", SERVER_MAX_NAME_LEN);
 	strncpy(serv->admin_data.loc1,	"Nueva York, USA", 200);
 	strncpy(serv->admin_data.loc2,	"Goliath National Bank", 200);
@@ -166,7 +168,7 @@ int server_get_name(Server* serv, char** name) {
 	*name = serv->name;
 	return OK;
 }
-
+//puntero
 int server_get_admin(Server* serv, ServerAdmin* sa) {
 	if (serv == NULL) return ERR;
 	*sa = serv->admin_data;
@@ -201,6 +203,11 @@ int server_get_num_channels(Server* serv) {
 	return serv->num_chan;
 }
 
+int server_get_motd(char** motd_path) {
+	*motd_path = "MOTD.txt";
+	return OK;
+}
+
 int server_add_user(Server* serv, User* user) {
 	userlist_insert(&serv->usrs, user);
 	serv->num_users++;
@@ -211,9 +218,20 @@ int server_delete_user(Server* serv, char* name) {
 	UserList usr = userlist_findByNickname(&serv->usrs, name);
 	if (usr == NULL) return ERR;
 	User* usr2 = userlist_extract(usr);
-	userlist_insert(&serv->out, usr2);
+	server_add_disconnect(serv, usr2);
 	//user_delete(usr2);
 	serv->num_users--;
+	return OK;
+}
+
+int server_add_disconnect(Server* serv, User* usr) {
+	if (serv->num_out == SERVER_MAX_OUT){
+		User* usr2 = userlist_extractLast(&serv->out);
+		user_delete(usr2);
+	} else {
+		serv->num_out++;
+	}
+	userlist_insert(&serv->out, usr);
 	return OK;
 }
 
