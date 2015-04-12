@@ -1414,6 +1414,7 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		// En caso contrario lo registramos
 		user_set_name(usr, user_name);
 		user_set_rname(usr, realname);
+                user_init_prefix(usr);
 		server_add_user(serv, usr);
 	}
 

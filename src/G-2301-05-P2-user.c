@@ -221,8 +221,8 @@ long user_set_nick(User* usr, char* nick) {
 	if (NULL == usr || NULL == nick) return ERR_NEEDMOREPARAMS;
 
 	// Comprobamos la validez
-	long ret = IRC_IsValid(nick, 0, NULL, IRC_USER);
-	if (IRC_OK != ret) return ret;
+	//long ret = IRC_IsValid(nick, 0, NULL, IRC_USER);
+	//if (IRC_OK != ret) return ret;
 
 	strncpy(usr->nick, nick, USER_MAX_NICK_LEN);
 	return OK;
