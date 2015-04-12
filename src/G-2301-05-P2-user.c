@@ -185,7 +185,7 @@ long user_init_prefix(User* usr) {
 long user_get_prefix(User* usr, char** prefix) {
 	if (NULL == usr || NULL == prefix) return ERR;
 	if (NULL == usr->prefix) {
-		*prefix = NULL
+		*prefix = NULL;
 		return ERR;
 	}
 	*prefix = strdup(usr->prefix);
@@ -250,7 +250,7 @@ long user_set_name(User* usr, char* name) {
 
 	// Si no tenemos nick, lo inicializamos con el name tambien
 	if ('\0' == usr->nick[0]) {
-		strncpy(usr->nick, name, USER_MAX_NICK_LEN_LEN);
+		strncpy(usr->nick, name, USER_MAX_NICK_LEN);
 	}
 
 	strncpy(usr->name, name, USER_MAX_NAME_LEN);
