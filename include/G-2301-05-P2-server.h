@@ -66,11 +66,32 @@ int server_get_name(Server* serv, char** name);
 UserList server_get_userlist(Server* serv);
 
 /**
+ * Devuelve la lista de usuarios desconectados
+ * @param serv servidor
+ * @return lista de usuarios desconectados
+ */
+UserList server_get_disconnectlist(Server* serv);
+
+/**
  * Devuelve la lista de canales
  * @param serv servidor
  * @return lista de canales
  */
 ChannelList server_get_channellist(Server* serv);
+
+/**
+ * Devuelve el numero de usuarios conectados
+ * @param serv servidor
+ * @return numero de usuarios
+ */
+int server_get_num_users(Server* serv);
+
+/**
+ * Devuelve el numero de canales que existen
+ * @param serv servidor
+ * @return numero de canales
+ */
+int server_get_num_channels(Server* serv);
 
 /**
  * Añade un nuevo usuario a la lista de usuarios conectados
@@ -86,7 +107,7 @@ int server_add_user(Server* serv, User* usr);
  * @param name nombre del usuario a eliminar
  * @return codigo de error
  */
-int server_delete_user(Server* serv, const char* name);
+int server_delete_user(Server* serv, char* name);
 
 /* Funciones relacionadas con la lista de canales */
 
@@ -96,7 +117,7 @@ int server_delete_user(Server* serv, const char* name);
  * @param name nombre del nuevo canal
  * @return codigo de error
  */
-int server_add_channel(Server* serv, const char* name);
+int server_add_channel(Server* serv, char* name);
 
 /**
  * Elimina un canal de la lista de canales existentes
@@ -104,7 +125,7 @@ int server_add_channel(Server* serv, const char* name);
  * @param chan nombre del canal a eliminar
  * @return codigo de error
  */
-int server_delete_channel(Server* serv, const char* name);
+int server_delete_channel(Server* serv, char* name);
 
 
 

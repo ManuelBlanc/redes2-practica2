@@ -335,8 +335,15 @@ UserList userlist_tail(UserList list) {
 }
 
 // Inserta un elemento en la lista.
-long userlist_insert(UserList list, User* usr) {
-	if (NULL == list || NULL == usr) return ERR;
+int userlist_insert(UserList list, User* usr) {
+	if (list == NULL || usr == NULL) return ERR;
+
+	// Comprobamos que NO este ya en una lista
+	while(1) {
+		if (userlistP_head(list) == NULL) break;
+		if (userlistP_head(list) == usr)  return ERR;
+		list = userlistP_tail(list);
+	}
 
 	usr->next = userlistP_head(list);
 	*list = usr;
@@ -361,7 +368,7 @@ UserList userlist_findByNickname(UserList list, char* name) {
 	while (1) {
 		User* usr = userlistP_head(list);
 		if (NULL == usr) break;
-		if (0 == strncmp(str, usr->nick, USER_MAX_NICK_LEN)) break;
+		if (0 == strncmp(name, usr->nick, USER_MAX_NICK_LEN)) break;
 		list = userlistP_tail(list);
 	}
 
@@ -375,7 +382,7 @@ UserList userlist_findByUsername(UserList list, char* name) {
 	while (1) {
 		User* usr = userlistP_head(list);
 		if (NULL == usr) break;
-		if (0 == strncmp(str, usr->name, USER_MAX_NAME_LEN)) break;
+		if (0 == strncmp(name, usr->name, USER_MAX_NAME_LEN)) break;
 		list = userlistP_tail(list);
 	}
 
