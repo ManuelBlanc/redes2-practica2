@@ -35,7 +35,7 @@ typedef enum UserFlags {
 
 struct User {
 	char         	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
-	char         	prefix[USER_MAX_PRE_LEN+1];    	/* Prefijo                           	*/
+	char*         	prefix;    			/* Prefijo                           	*/
 	char         	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
 	char         	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
 	char         	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
@@ -156,14 +156,14 @@ void user_delete(User* usr) {
 	free(usr);
 }
 
-static void userP_lock(User* usr) {
+/*static void userP_lock(User* usr) {
 	ASSERT(NULL != usr, "Bloqueando usuario nulo");
 	pthread_mutex_lock(&usr->mutex);
 }
 static void userP_unlock(User* usr) {
 	ASSERT(NULL != usr, "Desbloqueando usuario nulo");
 	pthread_mutex_unlock(&usr->mutex);
-}
+}*/
 
 long user_init_prefix(User* usr) {
 	char* host;
@@ -293,8 +293,9 @@ long user_has_flag(User* usr, char flag) {
 
 // Pone una flag a un usuario.
 long user_set_flag(User* usr, char flag, User* actor) {
+	UNUSED(actor);
 	UserFlags flag_mask;
-	if (NULL == chan || NULL == usr) return ERR_NEEDMOREPARAMS;
+	if (NULL == usr) return ERR_NEEDMOREPARAMS;
 
 	// No puedes cambiar tu flag de away con MODE
 	if ('a' == flag) return ERR_NOPRIVILEGES;
@@ -313,8 +314,9 @@ long user_set_flag(User* usr, char flag, User* actor) {
 
 // Quita una flag de un usuario.
 long user_unset_flag(User* usr, char flag, User* actor) {
+	UNUSED(actor);
 	UserFlags flag_mask;
-	if (NULL == chan || NULL == usr) return ERR_NEEDMOREPARAMS;
+	if (NULL == usr) return ERR_NEEDMOREPARAMS;
 
 	// No puedes cambiar tu flag de away con MODE
 	if ('a' == flag) return ERR_NOPRIVILEGES;
@@ -338,7 +340,7 @@ long user_unset_flag(User* usr, char flag, User* actor) {
 #define userlistP_head(list)	(*(list))
 #define userlistP_tail(list)	(&userlistP_head(list)->next)
 
-User userlist_head(UserList list) {
+User* userlist_head(UserList list) {
 	return (NULL != list) ? userlistP_head(list) : NULL;
 }
 UserList userlist_tail(UserList list) {

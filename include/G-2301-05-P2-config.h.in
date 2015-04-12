@@ -66,6 +66,9 @@
 /* Maximum server name length */
 #undef SERVER_MAX_NAME_LEN
 
+/* Maximum info disconnections saved */
+#undef SERVER_MAX_OUT
+
 /* Maximum connections */
 #undef SERVER_MAX_USERS
 
