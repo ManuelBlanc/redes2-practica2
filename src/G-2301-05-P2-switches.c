@@ -80,6 +80,7 @@ static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, cha
 		user_send_cmd(usr, buf);
 	}
 
+cleanup:
 	free(target);
 	free(serv_name);
 	free(prefix);
@@ -1711,12 +1712,12 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 	char* nicks_str = NULL;
 	int max_count;
 	char* target = NULL;
-	char** nick_list = NULL
+	char** nick_list = NULL;
 	int nick_count;
 
-	PARSE_PROTECT("WHOWAS", IRCParse_Whowas(cmd, &prefix, &nicks_str, &count, &target));
+	PARSE_PROTECT("WHOWAS", IRCParse_Whowas(cmd, &prefix, &nicks_str, &max_count, &target));
 
-	IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
+	IRCParse_ParseLists(nicks_str, &nick_list, &nick_count);
 
 	UserList ulist = server_get_disconnectlist(serv);
 
@@ -1728,21 +1729,21 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 		while (1) {
 			dc_user = userlist_head(userlist_findByNickname(ulist, dc_nick));
 			if (count --> 0) break;
-			if (NULL == user) break;
+			if (NULL == dc_user) break;
 
 			char* dc_name = NULL;
-			char* dc_host = NULL;
+			//char* dc_host = NULL;
 			char* dc_rname = NULL;
 
-			user_get_name(user &dc_name);
-			user_get_host(user &dc_host);
-			user_get_rname(user &dc_rname);
+			user_get_name(dc_user, &dc_name);
+			//user_get_host(dc_user, &dc_host);
+			user_get_rname(dc_user, &dc_rname);
 
-			IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, dc_host, dc_rname)
+			IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, "dc_host", dc_rname);
 			user_send_cmd(usr, buf);
 
 			free(dc_name);
-			free(dc_host);
+			//free(dc_host);
 			free(dc_rname);
 		}
 		free(nick);
