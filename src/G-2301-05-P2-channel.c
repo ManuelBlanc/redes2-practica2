@@ -348,7 +348,7 @@ long channel_get_topic(Channel* chan, char** topic) {
 		*topic = NULL;
 	}
 	else {
-		*topic = strdup(chan->topic);
+		*topic = estrdup(chan->topic);
 	}
 	return OK;
 }
@@ -378,14 +378,14 @@ long channel_set_topic(Channel* chan, char* topic, User* actor) {
 // Devuelve el nombre del canal.
 long channel_get_name(Channel* chan, char** name) {
 	if (NULL == chan) return ERR;
-	*name = strdup(chan->name);
+	*name = estrdup(chan->name);
 	return OK;
 }
 
 // Devuelve la contraseña del canal.
 long channel_get_key(Channel* chan, char** key) {
 	if (NULL == chan) return ERR;
-	*key = strdup(chan->key);
+	*key = estrdup(chan->key);
 	return OK;
 }
 

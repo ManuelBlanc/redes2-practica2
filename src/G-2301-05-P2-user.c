@@ -181,7 +181,7 @@ long user_get_prefix(User* usr, char** prefix) {
 		*prefix = NULL;
 		return ERR;
 	}
-	*prefix = strdup(usr->prefix);
+	*prefix = estrdup(usr->prefix);
 	return OK;
 }
 
@@ -209,7 +209,7 @@ long user_send_cmdf(User* usr, char* fmt, ...) {
 long user_get_nick(User* usr, char** nick) {
 	if (NULL == usr || NULL == nick) return ERR_NEEDMOREPARAMS;
 
-	*nick = strdup(usr->nick);
+	*nick = estrdup(usr->nick);
 	return OK;
 }
 
@@ -229,7 +229,7 @@ long user_set_nick(User* usr, char* nick) {
 long user_get_name(User* usr, char** name) {
 	if (NULL == usr || NULL == name) return ERR_NEEDMOREPARAMS;
 
-	*name = strdup(usr->name);
+	*name = estrdup(usr->name);
 	return OK;
 }
 
@@ -254,7 +254,7 @@ long user_set_name(User* usr, char* name) {
 long user_get_rname(User* usr, char** rname) {
 	if (NULL == usr || NULL == rname) return ERR_NEEDMOREPARAMS;
 
-	*rname = strdup(usr->rname);
+	*rname = estrdup(usr->rname);
 	return (NULL == rname);
 }
 
@@ -270,7 +270,7 @@ long user_set_rname(User* usr, char* rname) {
 long user_get_away(User* usr, char** away_msg) {
 	if (NULL == usr) return ERR;
 	if (UF_AWAY & usr->flags) {
-		*away_msg = strdup(usr->away_msg);
+		*away_msg = estrdup(usr->away_msg);
 		return 1;
 	}
 	else {
