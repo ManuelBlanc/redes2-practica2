@@ -344,13 +344,18 @@ long channel_has_user(Channel* chan, User* usr) {
 // Devuelve el topic.
 long channel_get_topic(Channel* chan, char** topic) {
 	if (NULL == chan) return ERR;
-	*topic = strdup(chan->topic);
+	if ('\0' == chan->topic[0]) {
+		*topic = NULL;
+	}
+	else {
+		*topic = strdup(chan->topic);
+	}
 	return OK;
 }
 
 // Cambia el topic del canal.
 long channel_set_topic(Channel* chan, char* topic, User* actor) {
-	if (NULL == chan || NULL == topic) return ERR_NEEDMOREPARAMS;
+	if (NULL == chan) return ERR_NEEDMOREPARAMS;
 
 	// Solo los operadores pueden cambiar el topic?
 	if (CF_TOPIC & chan->flags) {
@@ -358,7 +363,15 @@ long channel_set_topic(Channel* chan, char* topic, User* actor) {
 		if (!channelP_user_op_or_null(chan, actor)) return ERR_CHANOPRIVSNEEDED;
 	}
 
-	strncpy(chan->topic, topic, CHANNEL_MAX_TOPIC_LEN);
+	if (NULL == topic) {
+		// Si es null el topic lo vaciamos
+		chan->topic[0] = '\0';
+	}
+	else {
+		// Sino, copiamos el nuevo
+		strncpy(chan->topic, topic, CHANNEL_MAX_TOPIC_LEN);
+	}
+
 	return OK;
 }
 

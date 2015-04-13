@@ -20,7 +20,9 @@
 typedef enum UserConnState {
 	USERCS_RECEIVED_PASS = (1<<0),
 	USERCS_RECEIVED_NICK = (1<<1),
-	USERCS_RECEIVED_USER = (1<<2)
+	USERCS_RECEIVED_USER = (1<<2),
+	USERCS_ACTIVITY      = (1<<3),
+	USERCS_PING          = (1<<4)
 } UserConnState;
 
 typedef enum UserFlags {
@@ -35,7 +37,7 @@ typedef enum UserFlags {
 
 struct User {
 	char         	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
-	char*         	prefix;    			/* Prefijo                           	*/
+	char*        	prefix;                        	                                     		/* Prefijo	*/
 	char         	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
 	char         	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
 	char         	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
@@ -155,15 +157,6 @@ void user_delete(User* usr) {
 	close(usr->sock_fd);
 	free(usr);
 }
-
-/*static void userP_lock(User* usr) {
-	ASSERT(NULL != usr, "Bloqueando usuario nulo");
-	pthread_mutex_lock(&usr->mutex);
-}
-static void userP_unlock(User* usr) {
-	ASSERT(NULL != usr, "Desbloqueando usuario nulo");
-	pthread_mutex_unlock(&usr->mutex);
-}*/
 
 long user_init_prefix(User* usr) {
 	char* host;
