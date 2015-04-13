@@ -74,6 +74,29 @@ static char* switchesP_skip_colon(char* channel) {
 	return ':' == *channel ? channel+1 : channel;
 }
 
+//Separa una cadena por espacios y/o comas
+static int parse_lists(char* str, char*** elems) {
+        int i = 0;
+
+        char* str2 = str;
+        for(i=0; str2[i]; (str2[i]==',' || str2[i]==' ') ? i++ : *str2++);
+        *elems = malloc((i + 2) * sizeof(*elems));
+
+        i = 0;
+        str2 = str;
+        while (1) {
+                size_t tam = strcspn(str2, " ,");
+                (*elems)[i] = strndup(str2, tam);
+                str2 = str2 + tam;
+                if(str2[0] == '\0') break;
+                str2 = str2 + 1;
+                i++;
+        }
+        i++;
+        (*elems)[i] = NULL;
+        return OK;
+}
+
 // ================================================================================================
 
 /*
@@ -1097,13 +1120,13 @@ static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* channel_str = NULL;
 	char* msg = NULL;
 	char** channel_list = NULL;
-	int channel_count;
+	int i = 0;
 
 	PARSE_PROTECT("PART", IRCParse_Part(cmd, &prefix, &channel_str, &msg));
-	IRCParse_ParseLists(channel_str, &channel_list, &channel_count);
+        parse_lists(channel_str, &channel_list);
 
-	while (channel_count --> 0) {
-		char* channel_name = channel_list[channel_count];
+	while (channel_list[i] != NULL) {
+		char* channel_name = channel_list[i];
 
 		Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 		switch (channel_part(channel, usr, NULL)) {
@@ -1115,12 +1138,17 @@ static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char
 				IRC_ErrNotOnChannel(buf, sprefix, nick, nick, channel_name);
 				user_send_cmd(usr, buf);
 				break;
+                        case ERR_NEEDMOREPARAMS:
+        			IRC_ErrNeedMoreParams(buf, sprefix, nick, "PART");
+        			user_send_cmd(usr, buf);
+        			break;
 			case OK:
 				IRC_Part(buf, prefix, channel_name, msg);
 				channel_send_cmd(channel, buf);
 				break;
 		}
 		free(channel_name);
+                i++;
 	}
 
 	free(prefix);
@@ -1282,7 +1310,6 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	char* prefix = NULL;
 	char* target = NULL;
 	char* msg = NULL;
-        char** namelist;
 	long opt;
 
 	PARSE_PROTECT("PRIVMSG", IRCParse_Privmsg(cmd, &prefix, &target, &msg));
@@ -1291,24 +1318,18 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	switchesP_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
-		ChannelList chan = channellist_findByName(server_get_channellist(serv), target);
+		Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), target));
 		//Envia el mensaje o devuelve un codigo de error
 
-		if (NULL != chan) opt = checksend_message_chan(*chan, usr, msg);
+		if (NULL != chan) opt = checksend_message_chan(chan, usr, msg);
 		else opt = ERR_CANNOTSENDTOCHAN;
 
 		switch (opt) {
 			default: break;
                         case OK:
-                                // Obtenemos la lista de usuarios
-                                channel_get_user_names(*chan, &namelist);
-                                char** namelist2 = namelist;
-                                while (*namelist2) {
-                                        User* dst = userlist_head(userlist_findByNickname(server_get_userlist(serv), *namelist2));
-                                	IRC_Privmsg(buf, sprefix, target, msg);
-                                	user_send_cmd(dst, buf);
-                                        namelist2++;
-                                }
+                                //prefix(user que envia) en vez de sprefix(serv)
+                                IRC_Privmsg(buf, prefix, target, msg);
+                                channel_send_cmd(chan, buf);
                                 break;
 			case ERR_NOTEXTTOSEND:
 				IRC_ErrNoTextToSend(buf, sprefix, target);
@@ -1662,14 +1683,29 @@ static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 
 	// Ponemos o leemos el topic, dependiendo si el user lo proporciono
-	if (NULL != topic) channel_set_topic(channel, topic, usr);
+	if (NULL != topic) {
+                long opt = channel_set_topic(channel, topic, usr);
+                switch(opt) {
+                        case ERR_CHANOPRIVSNEEDED:
+                        IRC_ErrChanOPrivsNeeded(buf, sprefix, nick, channel_name);
+                        user_send_cmd(usr, buf);
+                        return ERR;
+                        case ERR_NEEDMOREPARAMS:
+                        IRC_ErrNeedMoreParams(buf, sprefix, nick, "TOPIC");
+                        user_send_cmd(usr, buf);
+                        return ERR;
+                        case OK:
+                        break;
+                }
+        }
 	else               channel_get_topic(channel, &topic);
 
 
 	// Enviamos la respuesta adecuada
 	if (NULL != topic) IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
 	else               IRC_RplNoTopic(buf, sprefix, nick, channel_name, topic);
-	user_send_cmd(usr, buf);
+
+        channel_send_cmd(channel, buf);
 
 	return OK;
 }

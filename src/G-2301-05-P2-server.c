@@ -96,7 +96,7 @@ static void on_segmentation_fault(int sig) {
 }
 
 void server_init(void) {
-	int ret;
+	int ret, yes = 1;
 	struct sockaddr_in addr;
 
 	Server* serv = server_new();
@@ -113,6 +113,8 @@ void server_init(void) {
 
 	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);
 	LOG("Creado socket() -> %i", serv->sock);
+
+	setsockopt(serv->sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
 
 	while (-1 == (ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr))) {
 		LOG("Fallado el bind a %s:%i, reintentando en un segundo.",
