@@ -322,9 +322,10 @@ long channel_join(Channel* chan, User* usr, char* key) {
 // Abandona un canal. Si actor es distinto de NULL, es una expulsion forzosa.
 long channel_part(Channel* chan, User* usr, User* actor) {
 	UserChannelData* ucd;
-	if (NULL == chan || NULL == usr) return ERR_NEEDMOREPARAMS;
+	if (NULL == chan) return ERR_NOSUCHCHANNEL;
+	if (NULL == usr) return ERR_NEEDMOREPARAMS;
 
-	if (!channelP_find_user_data(chan, usr, &ucd)) {
+	if (!channelP_find_user_data(chan, usr, &ucd) || !ucd->inChannel) {
 		return ERR_NOTONCHANNEL;
 	}
 

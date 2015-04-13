@@ -31,8 +31,46 @@ if (0 > (parse)) {                                                         	\
     return ERR;                                                            	\
 }                                                                          	//
 
+static int switchesP_server_is_target(Server* serv, char* target) {
+	char* serv_name = NULL;
+
+	if (NULL == target) return 1; // Por defecto somos el objetivo
+
+	// Comprobamos que este destinado a nosotros
+	server_get_name(serv, &serv_name);
+	if (!strncasecmp(serv_name, target, SERVER_MAX_NAME_LEN)) {
+		free(serv_name);
+		return 1;
+	}
+	else {
+		free(serv_name);
+		IRC_ErrNoSuchServer(buf, sprefix, nick, target);
+		user_send_cmd(usr, buf);
+		return 0;
+	}
+}
+
+static void switchesP_send_channel_nicknames(Server* serv User* usr char* buf, char* sprefix, char* nick, Channel* chan);
+	char* channel_name = NULL
+	char** namelist = NULL;
+	char** namelist2 = NULL;
+	// Obtenemos la lista de usuarios
+	channel_get_name(chan, &channel_name);
+	channel_get_user_names(chan, &namelist);
+	namelist2 = namelist;
+	while (*namelist2) {
+		IRC_RplNamReply(buf, sprefix, nick, channel_type, channel_name, *namelist2);
+		user_send_cmd(usr, buf);
+		free()
+		namelist2++;
+	}
+
+	IRC_RplEndOfNames(buf, sprefix, nick, channel_name);
+	user_send_cmd(usr, buf);
+}
+
 // Se salta los dos puntos de una cadena (si estan ahi)
-static char* string_skip_colon(char* channel) {
+static char* switchesP_skip_colon(char* channel) {
 	return ':' == *channel ? channel+1 : channel;
 }
 
@@ -75,14 +113,11 @@ static int exec_cmd_ADMIN(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 	PARSE_PROTECT("ADMIN", IRCParse_Admin(cmd, &prefix, &target));
 
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
+
 	server_get_name(serv, &serv_name);
 
-	// Comprobamos que nos este destinado a nosotros
-	if (strncasecmp(serv_name, target, SERVER_MAX_NAME_LEN)) {
-		IRC_ErrNoSuchServer(buf, sprefix, nick, target);
-		user_send_cmd(usr, buf);
-		goto cleanup;
-	}
 
 	// Obtenemos los datos de manera segura
 	if (OK == server_get_admin(serv, &serv_admin)) {
@@ -248,13 +283,10 @@ static int exec_cmd_INFO(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	PARSE_PROTECT("INFO", IRCParse_Info(cmd, &prefix, &target));
 
-	server_get_name(serv, &serv_name);
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
 
-	if (strncasecmp(serv_name, target, SERVER_MAX_NAME_LEN)) {
-		IRC_ErrNoSuchServer(buf, sprefix, nick, target);
-		user_send_cmd(usr, buf);
-		goto cleanup;
-	}
+	server_get_name(serv, &serv_name);
 
 	IRC_RplInfo(buf, sprefix, nick, PACKAGE_STRING);
 	user_send_cmd(usr, buf);
@@ -339,7 +371,8 @@ static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* prefix = NULL;
 	char* nick_str = NULL;
 	char** nick_list = NULL;
-	int i = 0;
+	char error;
+	int nick_count;
 	UserList ulist = server_get_userlist(serv);
 
 	PARSE_PROTECT("ISON", IRCParse_Ison(cmd, &prefix, &nick_str))
@@ -459,17 +492,7 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 	else if (channel_has_flag(chan, 's')) channel_type = "*";
 	else                                  channel_type = "=";
 
-	// Obtenemos la lista de usuarios
-	channel_get_user_names(chan, &namelist);
-	char** namelist2 = namelist;
-	while (*namelist2) {
-		IRC_RplNamReply(buf, sprefix, nick, channel_type, channel_name, *namelist2);
-		user_send_cmd(usr, buf);
-		namelist2++;
-	}
-
-	IRC_RplEndOfNames(buf, sprefix, nick, channel_name);
-	user_send_cmd(usr, buf);
+	switchesP_send_channel_nicknames(serv, usr, buf, sprefix, nick, chan);
 
 cleanup:
 	free(topic);
@@ -626,6 +649,9 @@ static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	PARSE_PROTECT("LIST", IRCParse_List(cmd, &prefix, &channel_name_list, &target));
 
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
+
 	ChannelList chanlist = server_get_channellist(serv);
 
 	// Obsoleto segun el RFC2812
@@ -661,6 +687,7 @@ static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char
 	IRC_RplListEnd(buf, sprefix, nick);
 	user_send_cmd(usr, buf);
 
+cleanup:
 	free(prefix);
 	free(channel_name_list);
 	free(target);
@@ -706,6 +733,9 @@ static int exec_cmd_LUSERS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 	PARSE_PROTECT("LUSERS", IRCParse_Lusers(cmd, &prefix, &mask, &target));
 
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
+
 	int num_users = server_get_num_users(serv);
 
 	IRC_RplLuserClient(buf, sprefix, nick, num_users, 0, 0); // users, invisibles, servers
@@ -719,6 +749,7 @@ static int exec_cmd_LUSERS(Server* serv, User* usr, char* buf, char* sprefix, ch
 	IRC_RplLuserMe(buf, sprefix, nick, num_users, 1); // clients, servers
 	user_send_cmd(usr, buf);
 
+cleanup:
 	free(prefix);
 	free(mask);
 	free(target);
@@ -874,6 +905,9 @@ static int exec_cmd_MOTD(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	PARSE_PROTECT("MOTD", IRCParse_Motd(cmd, &prefix, &target));
 
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
+
 	server_get_name(serv, &serv_name);
 	server_get_motd(&motd_path);
 
@@ -929,13 +963,46 @@ cleanup:
 	Wildcards are allowed in the <target> parameter.
 */
 static int exec_cmd_NAMES(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_NAMES no implementada\n");
+	char* prefix = NULL;
+	char* channel = NULL;
+	char* target = NULL;
+	char** channel_list = NULL;
+	int channel_count;
+
+	PARSE_PROTECT("NAMES", IRCParse_Names(buf, &prefix, &channel, &target));
+
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
+
+        if (NULL == channel) {
+                // Si no se proporciona el channel, listamos todos los usuarios
+                UserList ulist = server_get_userlist(serv);
+
+                while (1) {
+                        User* other = userlist_head(ulist);
+                        if (NULL == other) break;
+                        ulist = userlist_tail();
+                }
+        }
+        else {
+
+                ChannelList* channels = server_get_channellist(serv);
+                IRCParse_ParseLists(channel_str, &channel_list, &channel_count);
+
+                while (channel_count --> 0) {
+                        char* channel_name = NULL;
+
+                        Channel* chan = channellist_head(channellist_findByName(channels, channel_name));
+                        switchesP_send_channel_nicknames(serv, usr, buf, sprefix, nick, chan);
+                        free(channel_name);
+                }
+                free(channel_list);
+        }
+
+
+	free(prefix);
+	free(channel);
+	free(target);
 	return OK;
 }
 
@@ -1025,13 +1092,18 @@ static int exec_cmd_NOTICE(Server* serv, User* usr, char* buf, char* sprefix, ch
 	message (see section 3.1.5) indicating the new user modes.
 */
 static int exec_cmd_OPER(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_OPER no implementada\n");
+	char* prefix = NULL;
+	char* name = NULL;
+	char* password = NULL;
+
+	PARSE_PROTECT("OPER", IRCParse_Oper(cmd, &prefix, &name, &password));
+
+	IRC_ErrNoOperHost(buf, sprefix, nick);
+	user_send_cmd(usr, buf);
+
+	free(prefix);
+	free(name);
+	free(password);
 	return OK;
 }
 
@@ -1143,7 +1215,7 @@ static int exec_cmd_PING(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	// Miramos si el objetivo somos nosotros
 	server_get_name(serv, &serv_name);
-	if (NULL == target || !strncmp(target, serv_name, SERVER_MAX_NAME_LEN)) {
+	if (NULL == target || !strncasecmp(target, serv_name, SERVER_MAX_NAME_LEN)) {
 		IRC_Pong(buf, sprefix, serv_name, origin);
 		user_send_cmd(usr, buf);
 		goto cleanup;
@@ -1194,7 +1266,7 @@ static int exec_cmd_PONG(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	// Miramos si el objetivo somos nosotros
 	server_get_name(serv, &serv_name);
-	if (NULL == target || !strncmp(target, serv_name, SERVER_MAX_NAME_LEN)) {
+	if (NULL == target || !strncasecmp(target, serv_name, SERVER_MAX_NAME_LEN)) {
 		// TODO: Marcamos el usuario como activo
 		goto cleanup;
 	}
@@ -1248,7 +1320,7 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	PARSE_PROTECT("PRIVMSG", IRCParse_Privmsg(cmd, &prefix, &target, &msg));
 
 	// Es un canal?
-	string_skip_colon(target);
+	switchesP_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
 		Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), target));
@@ -1521,6 +1593,10 @@ static int exec_cmd_STATS(Server* serv, User* usr, char* buf, char* sprefix, cha
 	UNUSED(usr);
 	UNUSED(cmd);
 	fprintf(stderr, "Funcion exec_cmd_STATS no implementada\n");
+
+	// Si no esta destinado a nosotros, abortamos con error
+	//if (!switchesP_server_is_target(serv, target)) goto cleanup;
+
 	return OK;
 }
 
@@ -1565,7 +1641,11 @@ static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char
 	char time_buffer[100];
 	char* target;
 
-	PARSE_PROTECT("TIME", IRCParse_Time(cmd, &prefix, &target))
+	PARSE_PROTECT("TIME", IRCParse_Time(cmd, &prefix, &target));
+
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
+
 
 	// Obtenemos el tiempo
 	{
@@ -1813,6 +1893,9 @@ static int exec_cmd_VERSION(Server* serv, User* usr, char* buf, char* sprefix, c
 	char* serv_name = NULL;
 
 	PARSE_PROTECT("VERSION", IRCParse_Version(cmd, &prefix, &target));
+
+	// Si no esta destinado a nosotros, abortamos con error
+	if (!switchesP_server_is_target(serv, target)) goto cleanup;
 
 	server_get_name(serv, &serv_name);
 	IRC_RplVersion(buf, sprefix, nick, 0, serv_name, PACKAGE_STRING); // config.h
