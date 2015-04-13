@@ -72,7 +72,34 @@ static void procesar_opciones(int argc, char** argv) {
 }
 
 static void demonizar(void) {
-	/* para el final, para que sea facil debugear ... */
+/*
+	// 1.– Crear un proceso hijo y terminar el proceso padre
+	pid_t pid = fork();
+
+	// 2.– Crear una nueva sesion de tal forma que el proceso pase a ser el lider de sesion
+	setsid();
+
+	// 3.– Cambiar la mascara de modo de ficheros para que sean accesibles a cualquiera
+	umask(0777);
+
+	// 4.– Establecer el directorio raiz / como directorio de trabajo
+	chdir("/");
+
+	// 5.– Cerrar todos los descriptores de fichero que pueda haber abiertos
+	int fd_max = getdtablesize();
+	for (int i = 0; i < fd_max; ++i) close(i);
+
+	// 6.– Redirigir stdin, stdout, stderr a /dev/null
+	open("/dev/null", O_RDONLY); // 0 - stdin
+	open("/dev/null", O_WRONLY); // 1 - stdout
+	open("/dev/null", O_WRONLY); // 2 - stderr
+
+	// 7.– Abrir el log del sistema para su uso posterior
+	openlog(const char *ident, int logopt, int facility);
+	setlogmask(int maskpri);
+	syslog(int priority, const char *message, ...);
+	closelog(void);
+*/
 }
 
 Server* server_new() {

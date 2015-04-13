@@ -175,9 +175,12 @@ void user_delete(User* usr) {
 
 long user_init_prefix(User* usr) {
         char* host;
+        char prefix_temporal[1000];
         if (NULL == usr) return ERR;
         free(usr->prefix);
-        IRC_Prefix(&usr->prefix, usr->nick, usr->name, usr->host, usr->host);
+        //IRC_Prefix(&usr->prefix, usr->nick, usr->name, usr->host, usr->host);
+        snprintf(prefix_temporal, sizeof prefix_temporal, "%50s!%50s@%200s", usr->nick, usr->name, usr->host);
+        usr->prefix = estrdup(prefix_temporal);
         return OK;
 }
 
@@ -235,7 +238,13 @@ long user_set_nick(User* usr, char* nick) {
 	//long ret = IRC_IsValid(nick, 0, NULL, IRC_USER);
 	//if (IRC_OK != ret) return ret;
 
+	// Si no tenemos name, lo inicializamos con el nick
+	if ('\0' == usr->name[0]) {
+		strncpy(usr->name, nick, USER_MAX_NICK_LEN);
+	}
+
 	strncpy(usr->nick, nick, USER_MAX_NICK_LEN);
+	user_init_prefix(usr);
 	return OK;
 }
 
