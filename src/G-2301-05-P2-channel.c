@@ -164,6 +164,19 @@ long channel_can_send_message(Channel* chan, User* usr) {
 	return OK; // Podemos mandar mensajes!!
 }
 
+// Cambia de una letra de flag de usuario a su mascara correspondiente.
+static ChannelUserFlags channelP_char_to_usrflag(char flag) {
+	switch (flag) {
+		case 'O': return UCF_CREATOR;
+		case 'o': return UCF_OPERATOR;
+		case 'v': return UCF_VOICE;
+		case 'b': return UCF_BAN;
+		case 'e': return UCF_EXCEPTION;
+		case 'I': return UCF_INVITATION;
+		default: return 0;
+	}
+}
+
 long channel_get_user_names(Channel* chan, char flag, char*** usr_array_ret) {
 	if (NULL == chan || NULL == usr_array_ret) return ERR;
 	char** usr_array = *usr_array_ret = emalloc((sizeof *usr_array) * (chan->usr_cnt+1));
@@ -217,19 +230,6 @@ long channel_get_user_count(Channel* chan) {
 long channel_get_max_users(Channel* chan) {
 	if (NULL == chan) return ERR;
 	return chan->usr_max;
-}
-
-// Cambia de una letra de flag de usuario a su mascara correspondiente.
-static ChannelUserFlags channelP_char_to_usrflag(char flag) {
-	switch (flag) {
-		case 'O': return UCF_CREATOR;
-		case 'o': return UCF_OPERATOR;
-		case 'v': return UCF_VOICE;
-		case 'b': return UCF_BAN;
-		case 'e': return UCF_EXCEPTION;
-		case 'I': return UCF_INVITATION;
-		default: return 0;
-	}
 }
 
 // Comprueba si un usuario tiene una flag.
