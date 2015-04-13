@@ -164,7 +164,7 @@ long channel_can_send_message(Channel* chan, User* usr) {
 	return OK; // Podemos mandar mensajes!!
 }
 
-long channel_get_user_names(Channel* chan, char*** usr_array_ret) {
+long channel_get_user_names(Channel* chan, char flag, char*** usr_array_ret) {
 	if (NULL == chan || NULL == usr_array_ret) return ERR;
 
 	char** usr_array = *usr_array_ret = emalloc((sizeof *usr_array) * (chan->usr_cnt+1));
