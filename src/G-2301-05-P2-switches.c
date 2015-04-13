@@ -861,8 +861,7 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_UNKNOWNMODE:
-				• long IRC_ErrUnknownMode(buf, sprefix, nick, mode, target);
-				IRC_ErrUModeUnknownFlag(buf, sprefix, nick);
+				IRC_ErrUnknownMode(buf, sprefix, nick, mode, target);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_CHANNELMODEIS:
@@ -876,12 +875,22 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_BANLISTLIST:
+				IRC_RplBanList(buf, sprefix, nick, target, banmask);
+				user_send_cmd(usr, buf);
+				IRC_RplEndOfBanList(buf, sprefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+			case RPL_EXCEPTLIST:
+				IRC_RplExceptList(buf, sprefix, nick, target, exceptionmask);
+				user_send_cmd(usr, buf);
+				IRC_RplEndOfExceptList(buf, sprefix, nick, target);
+				user_send_cmd(usr, buf);
 				break;
 			case RPL_INVITELIST:
-				break;
-			case RPL_EXCEPTLISTLIST:
-				break;
-			case RPL_INVITELIST:
+				IRC_RplInviteList(buf, sprefix, nick, target, invitemask);
+				user_send_cmd(usr, buf);
+				IRC_RplEndOfInviteList(buf, sprefix, nick, target);
+				user_send_cmd(usr, buf);
 				break;
 			case OK:
 				break;
