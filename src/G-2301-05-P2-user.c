@@ -79,7 +79,7 @@ static long connection_switch(Server* serv, User* usr, char* cmd) {
 			LOG("Comando no reconcido en el handshake");
 			char* sprefix;
 			server_get_name(serv, &sprefix);
-			IRCParse_ErrNotRegistered(buf, sprefix, "*");
+			IRC_ErrNotRegisterd(buf, sprefix, "*");
 			user_send_cmd(usr, buf);
 			free(sprefix);
 			return OK;

@@ -1,9 +1,9 @@
 #ifndef SWITCHES_H
 #define SWITCHES_H
 
-long checksend_message_chan(Channel* dst, User* src, char* msg);
+//long checksend_message_chan(Channel* dst, User* src, char* msg);
 
-long checksend_message_usr(User* dst, User* src, char* msg);
+//long checksend_message_usr(User* dst, User* src, char* msg);
 
 /**
  * Llama a la funcion correspondiente dependiendo del comando recibido

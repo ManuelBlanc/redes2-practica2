@@ -10,6 +10,7 @@
 #include "G-2301-05-P2-channel.h"
 #include "G-2301-05-P2-user.h"
 #include "G-2301-05-P2-server.h"
+#include "G-2301-05-P2-switches.h"
 
 #define UNIMPLEMENTED_COMMAND(name, reason)                                                           	\
 static int exec_cmd_##name(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {	\
@@ -740,6 +741,10 @@ static int exec_cmd_LUSERS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 	PARSE_PROTECT("LUSERS", IRCParse_Lusers(cmd, &prefix, &mask, &target));
 
+        // Obtenemos el prefix de verdad
+        free(prefix);
+        user_get_prefix(usr, &prefix);
+
 	// Si no esta destinado a nosotros, abortamos con error
 	if (!switchesP_server_is_target(serv, usr, buf, sprefix, nick, target)) goto cleanup;
 
@@ -1120,7 +1125,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 
 	IRC_Nick(buf, prefix, nick_wanted);
         user_send_cmd(usr, buf);
-        
+
 	ChannelList channels = server_get_channellist(serv);
 	while (1) {
 		Channel* chan = channellist_head(channels);
@@ -1519,11 +1524,13 @@ static long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	acknowledges this by sending an ERROR message to the client.
 */
 static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* prefix = NULL;
+	UNUSED(serv);
+        char* prefix = NULL;
 	char* msg = NULL;
 
 	PARSE_PROTECT("QUIT", IRCParse_Quit(cmd, &prefix, &msg));
-	IRC_Error(cmd, &prefix, &msg);
+	IRC_Error(buf, prefix, msg);
+        user_send_cmd(usr, buf);
 
 	free(prefix);
 	free(msg);
@@ -2047,6 +2054,10 @@ static int exec_cmd_WALLOPS(Server* serv, User* usr, char* buf, char* sprefix, c
 	char* msg = NULL;
 
 	PARSE_PROTECT("WALLOPS", IRCParse_Wallops(cmd, &prefix, &msg));
+
+        // Obtenemos el prefix de verdad
+        free(prefix);
+        user_get_prefix(usr, &prefix);
 
 	UserList ulist = server_get_userlist(serv);
 
