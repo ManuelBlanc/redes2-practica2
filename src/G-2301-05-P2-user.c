@@ -20,7 +20,9 @@
 typedef enum UserConnState {
 	USERCS_RECEIVED_PASS = (1<<0),
 	USERCS_RECEIVED_NICK = (1<<1),
-	USERCS_RECEIVED_USER = (1<<2)
+	USERCS_RECEIVED_USER = (1<<2),
+	USERCS_ACTIVITY      = (1<<3),
+	USERCS_PING          = (1<<4)
 } UserConnState;
 
 typedef enum UserFlags {
@@ -35,7 +37,7 @@ typedef enum UserFlags {
 
 struct User {
 	char         	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
-	char*         	prefix;    			/* Prefijo                           	*/
+	char*        	prefix;                        	                                     		/* Prefijo	*/
 	char         	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
 	char         	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
 	char         	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
@@ -156,15 +158,6 @@ void user_delete(User* usr) {
 	free(usr);
 }
 
-/*static void userP_lock(User* usr) {
-	ASSERT(NULL != usr, "Bloqueando usuario nulo");
-	pthread_mutex_lock(&usr->mutex);
-}
-static void userP_unlock(User* usr) {
-	ASSERT(NULL != usr, "Desbloqueando usuario nulo");
-	pthread_mutex_unlock(&usr->mutex);
-}*/
-
 long user_init_prefix(User* usr) {
 	char* host;
 	if (NULL == usr) return ERR;
@@ -188,7 +181,7 @@ long user_get_prefix(User* usr, char** prefix) {
 		*prefix = NULL;
 		return ERR;
 	}
-	*prefix = strdup(usr->prefix);
+	*prefix = estrdup(usr->prefix);
 	return OK;
 }
 
@@ -216,7 +209,7 @@ long user_send_cmdf(User* usr, char* fmt, ...) {
 long user_get_nick(User* usr, char** nick) {
 	if (NULL == usr || NULL == nick) return ERR_NEEDMOREPARAMS;
 
-	*nick = strdup(usr->nick);
+	*nick = estrdup(usr->nick);
 	return OK;
 }
 
@@ -236,7 +229,7 @@ long user_set_nick(User* usr, char* nick) {
 long user_get_name(User* usr, char** name) {
 	if (NULL == usr || NULL == name) return ERR_NEEDMOREPARAMS;
 
-	*name = strdup(usr->name);
+	*name = estrdup(usr->name);
 	return OK;
 }
 
@@ -261,7 +254,7 @@ long user_set_name(User* usr, char* name) {
 long user_get_rname(User* usr, char** rname) {
 	if (NULL == usr || NULL == rname) return ERR_NEEDMOREPARAMS;
 
-	*rname = strdup(usr->rname);
+	*rname = estrdup(usr->rname);
 	return (NULL == rname);
 }
 
@@ -277,7 +270,7 @@ long user_set_rname(User* usr, char* rname) {
 long user_get_away(User* usr, char** away_msg) {
 	if (NULL == usr) return ERR;
 	if (UF_AWAY & usr->flags) {
-		*away_msg = strdup(usr->away_msg);
+		*away_msg = estrdup(usr->away_msg);
 		return 1;
 	}
 	else {

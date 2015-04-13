@@ -77,11 +77,19 @@ void* emalloc(size_t size)
 	ASSERT(ptr != NULL, "No se pudo reservar memoria con malloc()");
 	return ptr;
 }
-
-
 void* ecalloc(size_t count, size_t size)
 {
 	void* ptr = calloc(count, size);
 	ASSERT(ptr != NULL, "No se pudo reservar memoria con calloc()");
 	return ptr;
+}
+char* estrdup(char* str) {
+	char* str = strdup(size);
+	ASSERT(str != NULL, "No se pudo reservar memoria con strdup()");
+	return str;
+}
+char* estrndup(char* str, size_t size) {
+	char* str = strndup(count,  size);
+	ASSERT(str != NULL, "No se pudo reservar memoria con strndup()");
+	return str;
 }

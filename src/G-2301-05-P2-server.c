@@ -168,7 +168,7 @@ int server_accept(Server* serv){
 // Devuelve el topic.
 int server_get_name(Server* serv, char** name) {
 	if (serv == NULL) return ERR;
-	*name = strdup(serv->name);
+	*name = estrdup(serv->name);
 	return OK;
 }
 
@@ -208,7 +208,7 @@ int server_get_num_channels(Server* serv) {
 }
 
 int server_get_motd(char** motd_path) {
-	*motd_path = strdup("MOTD.txt");
+	*motd_path = estrdup("MOTD.txt");
 	return OK;
 }
 
