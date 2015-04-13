@@ -17,13 +17,13 @@
 #include "G-2301-05-P2-config.h"
 #include "G-2301-05-P2-switches.h"
 
-typedef enum UserConnState {
-	USERCS_RECEIVED_PASS = (1<<0),
-	USERCS_RECEIVED_NICK = (1<<1),
-	USERCS_RECEIVED_USER = (1<<2),
-	USERCS_ACTIVITY      = (1<<3),
-	USERCS_PING          = (1<<4)
-} UserConnState;
+typedef enum UserState {
+	US_RECEIVED_PASS	= (1<<0),
+	US_RECEIVED_NICK	= (1<<1),
+	US_RECEIVED_USER	= (1<<2),
+	US_ALIVE        	= (1<<3),
+	US_PING         	= (1<<4),
+} UserState;
 
 typedef enum UserFlags {
 	UF_AWAY      	= (1<<0), // a - user is flagged as away;
@@ -36,19 +36,19 @@ typedef enum UserFlags {
 } UserFlags;
 
 struct User {
-	char         	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
-	char*        	prefix;                        	                                     		/* Prefijo	*/
-	char         	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
-	char         	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
-	char         	host[64+1];                    	/* Nombre                            	*/
-	char         	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
-	char         	away_msg[USER_MAX_AWAY_LEN+1]; 	/* Mensaje de away                   	*/
-	int          	sock_fd;                       	/* Descriptor del socket             	*/
-	UserFlags    	flags;                         	/* Banderas del usuario              	*/
-	UserConnState	conn_state;                    	/* Flag para los comandos de registro	*/
-	Server*      	server;                        	/* Servidor al que pertenece         	*/
-	struct User* 	next;                          	/* Puntero al siguiente usuario      	*/
-	pthread_t    	thread;                        	/* Hilo                              	*/
+	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
+	char*       	prefix;                        	                                     		/* Prefijo	*/
+	char        	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
+	char        	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
+	char        	host[64+1];                    	/* Nombre                            	*/
+	char        	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
+	char        	away_msg[USER_MAX_AWAY_LEN+1]; 	/* Mensaje de away                   	*/
+	int         	sock_fd;                       	/* Descriptor del socket             	*/
+	UserFlags   	flags;                         	/* Banderas del usuario              	*/
+	UserState   	conn_state;                    	/* Flag para los comandos de registro	*/
+	Server*     	server;                        	/* Servidor al que pertenece         	*/
+	struct User*	next;                          	/* Puntero al siguiente usuario      	*/
+	pthread_t   	thread;                        	/* Hilo                              	*/
 };
 
 static long connection_switch(Server* serv, User* usr, char* cmd) {
@@ -72,7 +72,7 @@ static long connection_switch(Server* serv, User* usr, char* cmd) {
 		case USER: /* 3 */
 			LOG("Recibido USER inicial");
 			long ret = exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
-			if (OK == ret) usr->conn_state |= USERCS_RECEIVED_USER;
+			if (OK == ret) usr->conn_state |= US_RECEIVED_USER;
 			return ret;
 
 		default:
@@ -102,7 +102,7 @@ static long userP_process_commands(User* usr, char* str) {
 
 				LOG("Procesando el comando %s", cmd);
 
-				if (0 == (USERCS_RECEIVED_USER & usr->conn_state)) {
+				if (0 == (US_RECEIVED_USER & usr->conn_state)) {
 					if (OK != connection_switch(usr->server, usr, cmd)) {
 						LOG("Handshake inicial fallido");
 					}
@@ -133,14 +133,14 @@ static void* userP_reader_thread(void* data) {
 
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
+		if (!(US_ALIVE | usr->flags)) break;
 		len = recv(usr->sock_fd, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf, 0);
 		if (len <= 0) break; // Se cierra la conexion
 		usr->buffer_recv[len+len_buf] = '\0';
 		userP_process_commands(usr, usr->buffer_recv);
 	}
-	user_get_nick(usr, &nick);
-	LOG("Hilo de usuario %s ha muerto", nick);
-	return NULL;
+
+	user_exit(usr);
 }
 
 // Crea una nueva estructura usuario a partir de un socket.
@@ -155,6 +155,9 @@ User* user_new(Server* serv, int sock) {
 		strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
 	}
 
+	strcpy(usr->name, "*");
+	strcpy(usr->nick, "*");
+
 	usr->server     = serv;
 	usr->sock_fd    = sock;
 	usr->conn_state = 0;
@@ -164,6 +167,24 @@ User* user_new(Server* serv, int sock) {
 	}
 	pthread_detach(usr->thread);
 	return usr;
+}
+
+long user_exit(User* usr) {
+	if (NULL == usr) return ERR;
+	ASSERT(pthread_equal(pthread_self(), usr->thread), "Solo se puede cerrar un cliente desde su hilo.");
+	close(usr->sock_fd);
+	pthread_exit(NULL);
+}
+
+long user_kill(User* usr) {
+	if (NULL == usr) return ERR;
+	if (!(US_ALIVE & usr->conn_state)) return ERR;
+	pthread_kill(usr->thread);
+}
+
+long user_ping(User* usr) {
+	if (NULL == usr) return ERR;
+
 }
 
 // Destruye la estructura y cierra el socket.
@@ -178,7 +199,7 @@ long user_init_prefix(User* usr) {
         if (NULL == usr) return ERR;
         free(usr->prefix);
         //IRC_Prefix(&usr->prefix, usr->nick, usr->name, usr->host, usr->host);
-        snprintf(prefix_temporal, sizeof prefix_temporal, "%50s!%50s@%200s", usr->nick, usr->name, usr->host);
+        snprintf(prefix_temporal, sizeof prefix_temporal, "%s!%s@%s", usr->nick, usr->name, usr->host);
         usr->prefix = estrdup(prefix_temporal);
         return OK;
 }

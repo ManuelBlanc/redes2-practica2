@@ -1,14 +1,15 @@
 
+# Redes 2 - Servidor
 
-# Introduccion
-
-
-# Organizacion del proyecto
-
-El proyecto esta organizado en
+## Introduccion
+Una descripcion de lo que se pretende realizar en la practica
 
 
-# Estructuras de datos
+## Diseño
+
+### Modulos del programa
+
+### Estructuras de datos
 
 Tenemos tres estructuras de datos:
 
@@ -16,15 +17,32 @@ Tenemos tres estructuras de datos:
 * Usuarios - encapsula una conexion con un cliente
 * Servidor - engloba varios globales y usuarios
 
+### Decisiones de diseño
+
+servidor iterativo o concurrente
+procesos o hilos, sincronizacion
+estructuras de datos, etc.
+
+### Organizacion del proyecto
+
+
+## Funcionalidad IRC
+
+a grandes rasgos, que funciones del protocolo se han implementado
+
+## Conclusiones tecnicas
+temas concretos de la asignatura que se han aprendido al realizar la practica
+
+## Conclusiones personales
+a que se ha dedicado mas esfuerzo, comentarios generales
 
 
 
 
-# Decisiones de diseño
-
-* No comprobamos que el valor
 
 
+---------------------------------------------------------------------------
+# Queja de REDES2
 
 
 * La no-publicación de unos criterios de corrección.
