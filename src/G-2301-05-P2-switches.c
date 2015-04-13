@@ -339,24 +339,23 @@ static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* prefix = NULL;
 	char* nick_str = NULL;
 	char** nick_list = NULL;
-	char error;
-	int nick_count;
+	int i = 0;
 	UserList ulist = server_get_userlist(serv);
 
 	PARSE_PROTECT("ISON", IRCParse_Ison(cmd, &prefix, &nick_str))
 
-	long err = IRCParse_ParseLists(nick_str, &nick_list, &nick_count);
-	IRC_perror(&error, err);
-	while (nick_count --> 0) {
+        parse_lists(nick_str, &nick_list);
+	while (nick_list[i] != NULL) {
 		// Si esta el usuario
-		User* usr = userlist_head(userlist_findByNickname(ulist, nick_list[nick_count]));
+		User* usr = userlist_head(userlist_findByNickname(ulist, nick_list[i]));
 		if (NULL != usr) {
 			// Enviamos un mensaje avisando
-			IRC_RplIson(buf, sprefix, nick, nick_list[nick_count], NULL);
+			IRC_RplIson(buf, sprefix, nick, nick_list[i], NULL);
 			user_send_cmd(usr, buf);
-			free(nick_list[nick_count]);
+			free(nick_list[i]);
 		}
-		free(nick_list[nick_count]);
+		free(nick_list[i]);
+                i++;
 	}
 
 	free(prefix);
@@ -616,14 +615,14 @@ UNIMPLEMENTED_COMMAND(LINKS, "Comando de interconexion de servidores")
 	Wildcards are allowed in the <target> parameter.
 */
 
-static void send_channel_status(User* usr, char* buf, char* sprefix, char* nick, Channel* chan);
+static void send_channel_status(Server* serv, User* usr, char* buf, char* sprefix, char* nick, Channel* chan);
 
 static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* prefix = NULL;
 	char* channel_name_list = NULL;
 	char* target = NULL;
-	char* channel_list = NULL
-	int channel_count;
+	char** channel_list = NULL;
+	int i = 0;
 
 	PARSE_PROTECT("LIST", IRCParse_List(cmd, &prefix, &channel_name_list, &target));
 
@@ -637,13 +636,14 @@ static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	if (NULL != channel_name_list) {
 		// Si se proporciona una lista de canales, informamos de esos canales
-		IRCParse_ParseLists(channel_name_list, &channel_list, &channel_count);
+                parse_lists(channel_name_list, &channel_list);
 
-		while (channel_count --> 0) {
-			char* channel_name = channel_list[channel_count];
+		while (channel_list[i] != NULL) {
+			char* channel_name = channel_list[i];
 			Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
-			send_channel_status(serv, usr, buf, sprefix, nick, chan);
+			if(chan != NULL) send_channel_status(serv, usr, buf, sprefix, nick, chan);
 			free(channel_name);
+                        i++;
 		}
 	}
 	else {
@@ -659,7 +659,7 @@ static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	// Fin de la lista, en cualquiera de los dos casos
 	IRC_RplListEnd(buf, sprefix, nick);
-	user_send_cmd(buf, cmd);
+	user_send_cmd(usr, buf);
 
 	free(prefix);
 	free(channel_name_list);
@@ -669,14 +669,19 @@ static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char
 }
 
 static void send_channel_status(Server* serv, User* usr, char* buf, char* sprefix, char* nick, Channel* chan) {
-	int isVisible = channel_has_flag(chan, 'p') || channel_has_flag(chan, 's');
+	int isInvisible = channel_has_flag(chan, 'p') || channel_has_flag(chan, 's');
 	char* name = NULL;
 	char* topic = NULL;
+        char visible[12];
+        UNUSED(serv);
 
-	channel_get_name(chan, &name)
+        if(isInvisible) return;
+
+	channel_get_name(chan, &name);
 	channel_get_topic(chan, &topic);
-	IRC_RplList(buf, sprefix, nick, name, (int)channel_get_user_count(chan), topic)
-	user_send_cmd(usr, cmd);
+        sprintf(visible, "%ld", channel_get_user_count(chan));
+	IRC_RplList(buf, sprefix, nick, name, visible, topic);
+	user_send_cmd(usr, buf);
 
 	free(name);
 	free(topic);
@@ -699,7 +704,7 @@ static int exec_cmd_LUSERS(Server* serv, User* usr, char* buf, char* sprefix, ch
 	char* mask = NULL;
 	char* target = NULL;
 
-	PARSE_PROTECT("LUSERS", IRCParse_Lusers(buf, &prefix, &mask, &target));
+	PARSE_PROTECT("LUSERS", IRCParse_Lusers(cmd, &prefix, &mask, &target));
 
 	int num_users = server_get_num_users(serv);
 
@@ -707,7 +712,7 @@ static int exec_cmd_LUSERS(Server* serv, User* usr, char* buf, char* sprefix, ch
 	user_send_cmd(usr, buf);
 	IRC_RplLuserOp(buf, sprefix, nick, 0); // ops
 	user_send_cmd(usr, buf);
-	IRC_RplLuserUnkown(buf, sprefix, nick, 0); // unknownconn
+	IRC_RplLuserUnknown(buf, sprefix, nick, 0); // unknownconn
 	user_send_cmd(usr, buf);
 	IRC_RplLuserChannels(buf, sprefix, nick, server_get_num_channels(serv));
 	user_send_cmd(usr, buf);
@@ -1125,13 +1130,13 @@ static int exec_cmd_PING(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* prefix = NULL;
 	char* origin = NULL;
 	char* target = NULL;
-	char* serv_name = NULL
+	char* serv_name = NULL;
 
 	PARSE_PROTECT("PING", IRCParse_Ping(cmd, &prefix, &origin, &target));
 
 	// No hay origen definido
 	if (NULL == origin) {
-		IRC_NoOrigin(cmd, sprefix, nick, "No origin specified");
+		IRC_ErrNoOrigin(cmd, sprefix, nick, "No origin specified");
 		user_send_cmd(usr, buf);
 		goto cleanup;
 	}
@@ -1152,7 +1157,7 @@ static int exec_cmd_PING(Server* serv, User* usr, char* buf, char* sprefix, char
 	}
 	else {
 		// Le reenviamos al objetivo el ping tal cual
-		user_send_cmd(target_usr, cmd);
+		user_send_cmd(target_user, cmd);
 	}
 
 
@@ -1176,13 +1181,13 @@ static int exec_cmd_PONG(Server* serv, User* usr, char* buf, char* sprefix, char
 	char* prefix = NULL;
 	char* origin = NULL;
 	char* target = NULL;
-	char* serv_name = NULL
+	char* serv_name = NULL;
 
 	PARSE_PROTECT("PONG", IRCParse_Pong(cmd, &prefix, &origin, &target));
 
 	// No hay origen definido
 	if (NULL == origin) {
-		IRC_NoOrigin(cmd, sprefix, nick, "No origin specified");
+		IRC_ErrNoOrigin(cmd, sprefix, nick, "No origin specified");
 		user_send_cmd(usr, buf);
 		goto cleanup;
 	}
@@ -1202,7 +1207,7 @@ static int exec_cmd_PONG(Server* serv, User* usr, char* buf, char* sprefix, char
 	}
 	else {
 		// Le reenviamos al objetivo el ping tal cual
-		user_send_cmd(target_usr, cmd);
+		user_send_cmd(target_user, cmd);
 	}
 
 
@@ -1731,7 +1736,12 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	separated by a space.
 */
 static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* prefix = NULL;
+	UNUSED(serv);
+        UNUSED(buf);
+        UNUSED(sprefix);
+        UNUSED(nick);
+        UNUSED(usr);
+        char* prefix = NULL;
 	char* nick0 = NULL;
 	char* nick1 = NULL;
 	char* nick2 = NULL;
@@ -1740,7 +1750,7 @@ static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, 
 
 	PARSE_PROTECT("USERHOST", IRCParse_UserHost(cmd, &prefix, &nick0, &nick1, &nick2, &nick3, &nick4));
 
-	IRC_RplUserHost(buf, sprefix, nick, char *reply, ...);
+	//IRC_RplUserHost(buf, sprefix, nick, char *reply, ...);
 
 	// The '*' indicates whether the client has registered
 	// as an Operator.  The '-' or '+' characters represent
@@ -1839,8 +1849,8 @@ static int exec_cmd_WALLOPS(Server* serv, User* usr, char* buf, char* sprefix, c
 		User* target = userlist_head(ulist);
 		if (NULL == target) break;
 		// Solo enviamos el mensaje (tal cual) si tienen modo +w
-		if (user_has_flag(target, 'w') user_send_message(target, cmd);
-		ulist = channellist_tail(ulist);
+		if (user_has_flag(target, 'w')) user_send_cmd(target, cmd);
+		ulist = userlist_tail(ulist);
 	}
 
 	free(prefix);
@@ -1936,17 +1946,17 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 	int max_count;
 	char* target = NULL;
 	char** nick_list = NULL;
-	int nick_count;
+	int i = 0;
 
 	PARSE_PROTECT("WHOWAS", IRCParse_Whowas(cmd, &prefix, &nicks_str, &max_count, &target));
 
-	IRCParse_ParseLists(nicks_str, &nick_list, &nick_count);
+        parse_lists(nicks_str, &nick_list);
 
 	UserList ulist = server_get_disconnectlist(serv);
 
 	// Iteramos por todos los nicknames
-	while (nick_count --> 0) {
-		char* dc_nick = nick_list[nick_count];
+	while (nick_list[i] != NULL) {
+		char* dc_nick = nick_list[i];
 
 		// Y por cada usuario, lo buscamos en la lista de desconectados
 		User* dc_user;
@@ -1975,6 +1985,7 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 		//free(dc_host);
 		free(dc_rname);
 		free(dc_nick);
+                i++;
 	}
 
 	// Fin de lista y limpieza

@@ -19,6 +19,12 @@ long user_send_cmd(User* usr, char* str);
 long user_send_cmdf(User* usr, char* fmt, ...)
 ATTRIBUTE((format(printf, 2, 3)));
 
+// Funciones de flags
+long user_has_flag(User* usr, char flag);
+long user_set_flag(User* usr, char flag, User* actor);
+long user_unset_flag(User* usr, char flag, User* actor);
+
+
 // Cambiar el nick
 long user_get_nick(User* usr, char** nick);
 long user_set_nick(User* usr, char*  nick);
