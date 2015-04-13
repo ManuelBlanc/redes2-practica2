@@ -166,12 +166,19 @@ long channel_can_send_message(Channel* chan, User* usr) {
 
 long channel_get_user_names(Channel* chan, char flag, char*** usr_array_ret) {
 	if (NULL == chan || NULL == usr_array_ret) return ERR;
-
 	char** usr_array = *usr_array_ret = emalloc((sizeof *usr_array) * (chan->usr_cnt+1));
+
+	ChannelUserFlags flag_mask = ~0;
+	if (0 != flag) {
+		flag_mask = channelP_char_to_usrflag(flag);
+		if (0 == flag_mask) return ERR_UMODEUNKNOWNFLAG;
+	}
 
 	UserChannelData* cud = chan->usrs;
 	while (NULL != cud) {
-		ASSERT(OK == user_get_nick(cud->usr, usr_array++), "Si fallase esto estariamos en serios problemas");
+		if (flag_mask & cud->flags) {
+			ASSERT(OK == user_get_nick(cud->usr, usr_array++), "Si fallase esto estariamos en serios problemas");
+		}
 		cud = cud->next;
 	}
 	*usr_array++ = NULL;

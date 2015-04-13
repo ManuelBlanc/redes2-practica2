@@ -59,7 +59,7 @@ static void switchesP_send_channel_nicknames(Server* serv, User* usr, char* buf,
 
 	// Obtenemos la lista de usuarios
 	channel_get_name(chan, &channel_name);
-	channel_get_user_names(chan, &namelist);
+	channel_get_user_names(chan, 0, &namelist);
 	namelist2 = namelist;
 
 	// Buscamos el tipo del canal para la lista de usuarios
