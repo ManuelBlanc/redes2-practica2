@@ -808,6 +808,9 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	PARSE_PROTECT("MODE", IRCParse_Mode(cmd, &prefix, &target, &mode, &user_target));
 
+        free(prefix);
+	user_get_prefix(usr, &prefix);
+
 	// Este comando es un desproposito. No sabemos si el objetivo es un usuario o canal.
 
 	// Primero probamos con canales
@@ -1089,6 +1092,10 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	char* nick_wanted = NULL;
 
 	PARSE_PROTECT("NICK", IRCParse_Nick(cmd, &prefix, &nick_wanted));
+
+        // Obtenemos el prefix de verdad
+        free(prefix);
+        user_get_prefix(usr, &prefix);
 
 	if (NULL == nick_wanted || '\0' == *nick_wanted) {
 		IRC_ErrNoNickNameGiven(buf, sprefix, nick);
