@@ -1519,13 +1519,14 @@ static long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	acknowledges this by sending an ERROR message to the client.
 */
 static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_QUIT no implementada\n");
+	char* prefix = NULL;
+	char* msg = NULL;
+
+	PARSE_PROTECT("QUIT", IRCParse_Quit(cmd, &prefix, &msg));
+	IRC_Error(cmd, &prefix, &msg);
+
+	free(prefix);
+	free(msg);
 	return OK;
 }
 
@@ -1900,8 +1901,23 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		// Le enviamos cositas que se envian al registrarse
 		char* host;
 		user_get_host(usr, &host);
+
 		IRC_RplWelcome(buf, sprefix, nick, nick, user_name, host);
 		user_send_cmd(usr, buf);
+		//IRC_RplYourHost(char *command, char *prefix, char *nick, char *servername, char *versionname)
+		//user_send_cmd(usr, buf);
+		//IRCParse_RplCreated(char *strin, char **prefix, char **nick, char **timedate, char **msg)
+		//user_send_cmd(usr, buf);
+		//IRCParse_RplMyInfo(char *strin, char **prefix, char **nick, char **servername, char **version, char **availableusermodes, char **availablechannelmodes, char **added)
+		//user_send_cmd(usr, buf);
+
+		action_switch(serv, usr, "LUSERS");
+		action_switch(serv, usr, "MOTD");
+		action_switch(serv, usr, "INFO");
+		action_switch(serv, usr, "VERSION");
+		action_switch(serv, usr, "NAMES");
+		action_switch(serv, usr, "ADMIN");
+		action_switch(serv, usr, "LIST");
 	}
 
 	free(pre);
