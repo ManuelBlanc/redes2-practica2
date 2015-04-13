@@ -81,9 +81,9 @@ static void switchesP_send_channel_nicknames(Server* serv, User* usr, char* buf,
 }
 
 // Se salta los dos puntos de una cadena (si estan ahi)
-static char* switchesP_skip_colon(char* channel) {
+/*static char* switchesP_skip_colon(char* channel) {
 	return ':' == *channel ? channel+1 : channel;
-}
+}*/
 
 //Separa una cadena por espacios y/o comas
 static int parse_lists(char* str, char*** elems) {
@@ -791,7 +791,13 @@ cleanup:
 	The flag 's' is obsolete but MAY still be used.
 */
 static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	char* prefix = NULL;
+	UNUSED(serv);
+        UNUSED(usr);
+        UNUSED(buf);
+        UNUSED(sprefix);
+        UNUSED(nick);
+        UNUSED(cmd);
+        /*char* prefix = NULL;
 	char* channel_name = NULL;
 	char* mode = NULL;
 	char* user_target = NULL;
@@ -905,8 +911,6 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 		}
 	}
 	else {
-		//ERR_NEEDMOREPARAMS              ERR_USERSDONTMATCH
-		//ERR_UMODEUNKNOWNFLAG            RPL_UMODEIS
 		User* recv = userlist_findByNickname(&serv->usrs, user_target);
 
 		if (NULL != recv) opt = user_send_message(recv, nick, msg);
@@ -936,7 +940,7 @@ cleanup:
 	free(prefix);
 	free(channel_name);
 	free(mode);
-	free(user_target);
+	free(user_target);*/
 	return OK;
 }
 

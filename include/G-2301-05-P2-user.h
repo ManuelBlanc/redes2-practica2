@@ -19,6 +19,8 @@ long user_send_cmd(User* usr, char* str);
 long user_send_cmdf(User* usr, char* fmt, ...)
 ATTRIBUTE((format(printf, 2, 3)));
 
+long user_get_host(User* usr, char** host);
+
 // Funciones de flags
 long user_has_flag(User* usr, char flag);
 long user_set_flag(User* usr, char flag, User* actor);

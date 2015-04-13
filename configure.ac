@@ -41,6 +41,7 @@ AC_DEFINE([CHANNEL_MAX_NAME_LEN], 	50, 	[Maximum channel name length])  	# RFC28
 AC_DEFINE([CHANNEL_MAX_TOPIC_LEN],	50, 	[Maximum channel topic length]) 	#
 AC_DEFINE([CHANNEL_MAX_KEY_LEN],  	50, 	[Maximum channel key length])   	#
 AC_DEFINE([USER_MAX_AWAY_LEN],    	50, 	[Maximum away message length])  	#
+AC_DEFINE([USER_MAX_HOST_LEN],    	64, 	[Maximum host name length])	  	#
 AC_DEFINE([USER_MAX_NICK_LEN],    	9,  	[Maximum user length])          	# RFC1459 1.2
 AC_DEFINE([USER_MAX_NAME_LEN],    	9,  	[Maximum username length])      	#
 AC_DEFINE([USER_MAX_RNAME_LEN],   	50, 	[Maximum user real name length])	#

@@ -169,7 +169,6 @@ void user_delete(User* usr) {
 }
 
 long user_init_prefix(User* usr) {
-        char* host;
         if (NULL == usr) return ERR;
         free(usr->prefix);
         IRC_Prefix(&usr->prefix, usr->nick, usr->name, usr->host, usr->host);

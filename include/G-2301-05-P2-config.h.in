@@ -78,6 +78,9 @@
 /* Maximum away message length */
 #undef USER_MAX_AWAY_LEN
 
+/* Maximum host name length */
+#undef USER_MAX_HOST_LEN
+
 /* Maximum username length */
 #undef USER_MAX_NAME_LEN
 
