@@ -71,8 +71,8 @@ static long connection_switch(Server* serv, User* usr, char* cmd) {
 
 		case USER: /* 3 */
 			LOG("Recibido USER inicial");
-			usr->conn_state |= USERCS_RECEIVED_USER;
-			return exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
+			long ret = exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
+			if (OK == ret) usr->conn_state |= USERCS_RECEIVED_USER;
 
 		default:
 			LOG("Comando no reconcido en el handshake");

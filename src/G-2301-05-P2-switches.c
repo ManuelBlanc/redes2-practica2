@@ -441,6 +441,10 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	PARSE_PROTECT("JOIN", IRCParse_Join(cmd, &prefix, &channel_name, &channel_key, &msg));
 
+	// Obtenemos el prefix de verdad
+	free(prefix);
+	user_get_prefix(usr, &prefix);
+
 	Channel* chan;
 	// Creamos o obtenemos el canal que buscamos
 	switch (server_add_or_create_channel(serv, channel_name, &chan)) {
@@ -485,7 +489,7 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 	}
 
 	// Join con exito, avisamos a todos los usuarios del canal
-	IRC_Join(buf, sprefix, channel_name, channel_key, msg);
+	IRC_Join(buf, prefix, channel_name, channel_key, msg);
 	channel_send_cmd(chan, buf);
 
 	// Enviamos el topic (si existe)
@@ -1085,7 +1089,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	if (NULL == nick_wanted || '\0' == *nick_wanted) {
 		IRC_ErrNoNickNameGiven(buf, sprefix, nick);
 		user_send_cmd(usr, buf);
-		return ERR;
+		return OK;
 	}
 
 	UserList usrlist = server_get_userlist(serv);
@@ -1094,13 +1098,13 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	if (NULL != *usr_match) {
 		IRC_ErrNickNameInUse(buf, sprefix, nick, nick_wanted);
 		user_send_cmd(usr, buf);
-		return ERR;
+		return OK;
 	}
 
 	if (OK != user_set_nick(usr, nick_wanted)) {
 		IRC_ErrErroneusNickName(buf, sprefix, nick, nick_wanted);
 		user_send_cmd(usr, buf);
-		return ERR;
+		return OK;
 	}
 
 	free(prefix);
@@ -1378,6 +1382,10 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	long opt;
 
 	PARSE_PROTECT("PRIVMSG", IRCParse_Privmsg(cmd, &prefix, &target, &msg));
+
+	// Obtenemos el prefix de verdad
+	free(prefix);
+	user_get_prefix(usr, &prefix);
 
 	// Es un canal?
 	if (strchr("#!&+", target[0])) {
