@@ -248,7 +248,7 @@ long server_add_or_create_channel(Server* serv, char* name, ChannelList chan) {
 
 	// No existe, lo creamos
 	// Primero comprobamos que el nombre sea valido
-	if (strchr("#!&+", name[0])) return ERR_NOSUCHCHANNEL;
+	if (NULL == strchr("#!&+", name[0])) return ERR_NOSUCHCHANNEL;
 
 	// Creacion e insercion en la lista
 	*chan = channel_new(serv, name);

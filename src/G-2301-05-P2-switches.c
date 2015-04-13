@@ -443,7 +443,7 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 	while (*namelist2) {
 		IRC_RplNamReply(buf, sprefix, nick, channel_type, channel_name, *namelist2);
 		user_send_cmd(usr, buf);
-		namelist++;
+		namelist2++;
 	}
 
 	IRC_RplEndOfNames(buf, sprefix, nick, channel_name);
@@ -454,7 +454,6 @@ cleanup:
 	free(prefix);
 	free(channel_name);
 	free(channel_key);
-	free(namelist);
 	return OK;
 }
 
@@ -1211,6 +1210,7 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	char* prefix = NULL;
 	char* target = NULL;
 	char* msg = NULL;
+        char** namelist;
 	long opt;
 
 	PARSE_PROTECT("PRIVMSG", IRCParse_Privmsg(cmd, &prefix, &target, &msg));
@@ -1227,6 +1227,17 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 
 		switch (opt) {
 			default: break;
+                        case OK:
+                                // Obtenemos la lista de usuarios
+                                channel_get_user_names(*chan, &namelist);
+                                char** namelist2 = namelist;
+                                while (*namelist2) {
+                                        User* dst = userlist_head(userlist_findByNickname(server_get_userlist(serv), *namelist2));
+                                	IRC_Privmsg(buf, sprefix, target, msg);
+                                	user_send_cmd(dst, buf);
+                                        namelist2++;
+                                }
+                                break;
 			case ERR_NOTEXTTOSEND:
 				IRC_ErrNoTextToSend(buf, sprefix, target);
 				user_send_cmd(usr, buf);
@@ -1559,8 +1570,9 @@ static int exec_cmd_TIME(Server* serv, User* usr, char* buf, char* sprefix, char
 static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* channel_name;
 	char* topic;
+        char* prefix;
 
-	IRCParse_Topic(cmd, NULL, &channel_name, &topic);
+	IRCParse_Topic(cmd, &prefix, &channel_name, &topic);
 
 	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 	if (NULL == channel) {
@@ -1912,11 +1924,11 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 		// Encontrado! Hallamos sus datos y enviamos un mensaje
 		char* dc_name = NULL;
-		char* dc_host = NULL;
+		//char* dc_host = NULL;
 		char* dc_rname = NULL;
 
 		user_get_name(dc_user, &dc_name);
-		user_get_host(dc_user, &dc_host);
+		//user_get_host(dc_user, &dc_host);
 		user_get_rname(dc_user, &dc_rname);
 
 		IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, "dc_host", dc_rname);
@@ -1924,7 +1936,7 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 		// Liberacion
 		free(dc_name);
-		free(dc_host);
+		//free(dc_host);
 		free(dc_rname);
 		free(dc_nick);
 	}
