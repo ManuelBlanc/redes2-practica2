@@ -73,11 +73,16 @@ static long connection_switch(Server* serv, User* usr, char* cmd) {
 			LOG("Recibido USER inicial");
 			long ret = exec_cmd_USER(serv, usr, buf, NULL, NULL, cmd);
 			if (OK == ret) usr->conn_state |= USERCS_RECEIVED_USER;
+			return ret;
 
 		default:
 			LOG("Comando no reconcido en el handshake");
-			if (!strncmp(cmd, "CAP ", 4)) return OK;
-			return (USERCS_RECEIVED_USER & usr->conn_state) ? OK : ERR;
+			char* sprefix;
+			server_get_name(serv, &sprefix);
+			IRCParse_ErrNotRegistered(buf, sprefix, "*");
+			user_send_cmd(usr, buf);
+			free(sprefix);
+			return OK;
 	}
 }
 

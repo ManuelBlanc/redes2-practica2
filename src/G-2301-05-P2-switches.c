@@ -1107,6 +1107,17 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		return OK;
 	}
 
+	ChannelList channels = server_get_channellist(serv);
+	while (1) {
+		Channel* chan = channellist_head(channels);
+		if (NULL == chan) break;
+		if (channel_has_user(chan, usr)) {
+			IRC_Nick(buf, prefix, nick_wanted);
+			channel_send_cmd(chan, buf);
+		}
+		channels = channellist_tail(channels);
+	}
+
 	free(prefix);
 	free(nick_wanted);
 	return OK;
