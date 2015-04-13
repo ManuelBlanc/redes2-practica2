@@ -84,12 +84,12 @@ void* ecalloc(size_t count, size_t size)
 	return ptr;
 }
 char* estrdup(char* str) {
-	char* str = strdup(size);
+	str = strdup(str);
 	ASSERT(str != NULL, "No se pudo reservar memoria con strdup()");
 	return str;
 }
 char* estrndup(char* str, size_t size) {
-	char* str = strndup(count,  size);
+	str = strndup(str,  size);
 	ASSERT(str != NULL, "No se pudo reservar memoria con strndup()");
 	return str;
 }
