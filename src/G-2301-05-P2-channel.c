@@ -185,7 +185,7 @@ long channel_send_cmd(Channel* chan, char* str) {
 	if (NULL == chan) return ERR;
 	ucd = chan->usrs;
 	while (NULL != ucd) {
-		user_send_cmd(ucd->usr, str);
+		if (ucd->inChannel) user_send_cmd(ucd->usr, str);
 		ucd = ucd->next;
 	}
 	return OK;
