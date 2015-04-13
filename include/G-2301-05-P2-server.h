@@ -143,12 +143,4 @@ long server_add_or_create_channel(Server* serv, char* name, ChannelList chan);
  */
 int server_delete_channel(Server* serv, char* name);
 
-
-
-/* Necesitamos un semaforo para proteger el recorrido de las listas
- porque si eliminan o insertan un nodo cuando la estas recoriendo:muerte y destruccion*/
-
-/* Otro semaforo (en cada hilo probablemente) para evitar que cuando queremos enviar a un usuario
- se desconete en ese momento y pete*/
-
 #endif /* SERVER_H */

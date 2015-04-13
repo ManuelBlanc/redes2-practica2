@@ -34,6 +34,7 @@ struct Server {
 	Channel*       	chan;                     	/* Lista de canales                    	*/
 	pthread_mutex_t	switch_mutex;             	/* Mutex general                       	*/
 	ServerAdmin    	admin_data;               	/* Datos del administrador             	*/
+	pthread_t 	ping_thr;			/* Hilo para ver actividad en los users */
 };
 
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
@@ -102,6 +103,20 @@ static void demonizar(void) {
 */
 }
 
+//Envia pings periodicos a los usuarios para comprobar su actividad
+static void* server_periodic_ping(void* serv_ptr) {
+	Server* serv = (Server *)serv_ptr;
+	while(1) {
+		UserList usr = &serv->usrs;
+		while(userlist_head(usr)) {
+			//user_ping();
+			usr = userlist_tail(usr);
+		}
+		sleep(20);
+	}
+	return NULL;
+}
+
 Server* server_new() {
 	Server* serv = ecalloc(1, sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
@@ -112,6 +127,8 @@ Server* server_new() {
 	strncpy(serv->admin_data.loc1, 	"Nueva York, USA",      	200);
 	strncpy(serv->admin_data.loc2, 	"Goliath National Bank",	200);
 	strncpy(serv->admin_data.email,	"barney@awesome.himym", 	200);
+	pthread_create(&serv->ping_thr, NULL, server_periodic_ping, serv);
+	pthread_detach(serv->ping_thr);
 	return serv;
 }
 
@@ -249,8 +266,13 @@ int server_delete_user(Server* serv, char* name) {
 	UserList usr = userlist_findByNickname(&serv->usrs, name);
 	if (usr == NULL) return ERR;
 	User* usr2 = userlist_extract(usr);
+	//mirara los canales y sacar al usr si esta presente
+	ChannelList chan = &serv->chan;
+	while(channellist_head(chan)) {
+		channel_remove_user(channellist_head(chan), usr2);
+		chan = channellist_tail(chan);
+	}
 	server_add_disconnect(serv, usr2);
-	//user_delete(usr2);
 	serv->num_users--;
 	return OK;
 }
