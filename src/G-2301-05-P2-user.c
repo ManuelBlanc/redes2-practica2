@@ -40,6 +40,7 @@ struct User {
 	char*        	prefix;                        	                                     		/* Prefijo	*/
 	char         	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
 	char         	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
+	char         	host[64+1];                    	/* Nombre                            	*/
 	char         	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
 	char         	away_msg[USER_MAX_AWAY_LEN+1]; 	/* Mensaje de away                   	*/
 	int          	sock_fd;                       	/* Descriptor del socket             	*/
@@ -140,6 +141,15 @@ static void* userP_reader_thread(void* data) {
 // Crea una nueva estructura usuario a partir de un socket.
 User* user_new(Server* serv, int sock) {
 	User* usr = ecalloc(1, sizeof *usr);
+
+	{
+		// Generamos el hostname
+		struct sockaddr_in address;
+		socklen_t addr_len = sizeof address;
+		getsockname(usr->sock_fd, (struct sockaddr*)&address, &addr_len);
+		strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
+	}
+
 	usr->server     = serv;
 	usr->sock_fd    = sock;
 	usr->conn_state = 0;
@@ -159,20 +169,11 @@ void user_delete(User* usr) {
 }
 
 long user_init_prefix(User* usr) {
-	char* host;
-	if (NULL == usr) return ERR;
-
-	{
-		// Buscamos nuestra IP
-		struct sockaddr_in address;
-		socklen_t addr_len = sizeof address;
-		getsockname(usr->sock_fd, (struct sockaddr*)&address, &addr_len);
-		host = inet_ntoa(address.sin_addr);
-	}
-
-	free(usr->prefix);
-	IRC_Prefix(&usr->prefix, usr->nick, usr->name, host, host);
-	return OK;
+        char* host;
+        if (NULL == usr) return ERR;
+        free(usr->prefix);
+        IRC_Prefix(&usr->prefix, usr->nick, usr->name, usr->host, usr->host);
+        return OK;
 }
 
 long user_get_prefix(User* usr, char** prefix) {
@@ -203,6 +204,14 @@ long user_send_cmdf(User* usr, char* fmt, ...) {
 	int ret = user_send_cmd(usr, buffer);
 	va_end(ap);
 	return ret;
+}
+
+// Devuelve el host del usuario.
+long user_get_host(User* usr, char** host) {
+        if (NULL == usr || NULL == host) return ERR_NEEDMOREPARAMS;
+
+        *host = strdup(usr->host);
+        return OK;
 }
 
 // Devuelve el nick del usuario.

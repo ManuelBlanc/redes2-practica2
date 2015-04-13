@@ -791,102 +791,143 @@ cleanup:
 	The flag 's' is obsolete but MAY still be used.
 */
 static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(cmd);
-	UNUSED(serv);
-	UNUSED(usr);
-	/*char* nick;
-	char* channel_name;
-	char* user_target;
-	char* prefix;
-	char* mode;
-	char buf[IRC_MAX_CMD_LEN+1];
-	long opt;
+	char* prefix = NULL;
+	char* channel_name = NULL;
+	char* mode = NULL;
+	char* user_target = NULL;
 
-	user_get_nick(usr, &nick);
-	if (0 > IRCParse_Mode(cmd, &prefix, &channel_name, &mode, &user_target)){
-		IRC_ErrUnKnownCommand(buf, prefix, nick, str);
-		user_send_cmd(usr, buf);
-		return ERR;
-	}
+	PARSE_PROTECT("MODE", IRCParse_Mode(cmd, &prefix, &target, &mode, &user_target));
 
-	string_skip_colon(channel_name);
-	Channel* chan = channellist_findByName(&serv->chan, channel_name);
-	if (NULL != user_target) {
-		if (mode[0] == '+') {
-			User* target = userlist_findByNickname(&serv->usrs, user_target);
-			if(NULL == target) opt = ERR_USERSDONTMATCH;
-			else opt = channel_set_flag_user(chan, target, mode, usr);
+	// Este comando es un desproposito. No sabemos si el objetivo es un usuario o canal.
+
+	// Primero probamos con canales
+	Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), target));
+	if (NULL != chan) {
+		// El objetivo del mode es un canal!!
+		// Vemos si es una flag de canal o usuario
+
+		if (strchr("OovbeI", mode[1])) {
+			if ('+' == mode[0]) {
+				User* target = userlist_findByNickname(&serv->usrs, user_target);
+				if(NULL == target) opt = ERR_USERSDONTMATCH;
+				else opt = channel_set_flag_user(chan, target, mode, usr);
+			}
+			else if ('-' == mode[0]) {
+				User* target = userlist_findByNickname(&serv->usrs, user_target);
+				if(NULL == target) opt = ERR_USERSDONTMATCH;
+				else opt = channel_unset_flag_user(chan, target, mode, usr);
+			}
 		}
-		else if (mode[0] == '-') {
-			User* target = userlist_findByNickname(&serv->usrs, user_target);
-			if(NULL == target) opt = ERR_USERSDONTMATCH;
-			else opt = channel_unset_flag_user(chan, target, mode, usr);
+		else if (strchr("aimnqpsrtkl", mode[1])) {
+			if ('+' == mode[0]) {
+				opt = channel_set_flag(chan, mode, usr);
+			}
+			else if ('-' == mode[0]) {
+				opt = channel_unset_flag(chan, mode, usr);
+			}
 		}
 		else {
-			//si no hacemos devolver banlist, invitedlist o exceptionlist, esto BIEN
-			opt = RPL_UNIQOPIS;
+			// Si no hacemos devolver banlist, invitedlist exceptionlist o creador del canal, esto BIEN
+			switch(mode[0]) {
+				case('b'):
+					opt = RPL_BANLISTLIST;
+					break;
+				case('e'):
+					opt = RPL_EXCEPTLIST;
+					break;
+				case('I'):
+					opt = RPL_INVITELIST;
+					break;
+				case('O'):
+					opt = RPL_UNIQOPIS;
+					break;
+				default:
+					opt = ERR_UMODEUNKNOWNFLAG;
+					break;
+			}
 		}
+
 		switch (opt) {
-			default: break;
 			case ERR_NEEDMOREPARAMS:
-				IRC_ErrNeedMoreParams(buf, prefix, nick, str);
+				IRC_ErrNeedMoreParams(buf, sprefix, nick, str);
 				user_send_cmd(usr, buf);
 				break;
-			case ERR_USERSDONTMATCH:
-				IRC_ErrUsersDontMatch(buf, prefix, nick);
+			case ERR_KEYSET:
+				IRC_ErrKeySet(buf, sprefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
-			case ERR_UMODEUNKNOWNFLAG:
-				IRC_ErrUModeUnknownFlag(buf, prefix, nick);
+			case ERR_NOCHANMODES:
+				IRC_ErrNoChanModes(buf, sprefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
-			case RPL_UMODEIS:
-				IRC_RplUModeIs(buf, prefix, nick, mode);
+			case ERR_CHANOPRIVSNEEDED:
+				IRC_ErrChanOPrivsNeeded(buf, sprefix, nick, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_USERNOTINCHANNEL:
+				IRC_ErrUserNotInChannel(buf, sprefix, nick, target_user, target);
+				user_send_cmd(usr, buf);
+				break;
+			case ERR_UNKNOWNMODE:
+				• long IRC_ErrUnknownMode(buf, sprefix, nick, mode, target);
+				IRC_ErrUModeUnknownFlag(buf, sprefix, nick);
+				user_send_cmd(usr, buf);
+				break;
+			case RPL_CHANNELMODEIS:
+				IRC_RplChannelModeIs(buf, sprefix, nick, target, mode);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_UNIQOPIS:
-				IRC_RplUniqOpIs(buf, prefix, nick, channel_name, char *nickname);
-				//como sacar el creador del canal????
+				//funcion que devuelve el user con flag O en channel_creator
+				char* channel_creator = NULL;
+				IRC_RplUniqOpIs(buf, sprefix, nick, channel_name, channel_creator);
 				user_send_cmd(usr, buf);
+				break;
+			case RPL_BANLISTLIST:
+				break;
+			case RPL_INVITELIST:
+				break;
+			case RPL_EXCEPTLISTLIST:
+				break;
+			case RPL_INVITELIST:
+				break;
+			case OK:
 				break;
 		}
 	}
 	else {
+		//ERR_NEEDMOREPARAMS              ERR_USERSDONTMATCH
+		//ERR_UMODEUNKNOWNFLAG            RPL_UMODEIS
 		User* recv = userlist_findByNickname(&serv->usrs, user_target);
 
 		if (NULL != recv) opt = user_send_message(recv, nick, msg);
-		else opt = ERR_NOSUCHNICK;
+		else opt = ERR_USERSDONTMATCH;
 
 		switch (opt) {
-			default: break;
-			case ERR_NOTEXTTOSEND:
-				IRC_ErrNoTextToSend(buf, prefix, user_target);
+			case ERR_NEEDMOREPARAMS:
+				IRC_ErrNeedMoreParams(buf, sprefix, nick, str);
 				user_send_cmd(usr, buf);
 				break;
-			case ERR_NOSUCHNICK:
-				IRC_ErrNoSuchNick(buf, prefix, nick, user_target);
+			case ERR_USERSDONTMATCH:
+				IRC_ErrUsersDontMatch(buf, sprefix, nick);
 				user_send_cmd(usr, buf);
 				break;
-			case RPL_AWAY:
-				char* awaymsg = user_get_away(recv, &awaymsg);
-				IRC_RplAway(buf, prefix, nick, user_target, awaymsg);
+			case ERR_UMODEUNKNOWNFLAG:
+				IRC_ErrUModeUnknownFlag(buf, sprefix, nick);
+				user_send_cmd(usr, buf);
+				break;
+			case RPL_UMODEIS:
+				IRC_RplUModeIs(buf, sprefix, nick, mode);
 				user_send_cmd(usr, buf);
 				break;
 		}
+	}
 
-		//ERR_NEEDMOREPARAMS              ERR_KEYSET
-		//ERR_NOCHANMODES                 ERR_CHANOPRIVSNEEDED
-		//ERR_USERNOTINCHANNEL            ERR_UNKNOWNMODE
-		//RPL_CHANNELMODEIS
-		//RPL_BANLIST                     RPL_ENDOFBANLIST
-		//RPL_EXCEPTLIST                  RPL_ENDOFEXCEPTLIST
-		//RPL_INVITELIST                  RPL_ENDOFINVITELIST
-		//RPL_UNIQOPIS
-
-	}*/
+cleanup:
+	free(prefix);
+	free(channel_name);
+	free(mode);
+	free(user_target);
 	return OK;
 }
 
@@ -1330,7 +1371,6 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	PARSE_PROTECT("PRIVMSG", IRCParse_Privmsg(cmd, &prefix, &target, &msg));
 
 	// Es un canal?
-	switchesP_skip_colon(target);
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
 		Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), target));
