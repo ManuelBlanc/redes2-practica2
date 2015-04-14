@@ -354,7 +354,7 @@ static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, ch
 	// Avisamos a la sala
 	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 	if(NULL != channel) {
-                channel_set_flag_user(channel, user_invited, 'i', usr);
+                channel_set_flag_user(channel, user_invited, 'I', usr);
                 IRC_RplInviting(buf, sprefix, channel_name, nick, invitee_nick);
 	        channel_send_cmd(channel, buf);
         }
@@ -471,23 +471,23 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 		case ERR_NEEDMOREPARAMS:
 			IRC_ErrNeedMoreParams(buf, sprefix, nick, "JOIN");
 			user_send_cmd(usr, buf);
-			break;
+			goto cleanup;
 		case ERR_CHANNELISFULL:
 			IRC_ErrChannelIsFull(buf, sprefix, nick, channel_name);
 			user_send_cmd(usr, buf);
-			break;
+			goto cleanup;
 		case ERR_BANNEDFROMCHAN:
 			IRC_ErrBannedFromChan(buf, sprefix, nick, channel_name);
 			user_send_cmd(usr, buf);
-			break;
+			goto cleanup;
 		case ERR_BADCHANNELKEY:
 			IRC_ErrBadChannelKey(buf, sprefix, nick, channel_name);
 			user_send_cmd(usr, buf);
-			break;
+			goto cleanup;
 		case ERR_INVITEONLYCHAN:
 			IRC_ErrInviteOnlyChan(buf, sprefix, nick, channel_name);
 			user_send_cmd(usr, buf);
-			break;
+			goto cleanup;
 		case OK:
                         //Ponemos las flags de creador y oper
                         if(channel_get_user_count(chan) == 1) {
@@ -2402,5 +2402,7 @@ case CMD:                                                       	\
 		CMD_CASE(WHOIS   );
 		CMD_CASE(WHOWAS  );
 	}
+        free(sprefix);
+        free(nick);
 	return OK;
 }

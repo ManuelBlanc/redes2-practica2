@@ -304,6 +304,11 @@ long channel_join(Channel* chan, User* usr, char* key) {
 	// Buscamos o creamos al usuario
 	channelP_find_or_create(chan, usr, &ucd);
 
+	// Es de solo invitacion?
+	if (CF_INVONLY & chan->flags) {
+		if (!(UCF_INVITATION & ucd->flags)) return ERR_INVITEONLYCHAN;
+	}
+
 	// Ya esta en el canal?
 	if (ucd->inChannel) return OK;
 
@@ -316,13 +321,7 @@ long channel_join(Channel* chan, User* usr, char* key) {
 		if (strncmp(key, chan->key, CHANNEL_MAX_KEY_LEN)) return ERR_BADCHANNELKEY;
 	}
 
-	// Es de solo invitacion?
-	if (CF_INVONLY & chan->flags) {
-		if ((UCF_INVITATION & (0 == ucd->flags))) return ERR_INVITEONLYCHAN;
-	}
-
 	// Si hemos llegado hasta aqui, le apuntamos
-	channelP_find_or_create(chan, usr, &ucd);
 	ucd->inChannel = 1;
 	chan->usr_cnt++;
 	return OK;
@@ -348,8 +347,9 @@ long channel_part(Channel* chan, User* usr, User* actor) {
 
 // Comprueba si un usuario esta dentro de la sala.
 long channel_has_user(Channel* chan, User* usr) {
-	UserChannelData* ucd;
-	return channelP_find_user_data(chan, usr, &ucd);
+        UserChannelData* ucd;
+        if (!channelP_find_user_data(chan, usr, &ucd)) return 0;
+        return ucd->inChannel;
 }
 
 // Devuelve el topic.
