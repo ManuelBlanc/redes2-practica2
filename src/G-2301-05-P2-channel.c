@@ -348,7 +348,8 @@ long channel_part(Channel* chan, User* usr, User* actor) {
 // Comprueba si un usuario esta dentro de la sala.
 long channel_has_user(Channel* chan, User* usr) {
 	UserChannelData* ucd;
-	return channelP_find_user_data(chan, usr, &ucd);
+	if (!channelP_find_user_data(chan, usr, &ucd)) return 0;
+	return ucd->inChannel;
 }
 
 // Devuelve el topic.

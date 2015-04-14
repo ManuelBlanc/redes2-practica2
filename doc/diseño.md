@@ -17,11 +17,19 @@ Hemos dividido el programa en 5 módulos diferentes:
 * `User` encapsula las conexiones con usuarios.
 
 #### User
-Un usuario contiene el socket de un cliente, la referencia a su hilo de ejecución y finalmente todos los
+Un usuario contiene el socket de un cliente, la referencia a su hilo de ejecución y finalmente todos los sus datos como su nick, nombre y flags de usuario.
 
 ### Decisiones de diseño
 
+La implementación es concurrente ya que da mas flexibilidad y posibilidad de extensión al servidor.
+
 Hemos desarrollado un servidor con un diseño concurrente. A cada conexión entrante se le asigna un hilo para que atienda sus peticiones. El hilo queda bloqueado al llegar a `recv()` hasta que reciba datos del cliente o pasen 10 segundos, lo que ocurra primero. Ademas, comprobara periódicamente una bandera en su estructura para saber si debe finalizar la conexión y matar el hilo. De este modo, cada hilo controla su propia ejecución y evitamos las condiciones de carrera que pueden surgir a partir de `pthread_kill` o `pthread_cancel` inoportunos.
+
+Usamos hilos en vez de procesos para cada cliente. Nota: las razones a continuación están basadas en la Implementación de pthreads de Linux, y no tienen porque aplicarse a otros sistemas operativos.
+
+* Son considerablemente mas ligeros que los procesos, siendo su creación y destrucción mucho mas rápida.
+* La comunicación entre hilos no requiere asistencia del sistema operativo, ya que comparten la memoria.
+* Es mas facil controlarlos ya que cuando muere un proceso mueren todos sus hilos. Con procesos
 
 Disponemos de otros dos hilos en el modulo `Server`:
 
@@ -62,13 +70,11 @@ Hemos implementado las siguientes funciones
 * `USERS` - Manda el mensaje de error especificado por el RFC por cuestiones de seguridad.
 * `VERSION` - Imprime la version del servidor
 * `WALLOPS` - Envía el comando a todos los usuarios `+w`.
-* `WHO` - Lista la gente que hy en un canal
+* `WHO` - Lista la gente que hay en un canal
 * `WHOIS` -
 * `WHOWAS` - Lista la informacion sobre un usuario que ya se desconecto
 
 ## Conclusiones técnicas
-
-
 
 Los RFCs estan mal hechos
 xchat no respeta el RFC
@@ -108,7 +114,7 @@ No ha habido una publicación de unos criterios de corrección. Por tanto, no he
   en C. Usando la métrica de lineas de código, la programación con sockets
   representa aproximadamente un 9% del total de código. El 91% restante
   lo compone el tratamiento de cadenas, manejo de hilos, interacción con
-  la libreria y el código relacionado con la interfaz gráfica. Además, esta
+  la librería y el código relacionado con la interfaz gráfica. Además, esta
   metrica no incluye todo el trabajo de planificación, estudio de
   documentación, lectura de RFCS y elaboración de la documentación exigida.
 
@@ -116,8 +122,3 @@ No ha habido una publicación de unos criterios de corrección. Por tanto, no he
   + Emancipar las prácticas de la teoría, como se hace con ADSOFT, INGS...
   + Aumentar el peso de las prácticas sobre la nota final.
   + Reducir la carga de trabajo.
-
-* El profesor asignado al grupo 2301 no ha hecho una labor satisfactoria.
-  Este profesor no estaba preparado para impartir las clases de prácticas.
-  No fue capaz de responder las dudas preguntadas, ya que desconocía el
-  temario y contenidos de la práctica.
