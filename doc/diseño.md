@@ -1,69 +1,99 @@
 
 # Redes 2 - Servidor
 
-## Introduccion
-Una descripcion de lo que se pretende realizar en la practica
+## Introducción
 
+El objetivo de esta practica es implementar un servidor para el protocolo IRC. Dicho servidor sera capaz de atender las peticiones de múltiples clientes según lo descrito en el RFC 2812, aunque no se va a exigir la comunicación servidor-servidor contemplada en el RFC 2813.Ya estamos algo familiarizados con el funcionamiento del protocolo y con la librería de mensajes IRC proporcionada. Y tenemos una vaga idea de que esperar.
 
 ## Diseño
 
-### Modulos del programa
+### Módulos del programa
 
-### Estructuras de datos
+Hemos dividido el programa en 5 módulos diferentes:
 
-Tenemos tres estructuras de datos:
+* `Channel` representa un canal IRC.
+* `Server` contiene la estructura de servidor y el programa principal.
+* `Switches` contiene las implementaciones de las funciones IRC.
+* `User` encapsula las conexiones con usuarios.
 
-* Canales  - representa un canal IRC
-* Usuarios - encapsula una conexion con un cliente
-* Servidor - engloba varios globales y usuarios
+#### User
+Un usuario contiene el socket de un cliente, la referencia a su hilo de ejecución y finalmente todos los
 
 ### Decisiones de diseño
 
-servidor iterativo o concurrente
-procesos o hilos, sincronizacion
-estructuras de datos, etc.
+Hemos desarrollado un servidor con un diseño concurrente. A cada conexión entrante se le asigna un hilo para que atienda sus peticiones. El hilo queda bloqueado al llegar a `recv()` hasta que reciba datos del cliente o pasen 10 segundos, lo que ocurra primero. Ademas, comprobara periódicamente una bandera en su estructura para saber si debe finalizar la conexión y matar el hilo. De este modo, cada hilo controla su propia ejecución y evitamos las condiciones de carrera que pueden surgir a partir de `pthread_kill` o `pthread_cancel` inoportunos.
 
-### Organizacion del proyecto
+Disponemos de otros dos hilos en el modulo `Server`:
+
+* une encarga de mandar `PING`s periódicos a los usuarios para comprobar que sigan vivos. Se mandaran pings aunque la c
+
+
+estructuras de datos, etc.
 
 
 ## Funcionalidad IRC
 
-a grandes rasgos, que funciones del protocolo se han implementado
+Hemos implementado las siguientes funciones
 
-## Conclusiones tecnicas
-temas concretos de la asignatura que se han aprendido al realizar la practica
+* `ADMIN` - Imprime la información del administrador del servidor.
+* `AWAY` - Marca/desmarca un usuario como ausente.
+* `INFO` - Devuelve información general sobre el servidor.
+* `ISON` - Comprueba si un usuario esta conectado
+* `JOIN` - Comando para unirse a una sala
+* `KICK` - Expulsa a un usuario de una sala.
+* `LIST` - Lista todos los canales visibles del servidor.
+* `LUSERS` - Envía información sobre el numero de usuarios.
+* `MODE` - Comando que realiza diversas operaciones con los modos
+* `MOTD` - Envía el mensaje del día a un usuario
+* `NAMES`
+* `NICK`
+* `NOTICE`
+* `OPER`
+* `PART` - Abandona un canal
+* `PING` - Envía un ping a un usuario
+* `PONG` - Envía un pong a un usuario
+* `PRIVMSG` - Manda un mensaje a un canal o usuario
+* `QUIT` - Cierra la conexion con el servidor
+* `SUMMON` - Manda el mensaje de error especificado por el RFC por cuestiones de seguridad.
+* `TIME` - Imprime el tiempo en el servidor
+* `TOPIC` - Cambia el tema de un canal
+* `USER` - Mensaje del handshake IRC inicial
+* `USERHOST` - Muestra el host de un usuario
+* `USERS` - Manda el mensaje de error especificado por el RFC por cuestiones de seguridad.
+* `VERSION` - Imprime la version del servidor
+* `WALLOPS` - Envía el comando a todos los usuarios `+w`.
+* `WHO` - Lista la gente que hy en un canal
+* `WHOIS` -
+* `WHOWAS` - Lista la informacion sobre un usuario que ya se desconecto
+
+## Conclusiones técnicas
+
+
+
+Los RFCs estan mal hechos
+xchat no respeta el RFC
+la libreria usada no tiene ni un solo `const`.
+
 
 ## Conclusiones personales
-a que se ha dedicado mas esfuerzo, comentarios generales
+
+El comando MODE esta muy sobrecargado
+
+contradicciones entre los RFC 1459 y RFC 2812
+
+erratas del rfc
+
+las habilidades siendo evaluadas son la lectura de RFC y la capacidad de programacion de los estudiantes
 
 
-
-
-
-
----------------------------------------------------------------------------
-# Queja de REDES2
-
-
-* La no-publicación de unos criterios de corrección.
-  No ha habido una manera clara de evaluar el progreso. A esto le
-  sumamos la rigidez en la normativa de entrega, que enuncia:
+No ha habido una publicación de unos criterios de corrección. Por tanto, no hemos tenido manera clara de evaluar el progreso. A esto le sumamos la rigidez en la normativa de entrega, que enuncia:
 
   > El incumplimiento de cualquier punto de la normativa de entrega
   > llevará automáticamente a que la práctica no sea corregida y por
   > tanto tenga, automáticamente un 0.
 
-  Estos dos hechos han sido una causa de ansiedad entre los alumnos.
-  Además, la extensión del RFC también ha provocado que mas de uno
-  se quejase de que "hay que implementar 10.000 comandos".
 
-* La dificultades experimentadas al instalar los paquetes.
-  La librería se ha distribuido empaquetada en un paquete `.deb`, por lo
-  que fue ineludible la necesidad de tener acceso a un Debian. Aquellos
-  estudiantes que no disponían de una maquina con este sistema operativo
-  se han visto en desventaja. Transcurrió aproximadamente una semana hasta
-  que se instalaron los paquetes en (unos pocos!) laboratorios y no
-  siempre se cargaban correctamente al arrancar.
+
 
 * La no-publicación del código fuente de la librería de procesamiento.
   Al no disponer del código fuente, ha habido que hacer ingeniería inversa
@@ -91,7 +121,3 @@ a que se ha dedicado mas esfuerzo, comentarios generales
   Este profesor no estaba preparado para impartir las clases de prácticas.
   No fue capaz de responder las dudas preguntadas, ya que desconocía el
   temario y contenidos de la práctica.
-
-* Obligar a leer los RFCs para entender los mecanismos del protocolo IRC.
-  Para ello, es necesario un nivel alto de inglés, algo que no todos los
-  estudiantes matriculados tienen.
