@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 #include <pthread.h>
 /* redes2 */
@@ -129,7 +130,6 @@ static void* userP_reader_thread(void* data) {
 	User* usr = data;
 	ssize_t len;
 	size_t len_buf;
-	char* nick;
 
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
@@ -161,7 +161,7 @@ User* user_new(Server* serv, int sock) {
 	struct timeval tv;
 	tv.tv_sec = 10;
 	tv.tv_usec = 0;
-	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
 
 	strcpy(usr->name, "*");
 	strcpy(usr->nick, "*");
@@ -211,7 +211,7 @@ long user_ping(User* usr) {
 }
 long user_pong(User* usr) {
 	if (NULL == usr) return ERR;
-	usr->conn-state |= US_PING;
+	usr->conn_state |= US_PING;
 	return OK;
 }
 
