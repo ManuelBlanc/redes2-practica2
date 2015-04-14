@@ -1568,7 +1568,7 @@ static long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	user_get_prefix(src, &prefix);
 	channel_get_name(dst, &chan);
 	IRC_Privmsg(buf, prefix, chan, msg);
-	channel_send_cmd(chan, buf);
+	channel_send_cmd(dst, buf);
 
 	return OK;
 }
