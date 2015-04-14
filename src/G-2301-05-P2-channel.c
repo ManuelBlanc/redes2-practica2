@@ -199,6 +199,17 @@ long channel_get_user_names(Channel* chan, char flag, char*** usr_array_ret) {
 	return OK;
 }
 
+// Manda un comando a todos los usuarios del canal excepto a uno.
+long channel_send_cmd_except(Channel* chan, char* str, User* usr) {
+	UserChannelData* ucd;
+	if (NULL == chan) return ERR;
+	ucd = chan->usrs;
+	while (NULL != ucd) {
+		if (ucd->inChannel && usr != ucd->usr) user_send_cmd(ucd->usr, str);
+		ucd = ucd->next;
+	}
+	return OK;
+}
 
 // Manda un comando a todos los usuarios del canal.
 long channel_send_cmd(Channel* chan, char* str) {

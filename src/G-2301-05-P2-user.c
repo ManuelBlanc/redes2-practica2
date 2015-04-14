@@ -177,11 +177,20 @@ User* user_new(Server* serv, int sock) {
 	return usr;
 }
 
+// Peticion de que muera el hilo
 long user_kill(User* usr) {
 	if (NULL == usr) return ERR;
 	if (!(US_ALIVE & usr->conn_state)) return OK;
 	usr->conn_state &= ~US_ALIVE;
 	return OK;
+}
+// Mata el usuario INMEDIATAMENTE. Usar con precaucion. No devuelve si funciona
+long userE_die(User* usr) {
+	if (NULL == usr) return ERR;
+	if (!pthread_equal(pthread_self(), usr->thread)) return ERR;
+
+	close(usr->sock_fd);
+	pthread_exit(NULL);
 }
 
 long user_ping(User* usr) {
