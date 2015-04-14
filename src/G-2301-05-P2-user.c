@@ -133,27 +133,34 @@ static void* userP_reader_thread(void* data) {
 
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
-		if (!(US_ALIVE | usr->flags)) break;
 		len = recv(usr->sock_fd, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf, 0);
-		if (len <= 0) break; // Se cierra la conexion
+		if (-1 == len) {
+			if (!(US_ALIVE | usr->flags)) break; // Debemos morirnos
+			if (EAGAIN == errno || EINTR == errno) continue; // timeout o interrupcion
+		}
 		usr->buffer_recv[len+len_buf] = '\0';
 		userP_process_commands(usr, usr->buffer_recv);
 	}
 
-	user_exit(usr);
+	close(usr->sock_fd);
+	pthread_exit(NULL);
 }
 
 // Crea una nueva estructura usuario a partir de un socket.
 User* user_new(Server* serv, int sock) {
 	User* usr = ecalloc(1, sizeof *usr);
 
-	{
-		// Generamos el hostname
-		struct sockaddr_in address;
-		socklen_t addr_len = sizeof address;
-		getsockname(usr->sock_fd, (struct sockaddr*)&address, &addr_len);
-		strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
-	}
+	// Generamos el hostname
+	struct sockaddr_in address;
+	socklen_t addr_len = sizeof address;
+	getsockname(usr->sock_fd, (struct sockaddr*)&address, &addr_len);
+	strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
+
+	// Ponemos un timeout de 10 al recv()
+	struct timeval tv;
+	tv.tv_sec = 10;
+	tv.tv_usec = 0;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
 
 	strcpy(usr->name, "*");
 	strcpy(usr->nick, "*");
@@ -169,22 +176,42 @@ User* user_new(Server* serv, int sock) {
 	return usr;
 }
 
-long user_exit(User* usr) {
-	if (NULL == usr) return ERR;
-	ASSERT(pthread_equal(pthread_self(), usr->thread), "Solo se puede cerrar un cliente desde su hilo.");
-	close(usr->sock_fd);
-	pthread_exit(NULL);
-}
-
 long user_kill(User* usr) {
 	if (NULL == usr) return ERR;
-	if (!(US_ALIVE & usr->conn_state)) return ERR;
-	pthread_kill(usr->thread);
+	if (!(US_ALIVE & usr->conn_state)) return OK;
+	usr->conn_state &= ~US_ALIVE;
+	return OK;
 }
 
 long user_ping(User* usr) {
 	if (NULL == usr) return ERR;
 
+	// Si ya esta muerto, no hay nada que hacer
+	if (!(US_ALIVE & usr->conn_state)) return ERR; // Ya esta muerto
+
+	if (US_PING & usr->conn_state) {
+		// Esta a 1, lo ponemos a 0
+		usr->conn_state &= ~US_PING;
+		// y le mandamos un ping
+		char buf[IRC_MAX_CMD_LEN+1];
+		char* serv_name;
+		server_get_name(usr->server, &serv_name);
+		IRC_Ping(buf, serv_name, serv_name, NULL);
+		user_send_cmd(usr, buf);
+		free(serv_name);
+
+		return OK;
+	}
+	else {
+		// Esta a 0, no se recibio el pong asi que le matamos
+		user_kill(usr);
+		return ERR;
+	}
+}
+long user_pong(User* usr) {
+	if (NULL == usr) return ERR;
+	usr->conn-state |= US_PING;
+	return OK;
 }
 
 // Destruye la estructura y cierra el socket.
