@@ -354,6 +354,7 @@ static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, ch
 	// Avisamos a la sala
 	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 	if(NULL != channel) {
+                channel_set_flag_user(channel, user_invited, 'i', usr);
                 IRC_RplInviting(buf, sprefix, channel_name, nick, invitee_nick);
 	        channel_send_cmd(channel, buf);
         }
@@ -804,6 +805,18 @@ cleanup:
 
 	The flag 's' is obsolete but MAY still be used.
 */
+static char* switchesP_channel_user_mode(Channel* chan, User* usr) {
+        char* mode = ecalloc(1, 13); // Longitud de los modes + 2
+        char* mstr = "OovbeI";
+        mode[0] = '+';
+        int i;
+        for (i = 1; *mstr; mstr++, i++) {
+                if (channel_has_flag_user(chan, usr, *mstr)) mode[i] = *mstr;
+        }
+        return mode;
+}
+
+
 static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(serv);
         UNUSED(usr);
@@ -956,6 +969,8 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 				user_send_cmd(usr, buf);
 				break;
 			case OK:
+                                IRC_Mode(buf, prefix, target, mode, user_target_str);
+                                channel_send_cmd(chan, buf);
 				break;
 		}
 	}
@@ -1120,7 +1135,7 @@ static int exec_cmd_NAMES(Server* serv, User* usr, char* buf, char* sprefix, cha
 			char* channel_name = channel_list[i++];
 			if (NULL == channel_name) break;
 			Channel* chan = channellist_head(channellist_findByName(channels, channel_name));
-			switchesP_send_channel_nicknames(serv, usr, buf, sprefix, nick, chan);
+			if (NULL != chan) switchesP_send_channel_nicknames(serv, usr, buf, sprefix, nick, chan);
 			free(channel_name);
 		}
 		free(channel_list);
@@ -2010,7 +2025,10 @@ static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, 
 
 		IRC_RplUserHost(buf, sprefix, nick, uh_buf, NULL);
 		user_send_cmd(usr, buf);
-	}
+	} else {
+                IRC_RplUserHost(buf, sprefix, nick, NULL);
+                user_send_cmd(usr, buf);
+        }
 
 	free(prefix);
 	free(nick0);
@@ -2152,33 +2170,49 @@ static int exec_cmd_WHO(Server* serv, User* usr, char* buf, char* sprefix, char*
 	char* mask;
 	char* op;
 	char** namelist = NULL;
-	char** namelist2 = NULL;
 
 
 	PARSE_PROTECT("WHO", IRCParse_Who(cmd, &prefix, &mask, &op));
 
-	if(mask == NULL) goto cleanup;
+	if (NULL == mask) goto cleanup;
 
 	// Obtenemos la lista de usuarios
         Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), mask));
-	if(chan == NULL) goto cleanup;
+	if (NULL == chan) goto cleanup;
 	channel_get_user_names(chan, 0, &namelist);
-	namelist2 = namelist;
 
-	while (NULL != *namelist2) {
-		IRC_RplWhoReply(buf, sprefix, nick, mask, *namelist2, "", "", "", "", 0, "");
-		user_send_cmd(usr, buf);
-		free(*namelist2);
-		namelist2++;
+        int i = 0;
+	while (NULL != namelist[i]) {
+                User* other = userlist_head(userlist_findByUsername(server_get_userlist(serv), namelist[i]));
+                char* nickname = NULL;
+                char* realname = NULL;
+                char* hostname = NULL;
+                char* mode = NULL;
+                user_get_nick(other, &nickname);
+                user_get_rname(other, &realname);
+                user_get_host(other, &hostname);
+                mode = switchesP_channel_user_mode(chan, other);
+
+                IRC_RplWhoReply(buf, sprefix, nick, mask, namelist[i], hostname, sprefix, nickname, mode, 0, realname);
+                user_send_cmd(usr, buf);
+
+                free(nickname);
+                free(realname);
+                free(hostname);
+                free(mode);
+                free(namelist[i]);
+                i++;
 	}
+
+        free(namelist);
 
 	IRC_RplEndOfWho(buf, sprefix, nick, mask);
 	user_send_cmd(usr, buf);
 
-	cleanup:
-		free(prefix);
-		free(mask);
-		free(op);
+cleanup:
+	free(prefix);
+	free(mask);
+	free(op);
         return OK;
 }
 
@@ -2262,15 +2296,15 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 		// Encontrado! Hallamos sus datos y enviamos un mensaje
 		char* dc_name = NULL;
-		//char* dc_host = NULL;
+		char* dc_host = NULL;
 		char* dc_rname = NULL;
 
 		user_get_name(dc_user, &dc_name);
-		//user_get_host(dc_user, &dc_host);
+		user_get_host(dc_user, &dc_host);
 		user_get_rname(dc_user, &dc_rname);
 
 		// Enviamos los datos
-		IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, "dc_host", dc_rname);
+		IRC_RplWhoWasUser(buf, sprefix, nick, dc_nick, dc_name, dc_host, dc_rname);
 		user_send_cmd(usr, buf);
 
 		// Y un fin de la lista
@@ -2279,7 +2313,7 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 		// Liberacion
 		free(dc_name);
-		//free(dc_host);
+		free(dc_host);
 		free(dc_rname);
 		free(dc_nick);
                 i++;

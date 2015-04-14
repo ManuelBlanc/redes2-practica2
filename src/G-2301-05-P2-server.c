@@ -9,6 +9,9 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -44,12 +47,12 @@ static void usage(int code) {
 	exit(code);
 }
 
+int demonio = 0;
 static void procesar_opciones(int argc, char** argv) {
 	static struct option longopts[] = {
 		{ "verbose", 	no_argument,      	NULL,	'v'	},
 		{ "help",    	no_argument,      	NULL,	'h'	},
-		{ "buffy",   	no_argument,      	NULL,	'b'	},
-		{ "fluoride",	required_argument,	NULL,	'f'	},
+		{ "demonio",   	no_argument,      	NULL,	'd'	},
 		{NULL,0,NULL,0}
 	};
 	while (1) {
@@ -58,8 +61,7 @@ static void procesar_opciones(int argc, char** argv) {
 			/* Opciones */
 			case 'v': /* verbosity++;        	*/ break;
 			case 'h': /* usage(EXIT_SUCCESS);	*/ break;
-			case 'n': /*                     	*/ break;
-			case 'f': /*                     	*/ break;
+			case 'd': demonio = 1; break;
 			/* Especiales */
 			case -1: return;   /* argument list exhausted */
 			case 0:  continue; /* flag option set */
@@ -73,9 +75,9 @@ static void procesar_opciones(int argc, char** argv) {
 }
 
 static void demonizar(void) {
-/*
 	// 1.– Crear un proceso hijo y terminar el proceso padre
 	pid_t pid = fork();
+	if (pid > 0) exit(EXIT_SUCCESS);
 
 	// 2.– Crear una nueva sesion de tal forma que el proceso pase a ser el lider de sesion
 	setsid();
@@ -87,8 +89,8 @@ static void demonizar(void) {
 	chdir("/");
 
 	// 5.– Cerrar todos los descriptores de fichero que pueda haber abiertos
-	int fd_max = getdtablesize();
-	for (int i = 0; i < fd_max; ++i) close(i);
+	int i, fd_max = getdtablesize();
+	for (i = 0; i < fd_max; ++i) close(i);
 
 	// 6.– Redirigir stdin, stdout, stderr a /dev/null
 	open("/dev/null", O_RDONLY); // 0 - stdin
@@ -96,11 +98,10 @@ static void demonizar(void) {
 	open("/dev/null", O_WRONLY); // 2 - stderr
 
 	// 7.– Abrir el log del sistema para su uso posterior
-	openlog(const char *ident, int logopt, int facility);
-	setlogmask(int maskpri);
-	syslog(int priority, const char *message, ...);
-	closelog(void);
-*/
+	//openlog(const char *ident, int logopt, int facility);
+	//setlogmask(int maskpri);
+	//syslog(int priority, const char *message, ...);
+	//closelog(void);
 }
 
 //Envia pings periodicos a los usuarios para comprobar su actividad
@@ -215,8 +216,11 @@ int server_accept(Server* serv){
 		return ERR;
 	}
 
+	server_down_semaforo(serv);
 	User* user = user_new(serv, sock);
-	return server_add_user(serv, user);
+	server_add_user(serv, user);
+	server_up_semaforo(serv);
+	return OK;
 }
 
 // Devuelve el topic.
@@ -332,7 +336,7 @@ int main(int argc, char** argv)
 {
 	LOG("Comenzando ejecucion");
 	procesar_opciones(argc, argv);
-	demonizar();
+	if (demonio) demonizar();
 	server_init();
 
 	return 0;

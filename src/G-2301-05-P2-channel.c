@@ -179,13 +179,14 @@ static ChannelUserFlags channelP_char_to_usrflag(char flag) {
 
 long channel_get_user_names(Channel* chan, char flag, char*** usr_array_ret) {
 	if (NULL == chan || NULL == usr_array_ret) return ERR;
-	char** usr_array = *usr_array_ret = emalloc((sizeof *usr_array) * (chan->usr_cnt+1));
 
 	ChannelUserFlags flag_mask = ~0;
 	if (0 != flag) {
 		flag_mask = channelP_char_to_usrflag(flag);
 		if (0 == flag_mask) return ERR_UMODEUNKNOWNFLAG;
 	}
+
+	char** usr_array = *usr_array_ret = emalloc((sizeof *usr_array) * (chan->usr_cnt+1));
 
 	UserChannelData* cud = chan->usrs;
 	while (NULL != cud) {
@@ -317,7 +318,7 @@ long channel_join(Channel* chan, User* usr, char* key) {
 
 	// Es de solo invitacion?
 	if (CF_INVONLY & chan->flags) {
-		if (!(UCF_INVITATION & ucd->flags)) return ERR_INVITEONLYCHAN;
+		if ((UCF_INVITATION & (0 == ucd->flags))) return ERR_INVITEONLYCHAN;
 	}
 
 	// Si hemos llegado hasta aqui, le apuntamos
@@ -348,8 +349,7 @@ long channel_part(Channel* chan, User* usr, User* actor) {
 // Comprueba si un usuario esta dentro de la sala.
 long channel_has_user(Channel* chan, User* usr) {
 	UserChannelData* ucd;
-	if (!channelP_find_user_data(chan, usr, &ucd)) return 0;
-	return ucd->inChannel;
+	return channelP_find_user_data(chan, usr, &ucd);
 }
 
 // Devuelve el topic.
