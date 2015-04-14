@@ -168,7 +168,7 @@ User* user_new(Server* serv, int sock) {
 
 	usr->server     = serv;
 	usr->sock_fd    = sock;
-	usr->conn_state = US_ALIVE;
+	usr->conn_state = US_ALIVE | US_PING;
 	if (OK != pthread_create(&usr->thread, NULL, userP_reader_thread, usr)) {
 		free(usr);
 		return NULL;
@@ -197,7 +197,7 @@ long user_ping(User* usr) {
 		char buf[IRC_MAX_CMD_LEN+1];
 		char* serv_name;
 		server_get_name(usr->server, &serv_name);
-		IRC_Ping(buf, serv_name, serv_name, usr->prefix);
+		IRC_Ping(buf, NULL, serv_name, NULL);
 		user_send_cmd(usr, buf);
 		free(serv_name);
 
