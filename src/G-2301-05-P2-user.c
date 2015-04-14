@@ -304,8 +304,8 @@ long user_set_name(User* usr, char* name) {
 	if (NULL == usr || NULL == name) return ERR_NEEDMOREPARAMS;
 
 	// Comprobamos la validez
-	long ret = IRC_IsValid(name, 0, NULL, IRC_USER);
-	if (IRC_OK != ret) return ret;
+	//long ret = IRC_IsValid(name, 0, NULL, IRC_USER);
+	//if (IRC_OK != ret) return ret;
 
 	strncpy(usr->name, name, USER_MAX_NAME_LEN);
 	return OK;

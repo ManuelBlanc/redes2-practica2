@@ -48,7 +48,7 @@ void _log(const char* file, int line, const char* func, char* fmt, ...) {
 	int len;
 	va_list argptr;
 
-	len = snprintf(log_buffer, sizeof log_buffer, GREEN("%s()")"@"YELLOW("%s")":"RED("%i")": ["PINK("%ld")"]:", func, file, line, syscall(SYS_gettid));
+	len = snprintf(log_buffer, sizeof log_buffer, GREEN("%s()")"@"YELLOW("%s")":"RED("%i")": ["PINK("%ld")"]: ", func, file, line, syscall(SYS_gettid));
 	if (len < 0) return; // Ha ocurrido un error
 	if (len > (int)(sizeof log_buffer)) len = sizeof log_buffer;
 
