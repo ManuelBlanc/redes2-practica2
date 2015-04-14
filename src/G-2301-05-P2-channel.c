@@ -323,6 +323,7 @@ long channel_join(Channel* chan, User* usr, char* key) {
 	// Si hemos llegado hasta aqui, le apuntamos
 	channelP_find_or_create(chan, usr, &ucd);
 	ucd->inChannel = 1;
+	chan->usr_cnt++;
 	return OK;
 }
 
@@ -340,6 +341,7 @@ long channel_part(Channel* chan, User* usr, User* actor) {
 	if (!channelP_user_op_or_null(chan, actor)) return ERR_CHANOPRIVSNEEDED;
 
 	ucd->inChannel = 0;
+	chan->usr_cnt--;
 	return OK;
 }
 

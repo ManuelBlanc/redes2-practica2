@@ -153,7 +153,7 @@ User* user_new(Server* serv, int sock) {
 	// Generamos el hostname
 	struct sockaddr_in address;
 	socklen_t addr_len = sizeof address;
-	getsockname(usr->sock_fd, (struct sockaddr*)&address, &addr_len);
+	getsockname(sock, (struct sockaddr*)&address, &addr_len);
 	strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
 
 	// Ponemos un timeout de 10 al recv()
