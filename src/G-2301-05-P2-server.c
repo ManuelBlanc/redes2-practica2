@@ -107,10 +107,17 @@ static void demonizar(void) {
 static void* server_periodic_ping(void* serv_ptr) {
 	Server* serv = (Server *)serv_ptr;
 	while(1) {
-		UserList usr = &serv->usrs;
-		while(userlist_head(usr)) {
-			//user_ping();
-			usr = userlist_tail(usr);
+		UserList ulist = &serv->usrs;
+		while (1) {
+			User* usr = userlist_head(ulist);
+			ulist = userlist_tail(ulist);
+			if (NULL == usr) break;
+			if(user_ping(usr) == OK) {
+				char* name;
+				user_get_name(usr, &name);
+				server_delete_user(serv, name);
+				free(name);
+			}
 		}
 		sleep(20);
 	}

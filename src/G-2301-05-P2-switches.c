@@ -485,6 +485,11 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 			user_send_cmd(usr, buf);
 			break;
 		case OK:
+                        //Ponemos las flags de creador y oper
+                        if(channel_get_user_count(chan) == 1) {
+                                channel_set_flag_user(chan, usr, 'O', NULL);
+                                channel_set_flag_user(chan, usr, 'o', NULL);
+                        }
 			break;
 	}
 
@@ -663,7 +668,7 @@ static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	// Obsoleto segun el RFC2812, pero XChat es RFC1459
 	IRC_RplListStart(buf, sprefix, nick);
-	user_send_cmd(buf, cmd);
+	user_send_cmd(usr, buf);
 
 	if (NULL != channel_name_list) {
 		// Si se proporciona una lista de canales, informamos de esos canales
@@ -864,58 +869,58 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 					break;
 			}
 		}
-
+                //En mode madamos con el prefix de usuario no de server
 		switch (opt) {
 			case ERR_NEEDMOREPARAMS:
-				IRC_ErrNeedMoreParams(buf, sprefix, nick, str);
+				IRC_ErrNeedMoreParams(buf, prefix, nick, str);
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_KEYSET:
-				IRC_ErrKeySet(buf, sprefix, nick, target);
+				IRC_ErrKeySet(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_NOCHANMODES:
-				IRC_ErrNoChanModes(buf, sprefix, nick, target);
+				IRC_ErrNoChanModes(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_CHANOPRIVSNEEDED:
-				IRC_ErrChanOPrivsNeeded(buf, sprefix, nick, target);
+				IRC_ErrChanOPrivsNeeded(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_USERNOTINCHANNEL:
-				IRC_ErrUserNotInChannel(buf, sprefix, nick, target_user, target);
+				IRC_ErrUserNotInChannel(buf, prefix, nick, target_user, target);
 				user_send_cmd(usr, buf);
 				break;
 			case ERR_UNKNOWNMODE:
-				IRC_ErrUnknownMode(buf, sprefix, nick, mode, target);
+				IRC_ErrUnknownMode(buf, prefix, nick, mode, target);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_CHANNELMODEIS:
-				IRC_RplChannelModeIs(buf, sprefix, nick, target, mode);
+				IRC_RplChannelModeIs(buf, prefix, nick, target, mode);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_UNIQOPIS:
 				//funcion que devuelve el user con flag O en channel_creator
 				char* channel_creator = NULL;
-				IRC_RplUniqOpIs(buf, sprefix, nick, channel_name, channel_creator);
+				IRC_RplUniqOpIs(buf, prefix, nick, channel_name, channel_creator);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_BANLISTLIST:
-				IRC_RplBanList(buf, sprefix, nick, target, banmask);
+				IRC_RplBanList(buf, prefix, nick, target, banmask);
 				user_send_cmd(usr, buf);
-				IRC_RplEndOfBanList(buf, sprefix, nick, target);
+				IRC_RplEndOfBanList(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_EXCEPTLIST:
-				IRC_RplExceptList(buf, sprefix, nick, target, exceptionmask);
+				IRC_RplExceptList(buf, prefix, nick, target, exceptionmask);
 				user_send_cmd(usr, buf);
-				IRC_RplEndOfExceptList(buf, sprefix, nick, target);
+				IRC_RplEndOfExceptList(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_INVITELIST:
-				IRC_RplInviteList(buf, sprefix, nick, target, invitemask);
+				IRC_RplInviteList(buf, prefix, nick, target, invitemask);
 				user_send_cmd(usr, buf);
-				IRC_RplEndOfInviteList(buf, sprefix, nick, target);
+				IRC_RplEndOfInviteList(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case OK:
@@ -1533,7 +1538,7 @@ static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char
 	IRC_Error(buf, prefix, msg);
 	user_send_cmd(usr, buf);
 
-	user_exit(usr);
+	//user_exit(usr);
 
 	free(prefix);
 	free(msg);
