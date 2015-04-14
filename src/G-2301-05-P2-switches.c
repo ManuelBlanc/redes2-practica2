@@ -2107,12 +2107,15 @@ static int exec_cmd_WALLOPS(Server* serv, User* usr, char* buf, char* sprefix, c
 
 	UserList ulist = server_get_userlist(serv);
 
+	// Construimos el mensaje de wallops
+	IRC_Wallops(buf, prefix, msg);
+
 	// Iteramos la lista de todos los usuarios del servidor
 	while (1) {
 		User* target = userlist_head(ulist);
 		if (NULL == target) break;
 		// Solo enviamos el mensaje (tal cual) si tienen modo +w
-		if (user_has_flag(target, 'w')) user_send_cmd(target, cmd);
+		if (user_has_flag(target, 'w')) user_send_cmd(target, buf);
 		ulist = userlist_tail(ulist);
 	}
 
