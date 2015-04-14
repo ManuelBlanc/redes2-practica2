@@ -1365,7 +1365,7 @@ static int exec_cmd_PONG(Server* serv, User* usr, char* buf, char* sprefix, char
 	// Miramos si el objetivo somos nosotros
 	server_get_name(serv, &serv_name);
 	if (NULL == target || !strncasecmp(target, serv_name, SERVER_MAX_NAME_LEN)) {
-		// TODO: Marcamos el usuario como activo
+		user_pong(usr);
 		goto cleanup;
 	}
 

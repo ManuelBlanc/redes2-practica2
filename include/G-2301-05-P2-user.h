@@ -26,6 +26,9 @@ long user_has_flag(User* usr, char flag);
 long user_set_flag(User* usr, char flag, User* actor);
 long user_unset_flag(User* usr, char flag, User* actor);
 
+// Ping-pong
+long user_ping(User* usr);
+long user_pong(User* usr);
 
 // Cambiar el nick
 long user_get_nick(User* usr, char** nick);
