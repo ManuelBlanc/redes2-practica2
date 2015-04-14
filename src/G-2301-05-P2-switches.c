@@ -1316,6 +1316,11 @@ static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char
 				IRC_Part(buf, prefix, channel_name, msg);
 				channel_send_cmd(channel, buf);
                                 user_send_cmd(usr, buf);
+                                // Borramos el canal si somos el ultimo en salir
+                                if (0 == channel_get_user_count(channel)) {
+					server_delete_channel(serv, channel_name) {
+                                }
+
 				break;
 		}
 		free(channel_name);
@@ -1563,10 +1568,7 @@ static long checksend_message_usr(User* dst, User* src, char* msg) {
 	IRC_Privmsg(buf, prefix, dst_nick, msg);
 	user_send_cmd(dst, buf);
 
-	user_get_away(dst, &awaymsg);
-	if (NULL != awaymsg) return RPL_AWAY;
-
-	return OK;
+	return user_has_flag(dst, 'a') ? RPL_AWAY : OK;
 }
 
 static long checksend_message_chan(Channel* dst, User* src, char* msg) {
@@ -1582,8 +1584,9 @@ static long checksend_message_chan(Channel* dst, User* src, char* msg) {
 
 	user_get_prefix(src, &prefix);
 	channel_get_name(dst, &chan);
+
 	IRC_Privmsg(buf, prefix, chan, msg);
-	channel_send_cmd(dst, buf);
+	channel_send_cmd_except(dst, buf, src);
 
 	return OK;
 }
@@ -1604,7 +1607,7 @@ static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char
 	IRC_Error(buf, prefix, msg);
 	user_send_cmd(usr, buf);
 
-	user_kill(usr);
+	userE_die(usr);
 
 	free(prefix);
 	free(msg);

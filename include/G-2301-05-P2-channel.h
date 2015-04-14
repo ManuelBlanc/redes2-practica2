@@ -31,6 +31,7 @@ long channel_can_send_message(Channel* chan, User* usr);
 long channel_get_user_names(Channel* chan, char flag, char*** usr_array_ret);
 
 // Mandar comandos
+long channel_send_cmd_except(Channel* chan, char* str, User* usr);
 long channel_send_cmd(Channel* chan, char* str);
 long channel_send_cmdf(Channel* chan, char* fmt, ...)
 ATTRIBUTE((format(printf, 2, 3)));

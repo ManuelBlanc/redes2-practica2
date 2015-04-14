@@ -21,7 +21,9 @@ ATTRIBUTE((format(printf, 2, 3)));
 
 long user_get_host(User* usr, char** host);
 
+// Para cerrar una conexion con un usuario
 long user_kill(User* usr);
+long userE_die(User* usr);
 
 // Funciones de flags
 long user_has_flag(User* usr, char flag);
