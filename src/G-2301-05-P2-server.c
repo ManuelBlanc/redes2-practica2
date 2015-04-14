@@ -108,18 +108,21 @@ static void* server_periodic_ping(void* serv_ptr) {
 	Server* serv = (Server *)serv_ptr;
 	while(1) {
 		UserList ulist = &serv->usrs;
+		server_down_semaforo(serv);
 		while (1) {
 			User* usr = userlist_head(ulist);
 			ulist = userlist_tail(ulist);
 			if (NULL == usr) break;
-			if(user_ping(usr) == OK) {
-				char* name;
-				user_get_name(usr, &name);
+			char* name;
+			user_get_name(usr, &name);
+			LOG("Haciendo ping a %s", name);
+			if(user_ping(usr) == 0) {
 				server_delete_user(serv, name);
-				free(name);
 			}
+			free(name);
 		}
-		sleep(20);
+		server_up_semaforo(serv);
+		sleep(10);
 	}
 	return NULL;
 }

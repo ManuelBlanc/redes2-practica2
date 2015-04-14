@@ -159,7 +159,7 @@ User* user_new(Server* serv, int sock) {
 
 	// Ponemos un timeout de 10 al recv()
 	struct timeval tv;
-	tv.tv_sec = 10;
+	tv.tv_sec = 3;
 	tv.tv_usec = 0;
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
 
@@ -188,7 +188,7 @@ long user_ping(User* usr) {
 	if (NULL == usr) return ERR;
 
 	// Si ya esta muerto, no hay nada que hacer
-	if (!(US_ALIVE & usr->conn_state)) return ERR; // Ya esta muerto
+	if (!(US_ALIVE & usr->conn_state)) return 0; // Ya esta muerto
 
 	if (US_PING & usr->conn_state) {
 		// Esta a 1, lo ponemos a 0
@@ -197,16 +197,16 @@ long user_ping(User* usr) {
 		char buf[IRC_MAX_CMD_LEN+1];
 		char* serv_name;
 		server_get_name(usr->server, &serv_name);
-		IRC_Ping(buf, serv_name, serv_name, NULL);
+		IRC_Ping(buf, serv_name, serv_name, usr->prefix);
 		user_send_cmd(usr, buf);
 		free(serv_name);
 
-		return OK;
+		return 1;
 	}
 	else {
 		// Esta a 0, no se recibio el pong asi que le matamos
 		user_kill(usr);
-		return ERR;
+		return 0;
 	}
 }
 long user_pong(User* usr) {
