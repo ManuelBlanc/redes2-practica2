@@ -88,25 +88,25 @@ static void switchesP_send_channel_nicknames(Server* serv, User* usr, char* buf,
 
 //Separa una cadena por espacios y/o comas
 static int parse_lists(char* str, char*** elems) {
-        int i = 0;
+	int i = 0;
 
-        char* str2 = str;
-        for(i=0; str2[i]; (str2[i]==',' || str2[i]==' ') ? i++ : *str2++);
-        *elems = malloc((i + 2) * sizeof(*elems));
+	char* str2 = str;
+	for(i=0; str2[i]; (str2[i]==',' || str2[i]==' ') ? i++ : *str2++);
+	*elems = malloc((i + 2) * sizeof(*elems));
 
-        i = 0;
-        str2 = str;
-        while (1) {
-                size_t tam = strcspn(str2, " ,");
-                (*elems)[i] = strndup(str2, tam);
-                str2 = str2 + tam;
-                if(str2[0] == '\0') break;
-                str2 = str2 + 1;
-                i++;
-        }
-        i++;
-        (*elems)[i] = NULL;
-        return OK;
+	i = 0;
+	str2 = str;
+	while (1) {
+		size_t tam = strcspn(str2, " ,");
+		(*elems)[i] = strndup(str2, tam);
+		str2 = str2 + tam;
+		if(str2[0] == '\0') break;
+		str2 = str2 + 1;
+		i++;
+	}
+	i++;
+	(*elems)[i] = NULL;
+	return OK;
 }
 
 // ================================================================================================
@@ -344,8 +344,8 @@ static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 
 	// Obtenemos el prefix de verdad
-        free(prefix);
-        user_get_prefix(usr, &prefix);
+	free(prefix);
+	user_get_prefix(usr, &prefix);
 
 	// Invitamos al usuario
 	IRC_Invite(buf, prefix, invitee_nick, channel_name);
@@ -354,10 +354,10 @@ static int exec_cmd_INVITE(Server* serv, User* usr, char* buf, char* sprefix, ch
 	// Avisamos a la sala
 	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 	if(NULL != channel) {
-                channel_set_flag_user(channel, user_invited, 'I', usr);
-                IRC_RplInviting(buf, sprefix, channel_name, nick, invitee_nick);
-	        channel_send_cmd(channel, buf);
-        }
+		channel_set_flag_user(channel, user_invited, 'I', usr);
+		IRC_RplInviting(buf, sprefix, channel_name, nick, invitee_nick);
+		channel_send_cmd(channel, buf);
+	}
 
 cleanup:
 	free(invitee_nick);
@@ -393,7 +393,7 @@ static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	PARSE_PROTECT("ISON", IRCParse_Ison(cmd, &prefix, &nick_str))
 
-        parse_lists(nick_str, &nick_list);
+	parse_lists(nick_str, &nick_list);
 	while (nick_list[i] != NULL) {
 		// Si esta el usuario
 		if (NULL != userlist_head(userlist_findByNickname(ulist, nick_list[i]))) {
@@ -402,7 +402,7 @@ static int exec_cmd_ISON(Server* serv, User* usr, char* buf, char* sprefix, char
 			user_send_cmd(usr, buf);
 		}
 		free(nick_list[i]);
-                i++;
+		i++;
 	}
 
 	free(prefix);
@@ -489,11 +489,11 @@ static int exec_cmd_JOIN(Server* serv, User* usr, char* buf, char* sprefix, char
 			user_send_cmd(usr, buf);
 			goto cleanup;
 		case OK:
-                        //Ponemos las flags de creador y oper
-                        if(channel_get_user_count(chan) == 1) {
-                                channel_set_flag_user(chan, usr, 'O', NULL);
-                                channel_set_flag_user(chan, usr, 'o', NULL);
-                        }
+			//Ponemos las flags de creador y oper
+			if(channel_get_user_count(chan) == 1) {
+				channel_set_flag_user(chan, usr, 'O', NULL);
+				channel_set_flag_user(chan, usr, 'o', NULL);
+			}
 			break;
 	}
 
@@ -676,14 +676,14 @@ static int exec_cmd_LIST(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	if (NULL != channel_name_list) {
 		// Si se proporciona una lista de canales, informamos de esos canales
-                parse_lists(channel_name_list, &channel_list);
+		parse_lists(channel_name_list, &channel_list);
 
 		while (channel_list[i] != NULL) {
 			char* channel_name = channel_list[i];
 			Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
 			if(chan != NULL) send_channel_status(serv, usr, buf, sprefix, nick, chan);
 			free(channel_name);
-                        i++;
+			i++;
 		}
 	}
 	else {
@@ -713,14 +713,14 @@ static void send_channel_status(Server* serv, User* usr, char* buf, char* sprefi
 	int isInvisible = channel_has_flag(chan, 'p') || channel_has_flag(chan, 's');
 	char* name = NULL;
 	char* topic = NULL;
-        char visible[12];
-        UNUSED(serv);
+	char visible[12];
+	UNUSED(serv);
 
-        if(isInvisible) return;
+	if(isInvisible) return;
 
 	channel_get_name(chan, &name);
 	channel_get_topic(chan, &topic);
-        sprintf(visible, "%ld", channel_get_user_count(chan));
+	sprintf(visible, "%ld", channel_get_user_count(chan));
 	IRC_RplList(buf, sprefix, nick, name, visible, NULL==topic ? "" : topic);
 	user_send_cmd(usr, buf);
 
@@ -747,9 +747,9 @@ static int exec_cmd_LUSERS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 	PARSE_PROTECT("LUSERS", IRCParse_Lusers(cmd, &prefix, &mask, &target));
 
-        // Obtenemos el prefix de verdad
-        free(prefix);
-        user_get_prefix(usr, &prefix);
+	// Obtenemos el prefix de verdad
+	free(prefix);
+	user_get_prefix(usr, &prefix);
 
 	// Si no esta destinado a nosotros, abortamos con error
 	if (!switchesP_server_is_target(serv, usr, buf, sprefix, nick, target)) goto cleanup;
@@ -806,25 +806,19 @@ cleanup:
 	The flag 's' is obsolete but MAY still be used.
 */
 static char* switchesP_channel_user_mode(Channel* chan, User* usr) {
-        char* mode = ecalloc(1, 13); // Longitud de los modes + 2
-        char* mstr = "OovbeI";
-        mode[0] = '+';
-        int i;
-        for (i = 1; *mstr; mstr++, i++) {
-                if (channel_has_flag_user(chan, usr, *mstr)) mode[i] = *mstr;
-        }
-        return mode;
+	char* mode = ecalloc(1, 13); // Longitud de los modes + 2
+	char* mstr = "OovbeI";
+	mode[0] = '+';
+	int i;
+	for (i = 1; *mstr; mstr++, i++) {
+		if (channel_has_flag_user(chan, usr, *mstr)) mode[i] = *mstr;
+	}
+	return mode;
 }
 
 
 static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(serv);
-        UNUSED(usr);
-        UNUSED(buf);
-        UNUSED(sprefix);
-        UNUSED(nick);
-        UNUSED(cmd);
-        char* prefix = NULL;
+	char* prefix = NULL;
 	char* target = NULL;
 	char* mode = NULL;
 	char* user_target_str = NULL;
@@ -832,7 +826,7 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	PARSE_PROTECT("MODE", IRCParse_Mode(cmd, &prefix, &target, &mode, &user_target_str));
 
-        free(prefix);
+	free(prefix);
 	user_get_prefix(usr, &prefix);
 
 	// Este comando es un desproposito. No sabemos si el objetivo es un usuario o canal.
@@ -846,7 +840,7 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 			opt = RPL_CHANNELMODEIS;
 			mode = ecalloc(1, 20);
 			char* mode_aux = mode;
-                        char* mode_aux2 = "aimnqpsrtkl";
+			char* mode_aux2 = "aimnqpsrtkl";
 			*mode_aux++ = '+';
 			for (; *mode_aux2; mode_aux2++) {
 				if (channel_has_flag(chan, *mode_aux2)) *mode_aux++ = *mode_aux2;
@@ -856,10 +850,10 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 		else if (strchr("OovbeI", flag)) {
 			// Es una flag de usuario en canal
 			User* user_target = userlist_head(userlist_findByNickname(server_get_userlist(serv), user_target_str));
-                        if (NULL == user_target) opt = ERR_USERSDONTMATCH;
-                        else {
-                                     if ('+' == mode[0]) opt = channel_set_flag_user(chan, user_target, flag, usr);
-			        else if ('-' == mode[0]) opt = channel_unset_flag_user(chan, user_target, flag, usr);
+			if (NULL == user_target) opt = ERR_USERSDONTMATCH;
+			else {
+				     if ('+' == mode[0]) opt = channel_set_flag_user(chan, user_target, flag, usr);
+				else if ('-' == mode[0]) opt = channel_unset_flag_user(chan, user_target, flag, usr);
 			}
 		}
 		else if (strchr("aimnqpsrtkl", flag)) {
@@ -887,9 +881,9 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 					break;
 			}
 		}
-                //En mode madamos con el prefix de usuario no de server
-                char** mask;
-                char** aux;
+		//En mode madamos con el prefix de usuario no de server
+		char** mask;
+		char** aux;
 		switch (opt) {
 			case ERR_NEEDMOREPARAMS:
 				IRC_ErrNeedMoreParams(buf, prefix, nick, "MODE");
@@ -921,81 +915,81 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 				break;
 			case RPL_UNIQOPIS:
 				//funcion que devuelve el user con flag O en channel_creator
-                                channel_get_user_names(chan, 'O', &mask);
-                                if (*mask != NULL) {
-				        IRC_RplUniqOpIs(buf, prefix, nick, target, *mask);
-				        user_send_cmd(usr, buf);
-				        free(*mask);
-                                }
-                                free(mask);
+				channel_get_user_names(chan, 'O', &mask);
+				if (*mask != NULL) {
+					IRC_RplUniqOpIs(buf, prefix, nick, target, *mask);
+					user_send_cmd(usr, buf);
+					free(*mask);
+				}
+				free(mask);
 				break;
 			case RPL_BANLIST:
-                                channel_get_user_names(chan, 'b', &mask);
-                                aux = mask;
-                                while((*mask) != NULL) {
-				        IRC_RplBanList(buf, prefix, nick, target, *mask);
-				        user_send_cmd(usr, buf);
-                                        free(*mask);
-                                        mask++;
-                                }
-                                free(aux);
+				channel_get_user_names(chan, 'b', &mask);
+				aux = mask;
+				while((*mask) != NULL) {
+					IRC_RplBanList(buf, prefix, nick, target, *mask);
+					user_send_cmd(usr, buf);
+					free(*mask);
+					mask++;
+				}
+				free(aux);
 				IRC_RplEndOfBanList(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_EXCEPTLIST:
-                                channel_get_user_names(chan, 'e', &mask);
-                                aux = mask;
-                                while((*mask) != NULL) {
-				        IRC_RplExceptList(buf, prefix, nick, target, *mask);
-				        user_send_cmd(usr, buf);
-                                        free(*mask);
-                                        mask++;
-                                }
-                                free(aux);
+				channel_get_user_names(chan, 'e', &mask);
+				aux = mask;
+				while((*mask) != NULL) {
+					IRC_RplExceptList(buf, prefix, nick, target, *mask);
+					user_send_cmd(usr, buf);
+					free(*mask);
+					mask++;
+				}
+				free(aux);
 				IRC_RplEndOfExceptList(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case RPL_INVITELIST:
-                                channel_get_user_names(chan, 'I', &mask);
-                                aux = mask;
-                                while((*mask) != NULL) {
-                                        IRC_RplInviteList(buf, prefix, nick, target, *mask);
-                                        user_send_cmd(usr, buf);
-                                        free(*mask);
-                                        mask++;
-                                }
-                                free(aux);
+				channel_get_user_names(chan, 'I', &mask);
+				aux = mask;
+				while((*mask) != NULL) {
+					IRC_RplInviteList(buf, prefix, nick, target, *mask);
+					user_send_cmd(usr, buf);
+					free(*mask);
+					mask++;
+				}
+				free(aux);
 				IRC_RplEndOfInviteList(buf, prefix, nick, target);
 				user_send_cmd(usr, buf);
 				break;
 			case OK:
-                                IRC_Mode(buf, prefix, target, mode, user_target_str);
-                                channel_send_cmd(chan, buf);
+				IRC_Mode(buf, prefix, target, mode, user_target_str);
+				channel_send_cmd(chan, buf);
 				break;
 		}
 	}
 	else {
-                if(strncasecmp(target, nick, USER_MAX_NICK_LEN)) {
-                        opt = ERR_USERSDONTMATCH;
-                }
-                else if(mode == NULL) {
-        		opt = RPL_UMODEIS;
-        		mode = ecalloc(1, 20);
-        		char* mode_aux = mode;
-                        char* mode_aux2 = "aiwroOs";
-        		*mode_aux++ = '+';
-        		for (; *mode_aux2; mode_aux2++) {
-        			if (user_has_flag(usr, *mode_aux2)) *mode_aux++ = *mode_aux2;
-        		}
-                }
-                else if (strchr("aiwroOs", flag)) {
+		if(strncasecmp(target, nick, USER_MAX_NICK_LEN)) {
+			opt = ERR_USERSDONTMATCH;
+		}
+		else if(mode == NULL) {
+			opt = RPL_UMODEIS;
+			mode = ecalloc(1, 20);
+			char* mode_aux = mode;
+			char* mode_aux2 = "aiwroOs";
+			*mode_aux++ = '+';
+			for (; *mode_aux2; mode_aux2++) {
+				if (user_has_flag(usr, *mode_aux2)) *mode_aux++ = *mode_aux2;
+			}
+		}
+		else if (strchr("aiwroOs", flag)) {
 			// Es una flag de usuario en canal
 
-                             if ('+' == mode[0]) opt = user_set_flag(usr, flag, usr);
+			     if ('+' == mode[0]) opt = user_set_flag(usr, flag, usr);
 			else if ('-' == mode[0]) opt = user_unset_flag(usr, flag, usr);
-                        else opt = ERR_UMODEUNKNOWNFLAG;
+			else opt = ERR_UMODEUNKNOWNFLAG;
 		}
-                else opt = ERR_UMODEUNKNOWNFLAG;
+		else opt = ERR_UMODEUNKNOWNFLAG;
 
 		switch (opt) {
 			case ERR_NEEDMOREPARAMS:
@@ -1011,10 +1005,10 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 				user_send_cmd(usr, buf);
 				break;
 			case OK:
-                                IRC_Mode(buf, prefix, nick, mode, "");
-                                user_send_cmd(usr, buf);
-                                break;
-                        case RPL_UMODEIS:
+				IRC_Mode(buf, prefix, nick, mode, "");
+				user_send_cmd(usr, buf);
+				break;
+			case RPL_UMODEIS:
 				IRC_RplUModeIs(buf, prefix, nick, mode);
 				user_send_cmd(usr, buf);
 				break;
@@ -1170,9 +1164,9 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 
 	PARSE_PROTECT("NICK", IRCParse_Nick(cmd, &prefix, &nick_wanted));
 
-        // Obtenemos el prefix de verdad
-        free(prefix);
-        user_get_prefix(usr, &prefix);
+	// Obtenemos el prefix de verdad
+	free(prefix);
+	user_get_prefix(usr, &prefix);
 
 	if (NULL == nick_wanted || '\0' == *nick_wanted) {
 		IRC_ErrNoNickNameGiven(buf, sprefix, nick);
@@ -1196,7 +1190,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	}
 
 	IRC_Nick(buf, prefix, nick_wanted);
-        user_send_cmd(usr, buf);
+	user_send_cmd(usr, buf);
 
 	ChannelList channels = server_get_channellist(serv);
 	while (1) {
@@ -1315,16 +1309,16 @@ static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char
 			case OK:
 				IRC_Part(buf, prefix, channel_name, msg);
 				channel_send_cmd(channel, buf);
-                                user_send_cmd(usr, buf);
-                                // Borramos el canal si somos el ultimo en salir
-                                if (0 == channel_get_user_count(channel)) {
+				user_send_cmd(usr, buf);
+				// Borramos el canal si somos el ultimo en salir
+				if (0 == channel_get_user_count(channel)) {
 					server_delete_channel(serv, channel_name) {
-                                }
+				}
 
 				break;
 		}
 		free(channel_name);
-                i++;
+		i++;
 	}
 
 	free(prefix);
@@ -1877,7 +1871,7 @@ static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, cha
 	if (NULL != topic) IRC_RplTopic(buf, sprefix, nick, channel_name, topic);
 	else               IRC_RplNoTopic(buf, sprefix, nick, channel_name, topic);
 
-        channel_send_cmd(channel, buf);
+	channel_send_cmd(channel, buf);
 
 
 cleanup:
@@ -2029,9 +2023,9 @@ static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, 
 		IRC_RplUserHost(buf, sprefix, nick, uh_buf, NULL);
 		user_send_cmd(usr, buf);
 	} else {
-                IRC_RplUserHost(buf, sprefix, nick, NULL);
-                user_send_cmd(usr, buf);
-        }
+		IRC_RplUserHost(buf, sprefix, nick, NULL);
+		user_send_cmd(usr, buf);
+	}
 
 	free(prefix);
 	free(nick0);
@@ -2122,9 +2116,9 @@ static int exec_cmd_WALLOPS(Server* serv, User* usr, char* buf, char* sprefix, c
 
 	PARSE_PROTECT("WALLOPS", IRCParse_Wallops(cmd, &prefix, &msg));
 
-        // Obtenemos el prefix de verdad
-        free(prefix);
-        user_get_prefix(usr, &prefix);
+	// Obtenemos el prefix de verdad
+	free(prefix);
+	user_get_prefix(usr, &prefix);
 
 	UserList ulist = server_get_userlist(serv);
 
@@ -2180,34 +2174,34 @@ static int exec_cmd_WHO(Server* serv, User* usr, char* buf, char* sprefix, char*
 	if (NULL == mask) goto cleanup;
 
 	// Obtenemos la lista de usuarios
-        Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), mask));
+	Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), mask));
 	if (NULL == chan) goto cleanup;
 	channel_get_user_names(chan, 0, &namelist);
 
-        int i = 0;
+	int i = 0;
 	while (NULL != namelist[i]) {
-                User* other = userlist_head(userlist_findByUsername(server_get_userlist(serv), namelist[i]));
-                char* nickname = NULL;
-                char* realname = NULL;
-                char* hostname = NULL;
-                char* mode = NULL;
-                user_get_nick(other, &nickname);
-                user_get_rname(other, &realname);
-                user_get_host(other, &hostname);
-                mode = switchesP_channel_user_mode(chan, other);
+		User* other = userlist_head(userlist_findByUsername(server_get_userlist(serv), namelist[i]));
+		char* nickname = NULL;
+		char* realname = NULL;
+		char* hostname = NULL;
+		char* mode = NULL;
+		user_get_nick(other, &nickname);
+		user_get_rname(other, &realname);
+		user_get_host(other, &hostname);
+		mode = switchesP_channel_user_mode(chan, other);
 
-                IRC_RplWhoReply(buf, sprefix, nick, mask, namelist[i], hostname, sprefix, nickname, mode, 0, realname);
-                user_send_cmd(usr, buf);
+		IRC_RplWhoReply(buf, sprefix, nick, mask, namelist[i], hostname, sprefix, nickname, mode, 0, realname);
+		user_send_cmd(usr, buf);
 
-                free(nickname);
-                free(realname);
-                free(hostname);
-                free(mode);
-                free(namelist[i]);
-                i++;
+		free(nickname);
+		free(realname);
+		free(hostname);
+		free(mode);
+		free(namelist[i]);
+		i++;
 	}
 
-        free(namelist);
+	free(namelist);
 
 	IRC_RplEndOfWho(buf, sprefix, nick, mask);
 	user_send_cmd(usr, buf);
@@ -2216,7 +2210,7 @@ cleanup:
 	free(prefix);
 	free(mask);
 	free(op);
-        return OK;
+	return OK;
 }
 
 
@@ -2278,7 +2272,7 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 
 	PARSE_PROTECT("WHOWAS", IRCParse_Whowas(cmd, &prefix, &nicks_str, &max_count, &target));
 
-        parse_lists(nicks_str, &nick_list);
+	parse_lists(nicks_str, &nick_list);
 
 	UserList ulist = server_get_disconnectlist(serv);
 
@@ -2319,7 +2313,7 @@ static int exec_cmd_WHOWAS(Server* serv, User* usr, char* buf, char* sprefix, ch
 		free(dc_host);
 		free(dc_rname);
 		free(dc_nick);
-                i++;
+		i++;
 	}
 
 	free(prefix);
@@ -2341,8 +2335,7 @@ int action_switch(Server* serv, User* usr, char* cmd) {
 #define CMD_CASE(CMD)                                           	\
 case CMD:                                                       	\
     LOG("[Usuario \%s] envio [Comando %s]", nick, cmd);         	\
-    return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	\
-                                                                	//
+    return exec_cmd_ ## CMD(serv, usr, buf, sprefix, nick, cmd);	//
 
 	switch (IRC_CommandQuery(cmd)) {
 		default	: return ERR; // Aqui habria que dar un error
@@ -2405,7 +2398,7 @@ case CMD:                                                       	\
 		CMD_CASE(WHOIS   );
 		CMD_CASE(WHOWAS  );
 	}
-        free(sprefix);
-        free(nick);
+	free(sprefix);
+	free(nick);
 	return OK;
 }
