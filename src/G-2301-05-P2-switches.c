@@ -1432,11 +1432,6 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 
 		switch (opt) {
 			default: break;
-			case OK:
-				// prefix (user que envia) en vez de sprefix (serv)
-				IRC_Privmsg(buf, prefix, target, msg);
-				channel_send_cmd(chan, buf);
-				break;
 			case ERR_NOTEXTTOSEND:
 				IRC_ErrNoTextToSend(buf, sprefix, target);
 				user_send_cmd(usr, buf);
@@ -1520,6 +1515,8 @@ static long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	user_get_prefix(src, &prefix);
 	channel_get_name(dst, &chan);
 	IRC_Privmsg(buf, prefix, chan, msg);
+	channel_send_cmd(chan, buf);
+
 	return OK;
 }
 
@@ -1693,20 +1690,7 @@ UNIMPLEMENTED_COMMAND(SQUIT, "Comando para la interconexion de servidores")
 	It is also RECOMMENDED that client and server access configuration be
 	published this way.
 */
-static int exec_cmd_STATS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_STATS no implementada\n");
-
-	// Si no esta destinado a nosotros, abortamos con error
-	//if (!switchesP_server_is_target(serv, target)) goto cleanup;
-
-	return OK;
-}
+UNIMPLEMENTED_COMMAND(STATS, "Comando opcional del RFC")
 
 // ================================================================================================
 
@@ -2005,13 +1989,13 @@ UNIMPLEMENTED_COMMAND(USERIP, "Extension del RFC")
 	to enable this command SHOULD also include suitable large comments.
 */
 static int exec_cmd_USERS(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
 	UNUSED(serv);
-	UNUSED(usr);
 	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_USERS no implementada\n");
+
+	// Tiene serias implicaciones de seguridad
+	IRC_ErrUsersDisabled(buf, sprefix, nick);
+	user_send_cmd(usr, buf);
+
 	return OK;
 }
 
