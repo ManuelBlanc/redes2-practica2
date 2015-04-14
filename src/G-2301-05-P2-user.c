@@ -227,7 +227,7 @@ long user_init_prefix(User* usr) {
         if (NULL == usr) return ERR;
         free(usr->prefix);
         //IRC_Prefix(&usr->prefix, usr->nick, usr->name, usr->host, usr->host);
-        snprintf(prefix_temporal, sizeof prefix_temporal, "%s!%s@%s", usr->nick, usr->name, usr->host);
+        snprintf(prefix_temporal, sizeof prefix_temporal, "%s!~%s@%s", usr->nick, usr->name, usr->host);
         usr->prefix = estrdup(prefix_temporal);
         return OK;
 }

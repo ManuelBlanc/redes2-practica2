@@ -61,7 +61,7 @@ Hemos implementado las siguientes funciones
 * `PING` - Envía un ping a un usuario
 * `PONG` - Envía un pong a un usuario
 * `PRIVMSG` - Manda un mensaje a un canal o usuario
-* `QUIT` - Cierra la conexion con el servidor
+* `QUIT` - Cierra la conexión con el servidor
 * `SUMMON` - Manda el mensaje de error especificado por el RFC por cuestiones de seguridad.
 * `TIME` - Imprime el tiempo en el servidor
 * `TOPIC` - Cambia el tema de un canal
@@ -72,16 +72,16 @@ Hemos implementado las siguientes funciones
 * `WALLOPS` - Envía el comando a todos los usuarios `+w`.
 * `WHO` - Lista la gente que hay en un canal
 * `WHOIS` -
-* `WHOWAS` - Lista la informacion sobre un usuario que ya se desconecto
+* `WHOWAS` - Lista la información sobre un usuario que ya se desconecto
 
 ## Conclusiones técnicas
 
-Los RFCs estan mal hechos
-xchat no respeta el RFC
-la libreria usada no tiene ni un solo `const`.
-
 
 ## Conclusiones personales
+
+Los RFCs están mal hechos
+xchat no respeta el RFC
+la librería usada no tiene ni un solo `const`.
 
 El comando MODE esta muy sobrecargado
 

@@ -317,7 +317,7 @@ long channel_join(Channel* chan, User* usr, char* key) {
 
 	// Es de solo invitacion?
 	if (CF_INVONLY & chan->flags) {
-		if ((UCF_INVITATION & (0 == ucd->flags))) return ERR_INVITEONLYCHAN;
+		if (!(UCF_INVITATION & ucd->flags)) return ERR_INVITEONLYCHAN;
 	}
 
 	// Si hemos llegado hasta aqui, le apuntamos
