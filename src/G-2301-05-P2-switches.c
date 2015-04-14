@@ -70,7 +70,7 @@ static void switchesP_send_channel_nicknames(Server* serv, User* usr, char* buf,
 	else                                  channel_type = "=";
 
 
-	while (*namelist2) {
+	while (NULL != *namelist2) {
 		IRC_RplNamReply(buf, sprefix, nick, channel_type, channel_name, *namelist2);
 		user_send_cmd(usr, buf);
 		free(*namelist2);
@@ -1425,18 +1425,18 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 	if (strchr("#!&+", target[0])) {
 		// Lo buscamos en los canales
 		Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), target));
-		//Envia el mensaje o devuelve un codigo de error
 
+		// Envia el mensaje o devuelve un codigo de error
 		if (NULL != chan) opt = checksend_message_chan(chan, usr, msg);
 		else opt = ERR_CANNOTSENDTOCHAN;
 
 		switch (opt) {
 			default: break;
-                        case OK:
-                                //prefix(user que envia) en vez de sprefix(serv)
-                                IRC_Privmsg(buf, prefix, target, msg);
-                                channel_send_cmd(chan, buf);
-                                break;
+			case OK:
+				// prefix (user que envia) en vez de sprefix (serv)
+				IRC_Privmsg(buf, prefix, target, msg);
+				channel_send_cmd(chan, buf);
+				break;
 			case ERR_NOTEXTTOSEND:
 				IRC_ErrNoTextToSend(buf, sprefix, target);
 				user_send_cmd(usr, buf);
@@ -1450,11 +1450,12 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 				user_send_cmd(usr, buf);
 				break;
 		}
-		//case ERR_TOOMANYTARGETS: no admitimos multiples destinatarios
-		//ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
+		// case ERR_TOOMANYTARGETS: no admitimos multiples destinatarios
+		// ERR_NORECIPIENT	ERR_NOTOPLEVEL ERR_WILDTOPLEVEL
 	} else {
+		// Estamos enviando a un usuario
 		char* awaymsg = NULL;
-		UserList recv = userlist_findByNickname(server_get_userlist(serv), target);
+		User* recv = userlist_head(userlist_findByNickname(server_get_userlist(serv), target));
 		//user_send_cmd(User* usr, char* cmd)
 
 		if (NULL != *recv) opt = checksend_message_usr(*recv, usr, msg);
@@ -1530,7 +1531,7 @@ static long checksend_message_chan(Channel* dst, User* src, char* msg) {
 */
 static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	UNUSED(serv);
-        char* prefix = NULL;
+	char* prefix = NULL;
 	char* msg = NULL;
 
 	PARSE_PROTECT("QUIT", IRCParse_Quit(cmd, &prefix, &msg));
@@ -1538,7 +1539,7 @@ static int exec_cmd_QUIT(Server* serv, User* usr, char* buf, char* sprefix, char
 	IRC_Error(buf, prefix, msg);
 	user_send_cmd(usr, buf);
 
-	//user_exit(usr);
+	user_kill(usr);
 
 	free(prefix);
 	free(msg);
@@ -1784,7 +1785,7 @@ cleanup:
 static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* channel_name = NULL;
 	char* topic = NULL;
-        char* prefix = NULL;
+	char* prefix = NULL;
 
 	PARSE_PROTECT("TOPIC", IRCParse_Topic(cmd, &prefix, &channel_name, &topic));
 
@@ -1798,20 +1799,20 @@ static int exec_cmd_TOPIC(Server* serv, User* usr, char* buf, char* sprefix, cha
 
 	// Ponemos o leemos el topic, dependiendo si el user lo proporciono
 	if (NULL != topic) {
-                long opt = channel_set_topic(channel, topic, usr);
-                switch(opt) {
-                        case ERR_CHANOPRIVSNEEDED:
-                        IRC_ErrChanOPrivsNeeded(buf, sprefix, nick, channel_name);
-                        user_send_cmd(usr, buf);
-                        return ERR;
-                        case ERR_NEEDMOREPARAMS:
-                        IRC_ErrNeedMoreParams(buf, sprefix, nick, "TOPIC");
-                        user_send_cmd(usr, buf);
-                        return ERR;
-                        case OK:
-                        break;
-                }
-        }
+		long opt = channel_set_topic(channel, topic, usr);
+		switch(opt) {
+			case ERR_CHANOPRIVSNEEDED:
+				IRC_ErrChanOPrivsNeeded(buf, sprefix, nick, channel_name);
+				user_send_cmd(usr, buf);
+				return ERR;
+			case ERR_NEEDMOREPARAMS:
+				IRC_ErrNeedMoreParams(buf, sprefix, nick, "TOPIC");
+				user_send_cmd(usr, buf);
+				return ERR;
+			case OK:
+				break;
+		}
+	}
 	else {
 		channel_get_topic(channel, &topic);
 	}
@@ -1953,12 +1954,7 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	separated by a space.
 */
 static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(serv);
-        UNUSED(buf);
-        UNUSED(sprefix);
-        UNUSED(nick);
-        UNUSED(usr);
-        char* prefix = NULL;
+	char* prefix = NULL;
 	char* nick0 = NULL;
 	char* nick1 = NULL;
 	char* nick2 = NULL;
@@ -1967,12 +1963,17 @@ static int exec_cmd_USERHOST(Server* serv, User* usr, char* buf, char* sprefix, 
 
 	PARSE_PROTECT("USERHOST", IRCParse_UserHost(cmd, &prefix, &nick0, &nick1, &nick2, &nick3, &nick4));
 
-	//IRC_RplUserHost(buf, sprefix, nick, char *reply, ...);
+	User* usr = userlist_head(userlist_findByNickname(server_get_userlist(serv), nick0));
+	if (NULL != usr) {
+		char* host;
+		char uh_buf[80] = "*=*";
+		user_get_host(usr, &host);
+		snprintf(uh_buf, sizeof uh_buf, "%s=%s", nick0, host);
+		free(host);
 
-	// The '*' indicates whether the client has registered
-	// as an Operator.  The '-' or '+' characters represent
-	// whether the client has set an AWAY message or not
-	// respectively.
+		IRC_RplUserHost(buf, sprefix, nick, uh_buf, NULL);
+		user_send_cmd(usr, buf);
+	}
 
 	free(prefix);
 	free(nick0);
@@ -2107,15 +2108,38 @@ UNIMPLEMENTED_COMMAND(WATCH, "Extension del RFC")
 	to the <mask> supplied.
 */
 static int exec_cmd_WHO(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_WHO no implementada\n");
-	return OK;
+	char* prefix;
+	char* mask;
+	char* op;
+	char** namelist = NULL;
+	char** namelist2 = NULL;
+
+
+	PARSE_PROTECT("WHO", IRCParse_Who(cmd, &prefix, &mask, &op));
+
+	if(mask == NULL) goto cleanup;
+
+	// Obtenemos la lista de usuarios
+	if(channellist_findByName(server_get_channellist(serv), mask) == NULL) goto cleanup;
+	channel_get_user_names(mask, 0, &namelist);
+	namelist2 = namelist;
+
+	while (NULL != *namelist2) {
+		IRC_RplWhoReply(buf, sprefix, nick, mask, *namelist2, "", "", "", "", "", "");
+		user_send_cmd(usr, buf);
+		free(*namelist2);
+		namelist2++;
+	}
+
+	IRC_RplEndOfWho(buf, sprefix, nick, mask);
+	user_send_cmd(usr, buf);
+
+	cleanup:
+		free(prefix);
+		free(mask);
+		free(op);
 }
+
 
 // ================================================================================================
 
