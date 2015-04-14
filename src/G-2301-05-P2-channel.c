@@ -457,7 +457,7 @@ long channel_set_flag(Channel* chan, char flag, User* actor) {
 }
 
 // Quita una flag del canal.
-long channel_unset_flags(Channel* chan, char flag, User* actor) {
+long channel_unset_flag(Channel* chan, char flag, User* actor) {
 	ChannelFlags flag_mask;
 	if (NULL == chan) return ERR;
 

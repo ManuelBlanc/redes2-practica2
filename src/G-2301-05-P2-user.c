@@ -137,6 +137,7 @@ static void* userP_reader_thread(void* data) {
 		if (-1 == len) {
 			if (!(US_ALIVE | usr->flags)) break; // Debemos morirnos
 			if (EAGAIN == errno || EINTR == errno) continue; // timeout o interrupcion
+			break;
 		}
 		usr->buffer_recv[len+len_buf] = '\0';
 		userP_process_commands(usr, usr->buffer_recv);
