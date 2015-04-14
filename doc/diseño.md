@@ -3,7 +3,7 @@
 
 ## Introducción
 
-El objetivo de esta practica es implementar un servidor para el protocolo IRC. Dicho servidor sera capaz de atender las peticiones de múltiples clientes según lo descrito en el RFC 2812, aunque no se va a exigir la comunicación servidor-servidor contemplada en el RFC 2813.Ya estamos algo familiarizados con el funcionamiento del protocolo y con la librería de mensajes IRC proporcionada. Y tenemos una vaga idea de que esperar.
+El objetivo de esta practica es implementar un servidor para el protocolo IRC. Dicho servidor sera capaz de atender las peticiones de múltiples clientes según lo descrito en los RFCs 1459 y 2812.
 
 ## Diseño
 
@@ -76,8 +76,13 @@ Hemos implementado las siguientes funciones
 
 ## Conclusiones técnicas
 
+A continuación están todas las cosas que hemos aprendido haciendo esta practica:
+
+Aprendido a usar telnet
 
 ## Conclusiones personales
+
+Otra dificultad ha sido las inconsistencias entre los RFCss
 
 Los RFCs están mal hechos
 xchat no respeta el RFC

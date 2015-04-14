@@ -157,7 +157,7 @@ User* user_new(Server* serv, int sock) {
 	getsockname(sock, (struct sockaddr*)&address, &addr_len);
 	strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
 
-	// Ponemos un timeout de 10 al recv()
+	// Ponemos un timeout de 3 al recv()
 	struct timeval tv;
 	tv.tv_sec = 3;
 	tv.tv_usec = 0;
@@ -168,7 +168,7 @@ User* user_new(Server* serv, int sock) {
 
 	usr->server     = serv;
 	usr->sock_fd    = sock;
-	usr->conn_state = 0;
+	usr->conn_state = US_ALIVE;
 	if (OK != pthread_create(&usr->thread, NULL, userP_reader_thread, usr)) {
 		free(usr);
 		return NULL;
