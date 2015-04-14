@@ -1,8 +1,7 @@
 
+#define _GNU_SOURCE /* vease: feature_test_macros(7) */
+
 /* std */
-#define _GNU_SOURCE         /* See feature_test_macros(7) */
-#include <unistd.h>
-#include <sys/syscall.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -10,6 +9,10 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <sys/types.h>
+/* unistd */
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <syslog.h>
 /* usr */
 #include "G-2301-05-P2-util.h"
 
@@ -61,13 +64,12 @@ void _log(const char* file, int line, const char* func, char* fmt, ...) {
 	// Imprimimos por consola
 	fprintf(stdout, "%s\n", log_buffer);
 	fflush(stdout);
-	// Y a fichero
-	if (log_file == NULL) log_file = fopen("chat.log", "w");
-	fprintf(log_file, "%s\n", log_buffer);
-	fflush(log_file);
 
-	// Tambien por pantalla por comodidad
-	//message_text(get_or_create_page("*DEBUG*"), log_buffer);
+	// Y al syslog
+	va_start(argptr, fmt);
+	vsyslog(LOG_DAEMON, fmt, argptr);
+	va_end(argptr);
+
 }
 
 
