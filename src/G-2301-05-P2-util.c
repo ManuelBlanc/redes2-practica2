@@ -45,7 +45,7 @@ static void normalize_whitespace(char* str) {
 	}
 }
 
-static FILE* log_file;
+//static FILE* log_file;
 void _log(const char* file, int line, const char* func, char* fmt, ...) {
 	static char log_buffer[512];
 	int len;
