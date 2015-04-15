@@ -539,6 +539,7 @@ cleanup:
 static int exec_cmd_KICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 
 	char* prefix = NULL;
+        char* prefix2 = NULL;
 	char* channel_name = NULL;
 	char* target_user = NULL;
 	char* comment = NULL;
@@ -547,6 +548,8 @@ static int exec_cmd_KICK(Server* serv, User* usr, char* buf, char* sprefix, char
 
 	User* target = userlist_head(userlist_findByNickname(server_get_userlist(serv), target_user));
 	Channel* channel = channellist_head(channellist_findByName(server_get_channellist(serv), channel_name));
+
+        user_get_prefix(target, &prefix2);
 
 	// Por defecto la razon es el el nombre de quien kickea
 	if (NULL == comment) user_get_name(usr, &comment);
@@ -569,12 +572,15 @@ static int exec_cmd_KICK(Server* serv, User* usr, char* buf, char* sprefix, char
 			user_send_cmd(usr, buf);
 			break;
 		case OK:
-			IRC_Part(buf, prefix, channel_name, comment);
+			IRC_Part(buf, prefix2, channel_name, comment);
 			channel_send_cmd(channel, buf);
-			break;
+                        IRC_Kick(buf, prefix, channel_name, target_user, comment);
+                        user_send_cmd(target, buf);
+                        break;
 	}
 
 	free(prefix);
+        free(prefix2);
 	free(channel_name);
 	free(target_user);
 	free(comment);
@@ -1225,14 +1231,37 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 
 	See PRIVMSG for more details on replies and examples.
 */
+
+static long checksend_message_usr(User* dst, User* src, char* msg);
+static long checksend_message_chan(Channel* dst, User* src, char* msg);
+
 static int exec_cmd_NOTICE(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
-	UNUSED(buf);
-	UNUSED(sprefix);
-	UNUSED(nick);
-	UNUSED(serv);
-	UNUSED(usr);
-	UNUSED(cmd);
-	fprintf(stderr, "Funcion exec_cmd_NOTICE no implementada. Copipaste de PRIVMSG\n");
+        char* prefix = NULL;
+	char* target = NULL;
+	char* msg = NULL;
+
+	PARSE_PROTECT("NOTICE", IRCParse_Notice(cmd, &prefix, &target, &msg));
+
+	// Obtenemos el prefix de verdad
+	free(prefix);
+	user_get_prefix(usr, &prefix);
+
+	// Es un canal?
+	if (strchr("#!&+", target[0])) {
+		// Lo buscamos en los canales
+		Channel* chan = channellist_head(channellist_findByName(server_get_channellist(serv), target));
+		// Envia el mensaje si puede
+		checksend_message_chan(chan, usr, msg);
+	} else {
+		// Estamos enviando a un usuario
+		User* recv = userlist_head(userlist_findByNickname(server_get_userlist(serv), target));
+		//Enviamos el mensaje si se puede
+		checksend_message_usr(recv, usr, msg);
+	}
+
+	free(prefix);
+	free(target);
+	free(msg);
 	return OK;
 }
 
@@ -1309,11 +1338,11 @@ static int exec_cmd_PART(Server* serv, User* usr, char* buf, char* sprefix, char
 			case OK:
 				IRC_Part(buf, prefix, channel_name, msg);
 				channel_send_cmd(channel, buf);
-				user_send_cmd(usr, buf);
-				// Borramos el canal si somos el ultimo en salir
-				if (0 == channel_get_user_count(channel)) {
-					server_delete_channel(serv, channel_name) {
-				}
+                                user_send_cmd(usr, buf);
+                                // Borramos el canal si somos el ultimo en salir
+                                if (0 == channel_get_user_count(channel)) {
+					server_delete_channel(serv, channel_name);
+                                }
 
 				break;
 		}
@@ -1473,9 +1502,6 @@ cleanup:
 	only available to operators.
 */
 
-static long checksend_message_usr(User* dst, User* src, char* msg);
-static long checksend_message_chan(Channel* dst, User* src, char* msg);
-
 static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, char* nick, char* cmd) {
 	char* prefix = NULL;
 	char* target = NULL;
@@ -1549,7 +1575,6 @@ static int exec_cmd_PRIVMSG(Server* serv, User* usr, char* buf, char* sprefix, c
 
 static long checksend_message_usr(User* dst, User* src, char* msg) {
 	char buf[512];
-	char* awaymsg;
 	char* prefix;
 	char* dst_nick;
 
@@ -1570,6 +1595,8 @@ static long checksend_message_chan(Channel* dst, User* src, char* msg) {
 	char buf[512];
 	char* prefix;
 	char* chan;
+
+        if(dst == NULL) return ERR;
 
 	opt = channel_can_send_message(dst, src);
 
