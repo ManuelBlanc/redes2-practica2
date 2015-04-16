@@ -1,8 +1,5 @@
 
 # Redes2 - Practica 2
-[![Build Status](https://magnum.travis-ci.com/ManuelBlanc/redes2-practica2.svg?token=EUmKBkq6WKaWf4LZVtbE)](https://magnum.travis-ci.com/ManuelBlanc/redes2-practica2)
-
-### Organizacion
 
 ### Comandos utiles de `git`
 * `git add .` - Añade ficheros al indice (pero no los que han sido eliminados, los nuevos mitah)
