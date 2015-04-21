@@ -21,7 +21,7 @@
 				"src",
 				"srclib",
 				"man",
-				"latex"
+				"echo"
 			],
 			"file_exclude_patterns": [
 				".dirstamp",
@@ -38,7 +38,6 @@
 				"G-2301-05-P2-server"
 			],
 			"follow_symlinks": true,
-			"name": "practica2",
 			"path": "."
 		},
 		{
