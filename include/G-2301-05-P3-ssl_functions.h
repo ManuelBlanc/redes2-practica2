@@ -1,19 +1,21 @@
 
 struct Redes2_SSL{
-	SSL_METHOD * connection_method;
+	SSL_METHOD* connection_method;
+	SSL_CTX* ctx;
 } Redes2_SSL;
 
 
 /* Esta función se encargará de realizar todas las llamadas necesarias para que la aplicación
  * pueda usar la capa segura SSL.
  */
-int inicializar_nivel_SSL();
+void inicializar_nivel_SSL();
 
 /* Esta función se encargará de inicializar correctamente el contexto que será utilizado para
  * la creación de canales seguros mediante SSL. Deberá recibir información sobre las rutas a los certificados y
  * claves con los que vaya a trabajar la aplicación.
+ * @param r2ssl estructura para los parametros de conexion segura
  */
-int fijar_contexto_SSL();
+int fijar_contexto_SSL(Redes2_SSL* r2ssl);
 
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * obtener un canal seguro SSL inciando el proceso de handshake con el otro extremo.
