@@ -1,8 +1,9 @@
 
-struct Redes2_SSL{
-	SSL_METHOD*  connection_method;
-	SSL_CTX*     ctx;
-} Redes2_SSL;
+#ifndef SSL_FUNCTIONS_H
+#define SSL_FUNCTIONS_H
+
+typedef struct Redes2_SSL_CTX Redes2_SSL_CTX;
+typedef struct Redes2_SSL Redes2_SSL;
 
 
 /* Esta función se encargará de realizar todas las llamadas necesarias para que la aplicación
@@ -48,3 +49,5 @@ ssize_t recibir_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len);
  * previamente.
  */
 int cerrar_canal_SSL(Redes2_SSL* r2ssl);
+
+#endif /* SSL_FUNCTIONS_H */

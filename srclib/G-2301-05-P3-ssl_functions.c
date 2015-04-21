@@ -1,6 +1,16 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
+struct Redes2_SSL_CTX {
+	SSL_METHOD*  connection_method;
+	SSL_CTX*     ctx;
+};
+
+struct SSL {
+	SSL* ssl;
+} Redes2_SSL;
+
+
 void inicializar_nivel_SSL(void) {
 	// Carga los errores para poder pintarlos
 	SSL_load_error_strings();
@@ -59,17 +69,26 @@ int fijar_contexto_SSL(Redes2_SSL* r2ssl) {
 	*/
 }
 
+int conectar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd) {
+
+}
+int aceptar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd) {
+
+}
+
+
 /** Comprueba que el certificado del par es valida segun un CA */
 int evaluar_post_connectar_SSL(Redes2_SSL* r2ssl) {
 	if (NULL == r2ssl) return ERR;
 
 	// Obtenemos el certificado del par
+	// Queremos ver que no es NULL para asegurarnos de que
+	// el par realmente proporciono un certificado.
+	// El problema esta en que si el par no nos envia un
+	// certificado, entonces no hay nada que validar y por
+	// tanto no hay error de validacion!!!!
 	X509* cert = SSL_get_peer_certificate(r2ssl->ssl);
-
-	// Si no se ha recibido, abortamos
 	if (NULL == cert) return ERR;
-
-	// Ya no lo necesitamos y lo liberamos
 	X509_free(cert);
 
 	// Si ha ocurrido un error al verificar, abortamos tambien
