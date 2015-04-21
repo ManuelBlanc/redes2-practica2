@@ -1,7 +1,7 @@
 
 struct Redes2_SSL{
-	SSL_METHOD* connection_method;
-	SSL_CTX* ctx;
+	SSL_METHOD*  connection_method;
+	SSL_CTX*     ctx;
 } Redes2_SSL;
 
 
@@ -20,31 +20,31 @@ int fijar_contexto_SSL(Redes2_SSL* r2ssl);
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * obtener un canal seguro SSL inciando el proceso de handshake con el otro extremo.
  */
-int conectar_canal_seguro_SSL();
+int conectar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd);
 
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * bloquear la aplicación, que se quedará esperando hasta recibir un handshake por parte del cliente.
  */
-int aceptar_canal_seguro_SSL();
+int aceptar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd);
 
 /* Esta función comprobará una vez realizado el handshake que el canal de comunicación
  * se puede considerar seguro.
  */
-int evaluar_post_connectar_SSL();
+int evaluar_post_connectar_SSL(Redes2_SSL* r2ssl);
 
 /* Esta función será el equivalente a la función de envío de mensajes que se realizó en la
  * práctica 1, pero será utilizada para enviar datos a través del canal seguro. Es importante que sea genérica y
  * pueda ser utilizada independientemente de los datos que se vayan a enviar.
  */
-int enviar_datos_SSL();
+ssize_t enviar_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len);
 
 /* Esta función será el equivalente a la función de lectura de mensajes que se realizó en la
  * práctica 1, pero será utilizada para enviar datos a través del canal seguro. Es importante que sea genérica y
  * pueda ser utilizada independientemente de los datos que se vayan a recibir.
  */
-int recibir_datos_SSL();
+ssize_t recibir_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len);
 
 /* Esta función liberará todos los recursos y cerrará el canal de comunicación seguro creado
  * previamente.
  */
-int cerrar_canal_SSL();
+int cerrar_canal_SSL(Redes2_SSL* r2ssl);
