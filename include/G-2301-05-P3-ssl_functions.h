@@ -29,22 +29,33 @@ int aceptar_canal_seguro_SSL();
 
 /* Esta función comprobará una vez realizado el handshake que el canal de comunicación
  * se puede considerar seguro.
+ * @param r2ssl estructura con los datos de la conexion segura
+ * @return OK o ERR
  */
-int evaluar_post_connectar_SSL();
+int evaluar_post_connectar_SSL(Redes2_SSL* r2ssl);
 
 /* Esta función será el equivalente a la función de envío de mensajes que se realizó en la
  * práctica 1, pero será utilizada para enviar datos a través del canal seguro. Es importante que sea genérica y
  * pueda ser utilizada independientemente de los datos que se vayan a enviar.
+ * @param r2ssl estructura con los datos de la conexion segura
+ * @param buf buffer de envio
+ * @param len tamaño del buffer
+ * @return -1 si ha ocurrido un error o el numero de bytes enviados en caso contrario
  */
-int enviar_datos_SSL();
+ssize_t enviar_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len);
 
 /* Esta función será el equivalente a la función de lectura de mensajes que se realizó en la
  * práctica 1, pero será utilizada para enviar datos a través del canal seguro. Es importante que sea genérica y
  * pueda ser utilizada independientemente de los datos que se vayan a recibir.
+ * @param r2ssl estructura con los datos de la conexion segura
+ * @param buf buffer de recepcion
+ * @param len tamaño del buffer
+ * @return -1 si ha ocurrido un error o el numero de bytes leidos en caso contrario
  */
-int recibir_datos_SSL();
+ssize_t recibir_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len);
 
 /* Esta función liberará todos los recursos y cerrará el canal de comunicación seguro creado
  * previamente.
+ * @param r2ssl estructura con los datos de la conexion segura
  */
-int cerrar_canal_SSL();
+int cerrar_canal_SSL(Redes2_SSL* r2ssl);
