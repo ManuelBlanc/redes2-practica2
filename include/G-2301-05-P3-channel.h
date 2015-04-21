@@ -4,9 +4,9 @@
 typedef struct Channel   Channel;
 typedef struct Channel** ChannelList;
 
-#include "G-2301-05-P2-util.h"
-#include "G-2301-05-P2-user.h"
-#include "G-2301-05-P2-server.h"
+#include "G-2301-05-P3-util.h"
+#include "G-2301-05-P3-user.h"
+#include "G-2301-05-P3-server.h"
 
 // Creacion y destruccion de las estructuras
 Channel* channel_new(Server* server, char* name);

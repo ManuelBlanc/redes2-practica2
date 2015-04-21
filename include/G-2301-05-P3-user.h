@@ -4,8 +4,8 @@
 typedef struct User   User;
 typedef struct User** UserList;
 
-#include "G-2301-05-P2-util.h"
-#include "G-2301-05-P2-server.h"
+#include "G-2301-05-P3-util.h"
+#include "G-2301-05-P3-server.h"
 
 // Crear y destruir estructuras
 User* user_new(Server* serv, int sock);

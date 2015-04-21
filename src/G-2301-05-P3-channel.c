@@ -7,9 +7,9 @@
 /* redes2 */
 #include <redes2/irc.h>
 /* usr */
-#include "G-2301-05-P2-config.h"
-#include "G-2301-05-P2-util.h"
-#include "G-2301-05-P2-channel.h"
+#include "G-2301-05-P3-config.h"
+#include "G-2301-05-P3-util.h"
+#include "G-2301-05-P3-channel.h"
 
 // Mascara de flags de usuario
 typedef enum ChannelUserFlags {

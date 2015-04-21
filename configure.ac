@@ -8,7 +8,7 @@ AC_CONFIG_MACRO_DIR([scripts])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 AM_MAINTAINER_MODE([enable])
 AC_CONFIG_SRCDIR([configure.ac])
-AC_CONFIG_HEADERS([include/G-2301-05-P2-config.h])
+AC_CONFIG_HEADERS([include/G-2301-05-P3-config.h])
 AC_CONFIG_FILES([G-2301-05-makefile])
 
 # Checks for programs.

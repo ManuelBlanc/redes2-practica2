@@ -14,9 +14,9 @@
 /* redes2 */
 #include <redes2/irc.h>
 /* usr */
-#include "G-2301-05-P2-user.h"
-#include "G-2301-05-P2-config.h"
-#include "G-2301-05-P2-switches.h"
+#include "G-2301-05-P3-user.h"
+#include "G-2301-05-P3-config.h"
+#include "G-2301-05-P3-switches.h"
 
 typedef enum UserState {
 	US_RECEIVED_PASS	= (1<<0),

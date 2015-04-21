@@ -20,11 +20,11 @@
 /* redes2 */
 #include <redes2/irc.h>
 /* usr */
-#include "G-2301-05-P2-config.h"
-#include "G-2301-05-P2-util.h"
-#include "G-2301-05-P2-server.h"
-#include "G-2301-05-P2-user.h"
-#include "G-2301-05-P2-channel.h"
+#include "G-2301-05-P3-config.h"
+#include "G-2301-05-P3-util.h"
+#include "G-2301-05-P3-server.h"
+#include "G-2301-05-P3-user.h"
+#include "G-2301-05-P3-channel.h"
 
 struct Server {
 	int            	num_chan;                 	/* Numero de canales operativos        	*/
@@ -43,7 +43,7 @@ struct Server {
 int maxfd = 0; /*Maximo descriptor de socket abierto*/
 
 static void usage(int code) {
-	fprintf(stderr, "usage: %s [-hv]\n", "G-2301-05-P2-server");
+	fprintf(stderr, "usage: %s [-hv]\n", "G-2301-05-P3-server");
 	exit(code);
 }
 

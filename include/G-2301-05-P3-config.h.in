@@ -1,4 +1,4 @@
-/* include/G-2301-05-P2-config.h.in.  Generated from configure.ac by autoheader.  */
+/* include/G-2301-05-P3-config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Maximum channel key length */
 #undef CHANNEL_MAX_KEY_LEN

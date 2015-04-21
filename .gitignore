@@ -1,14 +1,9 @@
 
 # Generados
-G-2301-05-P2-server
+G-2301-05-*-server
 *.o
 *.a
 *.log
-
-# Lex y Yacc
-srclib/G-2301-05-P2-lexer.c
-srclib/G-2301-05-P2-parser.c
-srclib/G-2301-05-P2-parser.h
 
 # Documentacion
 *.pdf
@@ -35,7 +30,7 @@ aclocal.m4
 autom4te.cache/
 config.status
 configure
-include/G-2301-05-P2-config.h
+include/G-2301-05-*-config.h
 include/stamp-h1
 lib/
 obj/

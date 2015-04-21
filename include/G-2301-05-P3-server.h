@@ -4,8 +4,8 @@
 typedef struct Server Server;
 
 // Orden importante para que no haya recurrencia ciclica
-#include "G-2301-05-P2-user.h"
-#include "G-2301-05-P2-channel.h"
+#include "G-2301-05-P3-user.h"
+#include "G-2301-05-P3-channel.h"
 
 typedef struct ServerAdmin {
 	char loc1[200]; 	/* Datos del administrador */
