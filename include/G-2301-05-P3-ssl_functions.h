@@ -1,8 +1,9 @@
 
-struct Redes2_SSL{
-	SSL_METHOD* connection_method;
-	SSL_CTX* ctx;
-} Redes2_SSL;
+#ifndef SSL_FUNCTIONS_H
+#define SSL_FUNCTIONS_H
+
+typedef struct Redes2_SSL_CTX Redes2_SSL_CTX;
+typedef struct Redes2_SSL Redes2_SSL;
 
 
 /* Esta función se encargará de realizar todas las llamadas necesarias para que la aplicación
@@ -20,12 +21,12 @@ int fijar_contexto_SSL(Redes2_SSL* r2ssl);
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * obtener un canal seguro SSL inciando el proceso de handshake con el otro extremo.
  */
-int conectar_canal_seguro_SSL();
+int conectar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd);
 
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * bloquear la aplicación, que se quedará esperando hasta recibir un handshake por parte del cliente.
  */
-int aceptar_canal_seguro_SSL();
+int aceptar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd);
 
 /* Esta función comprobará una vez realizado el handshake que el canal de comunicación
  * se puede considerar seguro.
@@ -59,3 +60,5 @@ ssize_t recibir_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len);
  * @param r2ssl estructura con los datos de la conexion segura
  */
 int cerrar_canal_SSL(Redes2_SSL* r2ssl);
+
+#endif /* SSL_FUNCTIONS_H */

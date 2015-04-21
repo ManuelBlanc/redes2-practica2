@@ -1,7 +1,17 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
-void inicializar_nivel_SSL() {
+struct Redes2_SSL_CTX {
+	SSL_METHOD*  connection_method;
+	SSL_CTX*     ctx;
+};
+
+struct SSL {
+	SSL* ssl;
+} Redes2_SSL;
+
+
+void inicializar_nivel_SSL(void) {
 	// Carga los errores para poder pintarlos
 	SSL_load_error_strings();
 	// Inicializa la libreria SSL y registra
@@ -59,46 +69,12 @@ int fijar_contexto_SSL(Redes2_SSL* r2ssl) {
 	*/
 }
 
-int prueba(void) {
+int conectar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd) {
 
-
-	Redes2_SSL* r2ssl = ecalloc(sizeof *r2ssl);
-
-
-	// Carga los errores para poder pintarlos
-	SSL_load_error_strings();
-	// Inicializa la libreria SSL y registra
-	// los metodos de cifrado soportados
-	SSL_library_init();
-
-
-	// Devuelve el metodo de conexion
-	r2ssl->connection_method = SSLv23_method();
-
-
-	// Crea un contexto usando un metodo de conexion
-	r2ssl->ctx = SSL_CTX_new(r2ssl->connection_method);
-	if (NULL == r2ssl->ctx) {
-		LOG("Error al crear un contexto SSL");
-		return NULL;
-	}
-
-	// Añade nuestra CA
-	SSL_CTX_load_verify_locations(ctx, "ca_file.file", "./cert");
-
-	// Carpeta donde tiene que buscar las CA conocidas
-	SSL_CTX_set_default_verify_paths(r2ssl->ctx);
-
-	// Que certificado usara nuestra aplicacion
-	SSL_CTX_use_certificate_chain_file(r2ssl->ctx, "./cert/blah.pem");
-
-	// Clave privada de nuestra aplciacion
-	SSL_CTX_usePrivateKey_file(r2ssl->ctx, "path", SSL_FILETYPE_PEM);
-
-
-	SSL_CTX_set_verify(r2ssl->ctx, 0, 0);
 }
+int aceptar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd) {
 
+}
 
 
 /** Comprueba que el certificado del par es valida segun un CA */
@@ -106,12 +82,13 @@ int evaluar_post_connectar_SSL(Redes2_SSL* r2ssl) {
 	if (NULL == r2ssl) return ERR;
 
 	// Obtenemos el certificado del par
+	// Queremos ver que no es NULL para asegurarnos de que
+	// el par realmente proporciono un certificado.
+	// El problema esta en que si el par no nos envia un
+	// certificado, entonces no hay nada que validar y por
+	// tanto no hay error de validacion!!!!
 	X509* cert = SSL_get_peer_certificate(r2ssl->ssl);
-
-	// Si no se ha recibido, abortamos
 	if (NULL == cert) return ERR;
-
-	// Ya no lo necesitamos y lo liberamos
 	X509_free(cert);
 
 	// Si ha ocurrido un error al verificar, abortamos tambien
