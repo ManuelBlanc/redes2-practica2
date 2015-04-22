@@ -1,14 +1,16 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#include "G-2301-05-P3-ssl_functions.h"
+#include "G-2301-05-P3-util.h"
 
 struct Redes2_SSL_CTX {
-	SSL_METHOD*  connection_method;
+	const SSL_METHOD*  connection_method;
 	SSL_CTX*     ctx;
 };
 
-struct SSL {
+struct Redes2_SSL {
 	SSL* ssl;
-} Redes2_SSL;
+};
 
 
 void inicializar_nivel_SSL(void) {
@@ -32,7 +34,7 @@ int fijar_contexto_SSL(Redes2_SSL_CTX* r2ssl_ctx) {
 	}
 
 	// Añade nuestra CA
-	if(1 != SSL_CTX_load_verify_locations(ctx, "ca_file.pem", "./cert")) {
+	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, "ca_file.pem", "./cert")) {
 		LOG("Error al comprobar la existencia de nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return ERR;
@@ -63,25 +65,25 @@ int fijar_contexto_SSL(Redes2_SSL_CTX* r2ssl_ctx) {
 Redes2_SSL* conectar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
 	//creamos la estructura donde se guardara el socket ssl
 	Redes2_SSL* r2ssl = emalloc(sizeof(*r2ssl));
-	r2ssl = SSL_new(r2ssl_ctx->ctx);
-	if (ssl == NULL) {
+	r2ssl->ssl = SSL_new(r2ssl_ctx->ctx);
+	if (r2ssl == NULL) {
 		LOG("Error al crear un socket SSL");
 		ERR_print_errors_fp(stdout);
-		free(ssl);
+		free(r2ssl);
 		return NULL;
 	}
 	//le asociamos el descriptor del socket 
 	if(1 != SSL_set_fd(r2ssl->ssl, sock_fd)) {
 		LOG("Error al asociar el socket SSL");
 		ERR_print_errors_fp(stdout);
-		free(ssl);
+		free(r2ssl);
 		return NULL;
 	}
 	//se conecta de forma segura
 	if(1 != SSL_connect(r2ssl->ssl)) {
 		LOG("Error al conectarse de forma segura");
 		ERR_print_errors_fp(stdout);
-		free(ssl);
+		free(r2ssl);
 		return NULL;
 	}
 	return r2ssl;
@@ -128,7 +130,7 @@ ssize_t recibir_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len) {
 }
 
 /** Destruye la conexion */
-int cerrar_canal_SSL(Redes2_SSL* r2ssl, int ) {
+int cerrar_canal_SSL(Redes2_SSL* r2ssl) {
 	while(!SSL_shutdown(r2ssl->ssl));
 	SSL_free(r2ssl->ssl);
 	return OK;
