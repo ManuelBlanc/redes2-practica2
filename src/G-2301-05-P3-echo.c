@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 /* posix */
+#include <unistd.h>
 #include <errno.h>
 #include <pthread.h>
 /* net */
@@ -35,7 +36,7 @@ static void* echoP_client_thread(void* ssl_ptr) {
 	return NULL;
 }
 
-static int echoP_create_socket(struct in_addr ip, uint16_t port) {
+static int echoP_create_socket(in_addr_t ip, uint16_t port) {
 
 	// Attributos de la direccion al a que nos conectamos
 	struct sockaddr_in addr;
@@ -54,19 +55,19 @@ static int echoP_create_socket(struct in_addr ip, uint16_t port) {
 	socklen_t len = sizeof addr;
 	getsockname(sock, (struct sockaddr*) &addr, &len);
 	LOG("Escuchando por %s:%i",
-		addr.sin_addr ? inet_ntoa(addr.sin_addr) : "*.*.*.*"
+		(addr.sin_addr.s_addr ? inet_ntoa(addr.sin_addr) : "*.*.*.*")
 		ntohs(addr.sin_port));
 
 	return sock;
 }
 
-int echoP_secure_accept_client(int sock, Redes2_SSL_CTX* ctx)
+Redes2_SSL* echoP_secure_accept_client(int sock, Redes2_SSL_CTX* ctx)
 {
-	struct sockaddr_in user_addr;
-	socklen_t usrlen = sizeof user_addr;
+	struct sockaddr_in addr;
+	socklen_t usrlen = sizeof addr;
 
 	// Aceptamos la conexion
-	int cli_sock = accept(sock, (struct sockaddr*) &user_addr, &usrlen);
+	int cli_sock = accept(sock, (struct sockaddr*) &addr, &usrlen);
 	if (-1 == cli_sock) {
 		LOG("Error al aceptar la conexion: %s", strerror(errno));
 		return -1;
@@ -91,16 +92,15 @@ int main(int argc, char** argv) {
 
 	// Inicializacion de la libreria y el contexto
 	inicializar_nivel_SSL();
-	Redes2_SSL_CTX ctx;
-	fijar_contexto_SSL(&ctx);
+	Redes2_SSL_CTX* ctx = fijar_contexto_SSL();
 
 	while (1) {
 		int cli_sock = echoP_accept_client(root_sock, echoP_client_thread);
 
-		Redes2_SSL* ssl = aceptar_canal_seguro_SSL(&ctx, cli_sock);
+		Redes2_SSL* ssl = aceptar_canal_seguro_SSL(ctx, cli_sock);
 
 		if (ERR == evaluar_post_conectar_SSL(ssl)) {
-			cerrar_canal_SSL();
+			cerrar_canal_SSL(ssl);
 		}
 
 		if (ERR == cli_sock) {
