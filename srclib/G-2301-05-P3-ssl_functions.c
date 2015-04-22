@@ -19,13 +19,13 @@ void inicializar_nivel_SSL(void) {
 	SSL_library_init();
 }
 
-int fijar_contexto_SSL(Redes2_SSL* r2ssl) {
+int fijar_contexto_SSL(Redes2_SSL_CTX* r2ssl_ctx) {
 	// Devuelve el metodo de conexion
-	r2ssl->connection_method = SSLv23_method();
+	r2ssl_ctx->connection_method = SSLv23_method();
 
 	// Crea un contexto usando un metodo de conexion
-	r2ssl->ctx = SSL_CTX_new(r2ssl->connection_method);
-	if (NULL == r2ssl->ctx) {
+	r2ssl_ctx->ctx = SSL_CTX_new(r2ssl_ctx->connection_method);
+	if (NULL == r2ssl_ctx->ctx) {
 		LOG("Error al crear un contexto SSL");
 		ERR_print_errors_fp(stdout);
 		return ERR;
@@ -39,41 +39,57 @@ int fijar_contexto_SSL(Redes2_SSL* r2ssl) {
 	}
 
 	// Carpeta donde tiene que buscar las CA conocidas
-	SSL_CTX_set_default_verify_paths(r2ssl->ctx);
+	SSL_CTX_set_default_verify_paths(r2ssl_ctx->ctx);
 
 	// Que certificado usara nuestra aplicacion
-	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl->ctx, "./cert/blah.pem")) {
+	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, "./cert/blah.pem")) {
 		LOG("Error al agregar nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return ERR;
 	}
 
 	// Clave privada de nuestra aplciacion
-	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl->ctx, "path", SSL_FILETYPE_PEM)) {
+	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, "path", SSL_FILETYPE_PEM)) {
 		LOG("Error al agregar nuestra clave privada");
 		ERR_print_errors_fp(stdout);
 		return ERR;
 	}
 
 
-	SSL_CTX_set_verify(r2ssl->ctx, 0, 0);
-	/*
-	SSL_VERIFY_PEER
-           Server mode: the server sends a client certificate request to the
-           client.  The certificate returned (if any) is checked. If the
-           verification process fails, the TLS/SSL handshake is immediately
-           terminated with an alert message containing the reason for the
-           verification failure.  The behaviour can be controlled by the
-           additional SSL_VERIFY_FAIL_IF_NO_PEER_CERT and
-           SSL_VERIFY_CLIENT_ONCE flags
-	*/
+	SSL_CTX_set_verify(r2ssl_ctx->ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
+	return OK;
 }
 
-int conectar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd) {
-
+Redes2_SSL* conectar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
+	//creamos la estructura donde se guardara el socket ssl
+	Redes2_SSL* r2ssl = emalloc(sizeof(*r2ssl));
+	r2ssl = SSL_new(r2ssl_ctx->ctx);
+	if (ssl == NULL) {
+		LOG("Error al crear un socket SSL");
+		ERR_print_errors_fp(stdout);
+		free(ssl);
+		return NULL;
+	}
+	//le asociamos el descriptor del socket 
+	if(1 != SSL_set_fd(r2ssl->ssl, sock_fd)) {
+		LOG("Error al asociar el socket SSL");
+		ERR_print_errors_fp(stdout);
+		free(ssl);
+		return NULL;
+	}
+	//se conecta de forma segura
+	if(1 != SSL_connect(r2ssl->ssl)) {
+		LOG("Error al conectarse de forma segura");
+		ERR_print_errors_fp(stdout);
+		free(ssl);
+		return NULL;
+	}
+	return r2ssl;
 }
-int aceptar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd) {
-
+Redes2_SSL* aceptar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
+	UNUSED(sock_fd);
+	UNUSED(r2ssl_ctx);
+	return NULL;
 }
 
 
@@ -112,7 +128,8 @@ ssize_t recibir_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len) {
 }
 
 /** Destruye la conexion */
-int cerrar_canal_SSL(Redes2_SSL* r2ssl) {
-	SSL_shutdown(r2ssl->ssl);
+int cerrar_canal_SSL(Redes2_SSL* r2ssl, int ) {
+	while(!SSL_shutdown(r2ssl->ssl));
 	SSL_free(r2ssl->ssl);
+	return OK;
 }

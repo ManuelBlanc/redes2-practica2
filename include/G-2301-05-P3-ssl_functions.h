@@ -16,17 +16,17 @@ void inicializar_nivel_SSL(void);
  * claves con los que vaya a trabajar la aplicación.
  * @param r2ssl estructura para los parametros de conexion segura
  */
-int fijar_contexto_SSL(Redes2_SSL* r2ssl);
+int fijar_contexto_SSL(Redes2_SSL_CTX* r2ssl_ctx);
 
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * obtener un canal seguro SSL inciando el proceso de handshake con el otro extremo.
  */
-int conectar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd);
+Redes2_SSL* conectar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd);
 
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * bloquear la aplicación, que se quedará esperando hasta recibir un handshake por parte del cliente.
  */
-int aceptar_canal_seguro_SSL(Redes2_SSL* r2ssl, int sock_fd);
+Redes2_SSL* aceptar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd);
 
 /* Esta función comprobará una vez realizado el handshake que el canal de comunicación
  * se puede considerar seguro.
