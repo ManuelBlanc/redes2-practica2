@@ -9,7 +9,7 @@ typedef struct Redes2_SSL Redes2_SSL;
 /* Esta función se encargará de realizar todas las llamadas necesarias para que la aplicación
  * pueda usar la capa segura SSL.
  */
-void inicializar_nivel_SSL();
+void inicializar_nivel_SSL(void);
 
 /* Esta función se encargará de inicializar correctamente el contexto que será utilizado para
  * la creación de canales seguros mediante SSL. Deberá recibir información sobre las rutas a los certificados y

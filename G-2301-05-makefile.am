@@ -1,10 +1,19 @@
 
+# Flags
 ACLOCAL_AMFLAGS = -I scripts/
 AM_CFLAGS = -Wall -Wextra -Werror -pthread
 
+# Librerias
 noinst_LIBRARIES = lib/libredes2ssl.a
-lib_libredes2ssl_a_SOURCES = srclib/G-2301-05-P3-ssl_functions.c
+lib_libredes2ssl_a_SOURCES = srclib/G-2301-05-P3-ssl_functions.c srclib/G-2301-05-P3-util.c
 
-noinst_PROGRAMS = G-2301-05-P3-server
+# Programas
+noinst_PROGRAMS = G-2301-05-P3-server G-2301-05-P3-echo
+
+# Servidor IRC
 G_2301_05_P3_server_LDADD = lib/libredes2ssl.a
-G_2301_05_P3_server_SOURCES = src/G-2301-05-P3-server.c src/G-2301-05-P3-switches.c src/G-2301-05-P3-util.c src/G-2301-05-P3-user.c src/G-2301-05-P3-channel.c
+G_2301_05_P3_server_SOURCES = src/G-2301-05-P3-server.c src/G-2301-05-P3-switches.c src/G-2301-05-P3-user.c src/G-2301-05-P3-channel.c
+
+# Servidor de echo
+G_2301_05_P3_echo_LDADD = lib/libredes2ssl.a
+G_2301_05_P3_echo_SOURCES = src/G-2301-05-P3-echo.c
