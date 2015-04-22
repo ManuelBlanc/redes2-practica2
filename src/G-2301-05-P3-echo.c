@@ -16,7 +16,7 @@
 #include <arpa/inet.h>
 
 
-static void* echoP_client_thread(void* ssl_ptr) {
+static void* echoP_secure_client_thread(void* ssl_ptr) {
 	Redes2_SSL* ssl = ssl_ptr;
 	LOG("Empezado thread");
 
@@ -70,12 +70,15 @@ Redes2_SSL* echoP_secure_accept_client(int sock, Redes2_SSL_CTX* ctx)
 	int cli_sock = accept(sock, (struct sockaddr*) &addr, &usrlen);
 	if (-1 == cli_sock) {
 		LOG("Error al aceptar la conexion: %s", strerror(errno));
-		return -1;
+		return NULL;
 	}
 
 	// Decoramos el socket
 	Redes2_SSL* ssl = aceptar_canal_seguro_SSL(ctx, sock);
-	if (NULL == ssl) return close(cli_sock);
+	if (NULL == ssl) {
+		close(cli_sock);
+		return NULL;
+	}
 
 	// Exito!
 	LOG("Abierto conexion con %s:%i",
@@ -88,6 +91,9 @@ Redes2_SSL* echoP_secure_accept_client(int sock, Redes2_SSL_CTX* ctx)
 
 int main(int argc, char** argv) {
 
+	UNUSED(argc);
+	UNUSED(argv);
+
 	int root_sock = echoP_create_socket(INADDR_ANY, 0);
 
 	// Inicializacion de la libreria y el contexto
@@ -95,25 +101,25 @@ int main(int argc, char** argv) {
 	Redes2_SSL_CTX* ctx = fijar_contexto_SSL();
 
 	while (1) {
-		int cli_sock = echoP_accept_client(root_sock, echoP_client_thread);
-
-		Redes2_SSL* ssl = aceptar_canal_seguro_SSL(ctx, cli_sock);
-
-		if (ERR == evaluar_post_conectar_SSL(ssl)) {
-			cerrar_canal_SSL(ssl);
-		}
-
+		int cli_sock = echoP_accept_client(root_sock);
 		if (ERR == cli_sock) {
 			LOG("Error al aceptar una conexion: ", strerror(errno));
 			break;
 		}
 
+		Redes2_SSL* ssl = aceptar_canal_seguro_SSL(ctx, cli_sock);
+
+		if (ERR == evaluar_post_connectar_SSL(ssl)) {
+			cerrar_canal_SSL(ssl);
+		}
+
+
 		pthread_t thread;
 		int t_code = pthread_create(&thread, 0, echoP_secure_client_thread, ssl);
 		if (-1 == t_code) {
 			LOG("Error al crear al hilo: %s", strerror(t_code));
-			free(sock_ptr);
-			close(sock);
+			cerrar_canal_SSL(ssl);
+			close(root_sock);
 			return t_code;
 		}
 		pthread_detach(thread);
