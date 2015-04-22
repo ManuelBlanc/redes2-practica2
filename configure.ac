@@ -22,6 +22,7 @@ AM_PROG_AR
 AX_CHECK_COMPILE_FLAG([-fdiagnostics-color=auto], [CFLAGS="$CFLAGS -fdiagnostics-color=auto"])
 
 # Checks for libraries.
+AX_CHECK_OPENSSL
 AC_SEARCH_LIBS([IRC_CommandQuery], [ircredes], [], [
 	AC_MSG_WARN([the symbol IRC_CommandQuery could not be found in ircredes])
 ])
@@ -33,7 +34,6 @@ AC_CHECK_HEADERS([redes2/irc.h], [], [
 
 # Checks for typedefs, structures, and compiler characteristics.
 
-# Checks for library functions.
 
 # Configuration constants
 AC_DEFINE([IRC_MAX_CMD_LEN],      	512,	[Maximum command length])       	# RFC1459 2.3
@@ -41,13 +41,13 @@ AC_DEFINE([CHANNEL_MAX_NAME_LEN], 	50, 	[Maximum channel name length])  	# RFC28
 AC_DEFINE([CHANNEL_MAX_TOPIC_LEN],	50, 	[Maximum channel topic length]) 	#
 AC_DEFINE([CHANNEL_MAX_KEY_LEN],  	50, 	[Maximum channel key length])   	#
 AC_DEFINE([USER_MAX_AWAY_LEN],    	50, 	[Maximum away message length])  	#
-AC_DEFINE([USER_MAX_HOST_LEN],    	64, 	[Maximum host name length])	  	#
+AC_DEFINE([USER_MAX_HOST_LEN],    	64, 	[Maximum host name length])     		#
 AC_DEFINE([USER_MAX_NICK_LEN],    	9,  	[Maximum user length])          	# RFC1459 1.2
 AC_DEFINE([USER_MAX_NAME_LEN],    	9,  	[Maximum username length])      	#
 AC_DEFINE([USER_MAX_RNAME_LEN],   	50, 	[Maximum user real name length])	#
 AC_DEFINE([USER_MAX_PRE_LEN],     	83, 	[Maximum user prefix length])   	# RFC2812 2.3
 AC_DEFINE([SERVER_MAX_NAME_LEN],  	50, 	[Maximum server name length])   	#
-AC_DEFINE([SERVER_MAX_USERS],  		150, 	[Maximum connections])		   	#
-AC_DEFINE([SERVER_MAX_OUT],  		50, 	[Maximum info disconnections saved])		   	#
+AC_DEFINE([SERVER_MAX_USERS],     	    	150,                            	[Maximum connections])              			#
+AC_DEFINE([SERVER_MAX_OUT],       	    	50,                             	[Maximum info disconnections saved])			#
 
 AC_OUTPUT
