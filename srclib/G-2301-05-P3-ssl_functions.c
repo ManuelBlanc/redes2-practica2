@@ -35,7 +35,7 @@ Redes2_SSL_CTX* fijar_contexto_SSL(void) {
 	}
 
 	// Añade nuestra CA
-	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, "root.pem", "./cert")) {
+	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, "./cert/rootcert.pem", NULL)) {
 		LOG("Error al comprobar la existencia de nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return NULL;
@@ -45,14 +45,14 @@ Redes2_SSL_CTX* fijar_contexto_SSL(void) {
 	SSL_CTX_set_default_verify_paths(r2ssl_ctx->ctx);
 
 	// Que certificado usara nuestra aplicacion
-	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, "./cert/rootcert.pem")) {
+	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, "./cert/server.pem")) {
 		LOG("Error al agregar nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return NULL;
 	}
 
 	// Clave privada de nuestra aplciacion
-	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, "path", SSL_FILETYPE_PEM)) {
+	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, "./cert/server_both.pem", SSL_FILETYPE_PEM)) {
 		LOG("Error al agregar nuestra clave privada");
 		ERR_print_errors_fp(stdout);
 		return NULL;
@@ -89,10 +89,38 @@ Redes2_SSL* conectar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
 	}
 	return r2ssl;
 }
+
+static void print_error(unsigned long e) {
+	char buffer[120];
+	LOG("Error es: %s", ERR_error_string(e, buffer));
+}
+
 Redes2_SSL* aceptar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
-	UNUSED(sock_fd);
-	UNUSED(r2ssl_ctx);
-	return NULL;
+	//creamos la estructura donde se guardara el socket ssl
+	Redes2_SSL* r2ssl = emalloc(sizeof(*r2ssl));
+	r2ssl->ssl = SSL_new(r2ssl_ctx->ctx);
+	if (r2ssl == NULL) {
+		LOG("Error al crear un socket SSL");
+		ERR_print_errors_fp(stdout);
+		free(r2ssl);
+		return NULL;
+	}
+	//le asociamos el descriptor del socket 
+	if(1 != SSL_set_fd(r2ssl->ssl, sock_fd)) {
+		LOG("Error al asociar el socket SSL");
+		ERR_print_errors_fp(stdout);
+		free(r2ssl);
+		return NULL;
+	}
+	//se conecta de forma segura
+	unsigned long e = SSL_accept(r2ssl->ssl);
+	if(1 != e) {
+		LOG("Error al aceptar conexion de forma segura");
+		print_error(e);
+		free(r2ssl);
+		return NULL;
+	}
+	return r2ssl;
 }
 
 

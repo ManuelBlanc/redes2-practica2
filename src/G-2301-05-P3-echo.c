@@ -11,7 +11,8 @@
 #include <errno.h>
 #include <pthread.h>
 /* net */
-//#define  _BSD_SOURCE
+#undef  _BSD_SOURCE
+#define  _BSD_SOURCE 1
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -55,10 +56,10 @@ static int echoP_create_socket(in_addr_t ip, uint16_t port) {
 
 	socklen_t len = sizeof addr;
 	getsockname(sock, (struct sockaddr*) &addr, &len);
-	/*LOG("Escuchando por %s:%i",
-		(addr.sin_addr.s_addr !=0 ? inet_ntoa(addr.sin_addr) : "*.*.*.*")
+	LOG("Escuchando por %s:%i",
+		inet_ntoa(addr.sin_addr),
 		ntohs(addr.sin_port));
-	*/
+	
 	return sock;
 }
 
