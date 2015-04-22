@@ -1,6 +1,7 @@
 
 # Generados
-G-2301-05-*-server
+G-2301-05-P3-server
+G-2301-05-P3-echo
 *.o
 *.a
 *.log
@@ -30,7 +31,7 @@ aclocal.m4
 autom4te.cache/
 config.status
 configure
-include/G-2301-05-*-config.h
+include/G-2301-05-P3-config.h
 include/stamp-h1
 lib/
 obj/

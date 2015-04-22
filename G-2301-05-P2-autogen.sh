@@ -2,6 +2,6 @@
 
 aclocal --install -I scripts
 autoconf --include=scripts
-automake
+automake --add-missing
 ./configure
 

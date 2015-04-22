@@ -86,7 +86,8 @@ static void demonizar(void) {
 	umask(0777);
 
 	// 4.– Establecer el directorio raiz / como directorio de trabajo
-	chdir("/");
+	int dummy = chdir("/");
+	UNUSED(dummy);
 
 	// 5.– Cerrar todos los descriptores de fichero que pueda haber abiertos
 	int i, fd_max = getdtablesize();
@@ -169,7 +170,8 @@ void server_init(void) {
 	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);
 	LOG("Creado socket() -> %i", serv->sock);
 
-	setsockopt(serv->sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
+	//setsockopt(serv->sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
+	UNUSED(yes);
 
 	while (-1 == (ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr))) {
 		LOG("Fallado el bind a %s:%i, reintentando en un segundo.",

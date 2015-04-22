@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <pthread.h>
 /* net */
+//#define  _BSD_SOURCE
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -54,10 +55,10 @@ static int echoP_create_socket(in_addr_t ip, uint16_t port) {
 
 	socklen_t len = sizeof addr;
 	getsockname(sock, (struct sockaddr*) &addr, &len);
-	LOG("Escuchando por %s:%i",
-		(addr.sin_addr.s_addr ? inet_ntoa(addr.sin_addr) : "*.*.*.*")
+	/*LOG("Escuchando por %s:%i",
+		(addr.sin_addr.s_addr !=0 ? inet_ntoa(addr.sin_addr) : "*.*.*.*")
 		ntohs(addr.sin_port));
-
+	*/
 	return sock;
 }
 
@@ -101,18 +102,16 @@ int main(int argc, char** argv) {
 	Redes2_SSL_CTX* ctx = fijar_contexto_SSL();
 
 	while (1) {
-		int cli_sock = echoP_accept_client(root_sock);
-		if (ERR == cli_sock) {
-			LOG("Error al aceptar una conexion: ", strerror(errno));
+		Redes2_SSL* ssl = echoP_secure_accept_client(root_sock, ctx);
+		if (NULL == ssl) {
+			LOG("Error al aceptar una conexion: %s", strerror(errno));
 			break;
 		}
 
-		Redes2_SSL* ssl = aceptar_canal_seguro_SSL(ctx, cli_sock);
-
 		if (ERR == evaluar_post_connectar_SSL(ssl)) {
 			cerrar_canal_SSL(ssl);
+			continue;
 		}
-
 
 		pthread_t thread;
 		int t_code = pthread_create(&thread, 0, echoP_secure_client_thread, ssl);

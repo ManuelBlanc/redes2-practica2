@@ -2,6 +2,8 @@
 #ifndef SSL_FUNCTIONS_H
 #define SSL_FUNCTIONS_H
 
+#include <sys/types.h>
+
 typedef struct Redes2_SSL_CTX Redes2_SSL_CTX;
 typedef struct Redes2_SSL Redes2_SSL;
 
@@ -16,7 +18,7 @@ void inicializar_nivel_SSL(void);
  * claves con los que vaya a trabajar la aplicación.
  * @param r2ssl estructura para los parametros de conexion segura
  */
-int fijar_contexto_SSL(Redes2_SSL_CTX* r2ssl_ctx);
+Redes2_SSL_CTX* fijar_contexto_SSL(void);
 
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * obtener un canal seguro SSL inciando el proceso de handshake con el otro extremo.

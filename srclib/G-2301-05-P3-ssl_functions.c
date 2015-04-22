@@ -21,7 +21,8 @@ void inicializar_nivel_SSL(void) {
 	SSL_library_init();
 }
 
-int fijar_contexto_SSL(Redes2_SSL_CTX* r2ssl_ctx) {
+Redes2_SSL_CTX* fijar_contexto_SSL(void) {
+	Redes2_SSL_CTX* r2ssl_ctx = emalloc(sizeof(*r2ssl_ctx));
 	// Devuelve el metodo de conexion
 	r2ssl_ctx->connection_method = SSLv23_method();
 
@@ -30,36 +31,36 @@ int fijar_contexto_SSL(Redes2_SSL_CTX* r2ssl_ctx) {
 	if (NULL == r2ssl_ctx->ctx) {
 		LOG("Error al crear un contexto SSL");
 		ERR_print_errors_fp(stdout);
-		return ERR;
+		return NULL;
 	}
 
 	// Añade nuestra CA
-	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, "ca_file.pem", "./cert")) {
+	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, "root.pem", "./cert")) {
 		LOG("Error al comprobar la existencia de nuestro certificado");
 		ERR_print_errors_fp(stdout);
-		return ERR;
+		return NULL;
 	}
 
 	// Carpeta donde tiene que buscar las CA conocidas
 	SSL_CTX_set_default_verify_paths(r2ssl_ctx->ctx);
 
 	// Que certificado usara nuestra aplicacion
-	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, "./cert/blah.pem")) {
+	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, "./cert/rootcert.pem")) {
 		LOG("Error al agregar nuestro certificado");
 		ERR_print_errors_fp(stdout);
-		return ERR;
+		return NULL;
 	}
 
 	// Clave privada de nuestra aplciacion
 	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, "path", SSL_FILETYPE_PEM)) {
 		LOG("Error al agregar nuestra clave privada");
 		ERR_print_errors_fp(stdout);
-		return ERR;
+		return NULL;
 	}
 
 
 	SSL_CTX_set_verify(r2ssl_ctx->ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, 0);
-	return OK;
+	return r2ssl_ctx;
 }
 
 Redes2_SSL* conectar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
