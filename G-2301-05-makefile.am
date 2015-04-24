@@ -5,7 +5,7 @@ AM_CFLAGS = -Wall -Wextra -Werror -pthread
 
 # Librerias
 noinst_LIBRARIES = lib/libredes2ssl.a
-lib_libredes2ssl_a_SOURCES = srclib/G-2301-05-P3-ssl_functions.c srclib/G-2301-05-P3-util.c
+lib_libredes2ssl_a_SOURCES = srclib/G-2301-05-P3-ssl_functions.c srclib/G-2301-05-P3-util.c srclib/G-2301-05-P3-ssock.c
 
 # Programas
 noinst_PROGRAMS = G-2301-05-P3-server G-2301-05-P3-echo

@@ -7,7 +7,7 @@
 #include "G-2301-05-P3-util.h"
 
 struct Redes2_SSL_CTX {
-	SSL_METHOD*  connection_method;
+	const SSL_METHOD*  connection_method;
 	SSL_CTX*     ctx;
 };
 

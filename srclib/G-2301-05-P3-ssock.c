@@ -53,6 +53,7 @@ ssize_t ssock_send(SSock* ss, void* buf, size_t len) {
 		case SS_INVALID:
 			return ERR;
 	}
+	return ERR;
 }
 
 ssize_t ssock_recv(SSock* ss, void* buf, size_t len) {
@@ -64,6 +65,7 @@ ssize_t ssock_recv(SSock* ss, void* buf, size_t len) {
 		case SS_INVALID:
 			return ERR;
 	}
+	return ERR;
 }
 
 int ssock_close(SSock* ss) {

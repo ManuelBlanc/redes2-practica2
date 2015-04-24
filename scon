@@ -3,9 +3,9 @@
 HOST=localhost
 PORT=${1:-4433}
 
-CERT=client.pem
-KEY=client.key
-ROOT=root.pem
+CERT=cert/manu.pem
+KEY=cert/manu.key
+ROOT=cert/root.pem
 
-echo "openssl s_client -cert "$KEY" -key "$KEY" -CAfile "$ROOT" -connect "$HOST:$PORT""
-openssl s_client -cert "$KEY" -key "$KEY" -CAfile "$ROOT" -connect "$HOST:$PORT"
+echo "openssl s_client -cert $CERT -key $KEY -CAfile $ROOT -connect $HOST:$PORT"
+openssl s_client -cert "$CERT" -key "$KEY" -CAfile "$ROOT" -connect "$HOST:$PORT"
