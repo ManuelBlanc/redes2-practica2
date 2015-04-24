@@ -7,6 +7,12 @@
 typedef struct Redes2_SSL_CTX Redes2_SSL_CTX;
 typedef struct Redes2_SSL Redes2_SSL;
 
+typedef struct Redes2_SSL_CTX_config {
+	char* ca_file;  // Autoridad de certificados
+	char* ca_path;  // Ruta a hashes de autoridades de certificados
+	char* key_file; // Clave privada
+	char* pem_file; // Certificado completo
+} Redes2_SSL_CTX_config;
 
 /* Esta función se encargará de realizar todas las llamadas necesarias para que la aplicación
  * pueda usar la capa segura SSL.
@@ -18,7 +24,7 @@ void inicializar_nivel_SSL(void);
  * claves con los que vaya a trabajar la aplicación.
  * @param r2ssl estructura para los parametros de conexion segura
  */
-Redes2_SSL_CTX* fijar_contexto_SSL(void);
+Redes2_SSL_CTX* fijar_contexto_SSL(Redes2_SSL_CTX_config cnf);
 
 /* Dado un contexto SSL y un descriptor de socket esta función se encargará de
  * obtener un canal seguro SSL inciando el proceso de handshake con el otro extremo.

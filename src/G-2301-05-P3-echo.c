@@ -1,6 +1,7 @@
 /* usr */
 #include "G-2301-05-P3-util.h"
 #include "G-2301-05-P3-ssl_functions.h"
+#include "G-2301-05-P3-ssock.h"
 /* std */
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,23 +19,23 @@
 #include <arpa/inet.h>
 
 
-static void* echoP_secure_client_thread(void* ssl_ptr) {
-	Redes2_SSL* ssl = ssl_ptr;
+static void* echoP_secure_client_thread(void* ss_ptr) {
+	SSock* ss = ss_ptr;
 	LOG("Empezado thread");
 
 	while (1) {
 		char buffer[BUFSIZ];
-		ssize_t bytes = recibir_datos_SSL(ssl, buffer, sizeof buffer);
+		ssize_t bytes = ssock_recv(ss, buffer, sizeof buffer);
 		if (-1 == bytes) {
 			// Si se aborto por interrupcion, continuamos
 			if (EINTR == errno) continue;
 			else break;
 		}
-		enviar_datos_SSL(ssl, buffer, bytes);
+		ssock_send(ss, buffer, bytes);
 	}
 
 	LOG("Cerrado conexion");
-	cerrar_canal_SSL(ssl);
+	ssock_close(ss);
 	return NULL;
 }
 
@@ -59,25 +60,25 @@ static int echoP_create_socket(in_addr_t ip, uint16_t port) {
 	LOG("Escuchando por %s:%i",
 		inet_ntoa(addr.sin_addr),
 		ntohs(addr.sin_port));
-	
+
 	return sock;
 }
 
-Redes2_SSL* echoP_secure_accept_client(int sock, Redes2_SSL_CTX* ctx)
+SSock* echoP_secure_accept_client(int root_sock, Redes2_SSL_CTX* ctx)
 {
 	struct sockaddr_in addr;
 	socklen_t usrlen = sizeof addr;
 
 	// Aceptamos la conexion
-	int cli_sock = accept(sock, (struct sockaddr*) &addr, &usrlen);
-	if (-1 == cli_sock) {
+	int cli_sock = accept(root_sock, (struct sockaddr*) &addr, &usrlen);
+	if (ERR == cli_sock) {
 		LOG("Error al aceptar la conexion: %s", strerror(errno));
 		return NULL;
 	}
 
 	// Decoramos el socket
-	Redes2_SSL* ssl = aceptar_canal_seguro_SSL(ctx, sock);
-	if (NULL == ssl) {
+	SSock* ss = ssock_secure_new(cli_sock, aceptar_canal_seguro_SSL(ctx, cli_sock));
+	if (NULL == ss) {
 		close(cli_sock);
 		return NULL;
 	}
@@ -87,7 +88,7 @@ Redes2_SSL* echoP_secure_accept_client(int sock, Redes2_SSL_CTX* ctx)
 		inet_ntoa(addr.sin_addr),
 		ntohs(addr.sin_port));
 
-	return ssl;
+	return ss;
 }
 
 
@@ -98,33 +99,40 @@ int main(int argc, char** argv) {
 
 	int root_sock = echoP_create_socket(INADDR_ANY, 0);
 
+	Redes2_SSL_CTX_config cnf = {
+		/* ca_file  */ "cert/root.pem",
+		/* ca_path  */ NULL,
+		/* key_file */ "cert/ana.key",
+		/* pem_file */ "cert/ana.pem",
+	};
+
 	// Inicializacion de la libreria y el contexto
 	inicializar_nivel_SSL();
-	Redes2_SSL_CTX* ctx = fijar_contexto_SSL();
+	Redes2_SSL_CTX* ctx = fijar_contexto_SSL(cnf);
 
 	while (1) {
-		Redes2_SSL* ssl = echoP_secure_accept_client(root_sock, ctx);
-		if (NULL == ssl) {
+		SSock* ss = echoP_secure_accept_client(root_sock, ctx);
+		if (NULL == ss) {
 			LOG("Error al aceptar una conexion: %s", strerror(errno));
 			break;
 		}
 
-		if (ERR == evaluar_post_connectar_SSL(ssl)) {
-			cerrar_canal_SSL(ssl);
-			continue;
-		}
+/*		if (OK != evaluar_post_connectar_SSL(ss)) {
+  			cerrar_canal_SSL(ss);
+  			continue;
+  		}*/
 
 		pthread_t thread;
-		int t_code = pthread_create(&thread, 0, echoP_secure_client_thread, ssl);
-		if (-1 == t_code) {
+		int t_code = pthread_create(&thread, 0, echoP_secure_client_thread, ss);
+		if (OK != t_code) {
 			LOG("Error al crear al hilo: %s", strerror(t_code));
-			cerrar_canal_SSL(ssl);
-			close(root_sock);
+			ssock_close(ss);
 			return t_code;
 		}
 		pthread_detach(thread);
 	}
 
+	close(root_sock);
 	LOG("Cerrando el servidor");
 	exit(EXIT_SUCCESS);
 }

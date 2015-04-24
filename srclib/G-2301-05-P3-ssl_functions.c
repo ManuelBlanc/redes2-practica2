@@ -1,17 +1,19 @@
+
+/* ssl */
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+/* usr */
 #include "G-2301-05-P3-ssl_functions.h"
 #include "G-2301-05-P3-util.h"
 
 struct Redes2_SSL_CTX {
-	const SSL_METHOD*  connection_method;
+	SSL_METHOD*  connection_method;
 	SSL_CTX*     ctx;
 };
 
 struct Redes2_SSL {
 	SSL* ssl;
 };
-
 
 void inicializar_nivel_SSL(void) {
 	// Carga los errores para poder pintarlos
@@ -21,7 +23,7 @@ void inicializar_nivel_SSL(void) {
 	SSL_library_init();
 }
 
-Redes2_SSL_CTX* fijar_contexto_SSL(void) {
+Redes2_SSL_CTX* fijar_contexto_SSL(Redes2_SSL_CTX_config conf) {
 	Redes2_SSL_CTX* r2ssl_ctx = emalloc(sizeof(*r2ssl_ctx));
 	// Devuelve el metodo de conexion
 	r2ssl_ctx->connection_method = SSLv23_method();
@@ -35,7 +37,7 @@ Redes2_SSL_CTX* fijar_contexto_SSL(void) {
 	}
 
 	// Añade nuestra CA
-	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, "./cert/rootcert.pem", NULL)) {
+	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, conf.ca_file, conf.ca_path)) {
 		LOG("Error al comprobar la existencia de nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return NULL;
@@ -45,14 +47,14 @@ Redes2_SSL_CTX* fijar_contexto_SSL(void) {
 	SSL_CTX_set_default_verify_paths(r2ssl_ctx->ctx);
 
 	// Que certificado usara nuestra aplicacion
-	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, "./cert/server.pem")) {
+	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, conf.pem_file)) {
 		LOG("Error al agregar nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return NULL;
 	}
 
 	// Clave privada de nuestra aplciacion
-	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, "./cert/server_both.pem", SSL_FILETYPE_PEM)) {
+	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, conf.key_file, SSL_FILETYPE_PEM)) {
 		LOG("Error al agregar nuestra clave privada");
 		ERR_print_errors_fp(stdout);
 		return NULL;
@@ -73,7 +75,7 @@ Redes2_SSL* conectar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
 		free(r2ssl);
 		return NULL;
 	}
-	//le asociamos el descriptor del socket 
+	//le asociamos el descriptor del socket
 	if(1 != SSL_set_fd(r2ssl->ssl, sock_fd)) {
 		LOG("Error al asociar el socket SSL");
 		ERR_print_errors_fp(stdout);
@@ -105,7 +107,7 @@ Redes2_SSL* aceptar_canal_seguro_SSL(Redes2_SSL_CTX* r2ssl_ctx, int sock_fd) {
 		free(r2ssl);
 		return NULL;
 	}
-	//le asociamos el descriptor del socket 
+	//le asociamos el descriptor del socket
 	if(1 != SSL_set_fd(r2ssl->ssl, sock_fd)) {
 		LOG("Error al asociar el socket SSL");
 		ERR_print_errors_fp(stdout);
@@ -160,7 +162,7 @@ ssize_t recibir_datos_SSL(Redes2_SSL* r2ssl, void* buf, size_t len) {
 
 /** Destruye la conexion */
 int cerrar_canal_SSL(Redes2_SSL* r2ssl) {
-	while(!SSL_shutdown(r2ssl->ssl));
+	while (!SSL_shutdown(r2ssl->ssl));
 	SSL_free(r2ssl->ssl);
 	return OK;
 }
