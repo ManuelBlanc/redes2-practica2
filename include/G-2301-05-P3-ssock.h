@@ -16,6 +16,7 @@ SSock* ssock_new(int fd);
 SSock* ssock_secure_new(int fd, Redes2_SSL* ssl);
 
 SSType sssock_get_type(SSock* ss);
+int ssock_get_fd(SSock* ss);
 
 // Las 3 operaciones comunes: enviar, recibir y cerrar
 ssize_t ssock_send(SSock* ss, void* buf, size_t len);
