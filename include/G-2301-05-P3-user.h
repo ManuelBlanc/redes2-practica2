@@ -6,9 +6,10 @@ typedef struct User** UserList;
 
 #include "G-2301-05-P3-util.h"
 #include "G-2301-05-P3-server.h"
+#include "G-2301-05-P3-ssock.h"
 
 // Crear y destruir estructuras
-User* user_new(Server* serv, int sock);
+User* user_new(Server* serv, SSock* sock);
 void user_delete(User* usr);
 
 long user_init_prefix(User* usr);

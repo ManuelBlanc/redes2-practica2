@@ -44,7 +44,7 @@ struct User {
 	char        	host[64+1];                    	/* Nombre                            	*/
 	char        	rname[USER_MAX_RNAME_LEN+1];   	/* Nombre real                       	*/
 	char        	away_msg[USER_MAX_AWAY_LEN+1]; 	/* Mensaje de away                   	*/
-	int         	sock_fd;                       	/* Descriptor del socket             	*/
+	SSock*      	ss;                            	/* Descriptor del socket             	*/
 	UserFlags   	flags;                         	/* Banderas del usuario              	*/
 	UserState   	conn_state;                    	/* Flag para los comandos de registro	*/
 	Server*     	server;                        	/* Servidor al que pertenece         	*/
@@ -133,7 +133,7 @@ static void* userP_reader_thread(void* data) {
 
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
-		len = recv(usr->sock_fd, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf, 0);
+		len = ssock_recv(usr->ss, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf);
 		if (-1 == len) {
 			if (!(US_ALIVE | usr->flags)) break; // Debemos morirnos
 			if (EAGAIN == errno || EINTR == errno) continue; // timeout o interrupcion
@@ -143,31 +143,31 @@ static void* userP_reader_thread(void* data) {
 		userP_process_commands(usr, usr->buffer_recv);
 	}
 
-	close(usr->sock_fd);
+	ssock_close(usr->ss);
 	pthread_exit(NULL);
 }
 
 // Crea una nueva estructura usuario a partir de un socket.
-User* user_new(Server* serv, int sock) {
+User* user_new(Server* serv, SSock* ss) {
 	User* usr = ecalloc(1, sizeof *usr);
 
 	// Generamos el hostname
 	struct sockaddr_in address;
 	socklen_t addr_len = sizeof address;
-	getsockname(sock, (struct sockaddr*)&address, &addr_len);
+	getsockname(ssock_get_fd(ss), (struct sockaddr*)&address, &addr_len);
 	strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
 
 	// Ponemos un timeout de 3 al recv()
 	struct timeval tv;
 	tv.tv_sec = 3;
 	tv.tv_usec = 0;
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
+	setsockopt(ssock_get_fd(ss), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
 
 	strcpy(usr->name, "*");
 	strcpy(usr->nick, "*");
 
 	usr->server     = serv;
-	usr->sock_fd    = sock;
+	usr->ss         = ss;
 	usr->conn_state = US_ALIVE | US_PING;
 	if (OK != pthread_create(&usr->thread, NULL, userP_reader_thread, usr)) {
 		free(usr);
@@ -189,7 +189,7 @@ long userE_die(User* usr) {
 	if (NULL == usr) return ERR;
 	if (!pthread_equal(pthread_self(), usr->thread)) return ERR;
 
-	close(usr->sock_fd);
+	ssock_close(usr->ss);
 	pthread_exit(NULL);
 }
 
@@ -227,7 +227,7 @@ long user_pong(User* usr) {
 // Destruye la estructura y cierra el socket.
 void user_delete(User* usr) {
 	if (NULL == usr) return;
-	close(usr->sock_fd);
+	ssock_close(usr->ss);
 	free(usr);
 }
 
@@ -254,7 +254,7 @@ long user_get_prefix(User* usr, char** prefix) {
 // Envia un comando al usuario.
 long user_send_cmd(User* usr, char* str) {
 	if (NULL == usr || NULL == str) return ERR;
-	ssize_t bytesSent = send(usr->sock_fd, str, strlen(str), 0);
+	ssize_t bytesSent = ssock_send(usr->ss, str, strlen(str), 0);
 	if (bytesSent < -1) return -1;
 	return OK;
 }

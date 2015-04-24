@@ -14,7 +14,7 @@ struct SSock {
 };
 
 SSock* ssock_new(int fd) {
-	// Comprueba si es valido el descriptor de ficheroq
+	// Comprueba si es valido el descriptor de fichero
 	if (-1 == fcntl(fd, F_GETFD)) return NULL;
 
 	SSock* ss = emalloc(sizeof *ss);
@@ -26,7 +26,7 @@ SSock* ssock_new(int fd) {
 }
 
 SSock* ssock_secure_new(int fd, Redes2_SSL* ssl) {
-	// Comprueba si es valido el descriptor de ficheroq
+	// Comprueba si es valido el descriptor de fichero
 	if (-1 == fcntl(fd, F_GETFD)) return NULL;
 	if (NULL == ssl) return NULL;
 
@@ -42,6 +42,11 @@ SSock* ssock_secure_new(int fd, Redes2_SSL* ssl) {
 SSType sssock_get_type(SSock* ss) {
 	if (NULL == ss) return SS_INVALID;
 	return ss->type;
+}
+
+int ssock_get_fd(SSock* ss) {
+	if (NULL == ss) return ERR;
+	return ss->fd;
 }
 
 ssize_t ssock_send(SSock* ss, void* buf, size_t len) {

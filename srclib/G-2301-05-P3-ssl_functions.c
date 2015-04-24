@@ -37,7 +37,7 @@ Redes2_SSL_CTX* fijar_contexto_SSL(Redes2_SSL_CTX_config conf) {
 	}
 
 	// Añade nuestra CA
-	if(1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, conf.ca_file, conf.ca_path)) {
+	if (1 != SSL_CTX_load_verify_locations(r2ssl_ctx->ctx, conf.ca_file, conf.ca_path)) {
 		LOG("Error al comprobar la existencia de nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return NULL;
@@ -47,14 +47,14 @@ Redes2_SSL_CTX* fijar_contexto_SSL(Redes2_SSL_CTX_config conf) {
 	SSL_CTX_set_default_verify_paths(r2ssl_ctx->ctx);
 
 	// Que certificado usara nuestra aplicacion
-	if(1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, conf.pem_file)) {
+	if (1 != SSL_CTX_use_certificate_chain_file(r2ssl_ctx->ctx, conf.pem_file)) {
 		LOG("Error al agregar nuestro certificado");
 		ERR_print_errors_fp(stdout);
 		return NULL;
 	}
 
 	// Clave privada de nuestra aplciacion
-	if(1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, conf.key_file, SSL_FILETYPE_PEM)) {
+	if (1 != SSL_CTX_use_PrivateKey_file(r2ssl_ctx->ctx, conf.key_file, SSL_FILETYPE_PEM)) {
 		LOG("Error al agregar nuestra clave privada");
 		ERR_print_errors_fp(stdout);
 		return NULL;
