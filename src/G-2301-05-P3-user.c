@@ -254,7 +254,7 @@ long user_get_prefix(User* usr, char** prefix) {
 // Envia un comando al usuario.
 long user_send_cmd(User* usr, char* str) {
 	if (NULL == usr || NULL == str) return ERR;
-	ssize_t bytesSent = ssock_send(usr->ss, str, strlen(str), 0);
+	ssize_t bytesSent = ssock_send(usr->ss, str, strlen(str));
 	if (bytesSent < -1) return -1;
 	return OK;
 }

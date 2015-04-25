@@ -20,6 +20,7 @@
 /* redes2 */
 #include <redes2/irc.h>
 /* usr */
+#include "G-2301-05-P3-ssock.h"
 #include "G-2301-05-P3-config.h"
 #include "G-2301-05-P3-util.h"
 #include "G-2301-05-P3-server.h"
@@ -145,7 +146,7 @@ Server* server_new() {
 	pthread_create(&serv->ping_thr, NULL, server_periodic_ping, serv);
 	pthread_detach(serv->ping_thr);
 
-	serv->ssl_conf = (Redes2_SSL_CTX){
+	serv->ssl_conf = (Redes2_SSL_CTX_config){
 		/* ca_file  */ "cert/root.pem",
 		/* ca_path  */ NULL,
 		/* key_file */ "cert/ana.key",
@@ -220,21 +221,29 @@ int server_accept(Server* serv) {
 	socklen_t usrlen = sizeof user_addr;
 
 	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
-	if (ERR sock == -1) return ERR;
+	if (sock == -1) return ERR;
 
+	Redes2_SSL* ssl = aceptar_canal_seguro_SSL(serv->ssl_ctx, sock);
 	// Si sock es -1 y errno es algo entonces hay que repetir
 	if(SERVER_MAX_USERS <= serv->num_users) {
-		close(sock
+		close(sock);
+		free(ssl);
 		LOG("Se ha recibido una conexion cunado el servidor estaba al maximo de su capacidad.");
+		return ERR;
+	} else if (ERR == evaluar_post_connectar_SSL(ssl)) {
+		close(sock);
+		free(ssl);
+		LOG("Error al intentar establecer una conexion segura.");
 		return ERR;
 	}
 
-	SSock* ss = ssock_new_secure(sock, serv->ssl_ctx);
+	SSock* ss = ssock_secure_new(sock, ssl);
 
 	server_down_semaforo(serv);
 	User* user = user_new(serv, ss);
 	server_add_user(serv, user);
 	server_up_semaforo(serv);
+	free(ssl);
 	return OK;
 }
 
