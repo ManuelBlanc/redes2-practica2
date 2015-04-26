@@ -177,7 +177,7 @@ void server_init(void) {
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
-	addr.sin_port       	= htons(6667);
+	addr.sin_port       	= htons(6697);
 
 	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);
 	LOG("Creado socket() -> %i", serv->sock);
@@ -243,7 +243,6 @@ int server_accept(Server* serv) {
 	User* user = user_new(serv, ss);
 	server_add_user(serv, user);
 	server_up_semaforo(serv);
-	free(ssl);
 	return OK;
 }
 
