@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <pthread.h>
 
 /* usr */
 #include "G-2301-05-P3-server.h"
@@ -102,5 +107,6 @@ int main(int argc, char** argv)
 	Server* serv = server_new();
 	server_listen(serv, configuracion.puerto_seguro, 1);
 	server_listen(serv, configuracion.puerto_normal, 0);
+	pthread_exit(NULL);
 	return 0;
 }

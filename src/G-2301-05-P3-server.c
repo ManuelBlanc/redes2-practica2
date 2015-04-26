@@ -17,6 +17,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+
 /* redes2 */
 #include <redes2/irc.h>
 /* usr */
@@ -133,6 +134,7 @@ static void* serverP_listen(void* sl_ptr) {
 	Server*   serv   = sl->serv;
 	uint16_t  port   = sl->port;
 	int       secure = sl->secure;
+	int ret;
 
 	struct sockaddr_in addr;
 
@@ -163,7 +165,7 @@ static void* serverP_listen(void* sl_ptr) {
 		secure ? "segura" : "no segura");
 
 	while (1) {
-		server_accept(serv, sock, secure);
+		serverP_accept(serv, sock, secure);
 		LOG("Aceptado una conexion!");
 	}
 	return OK;

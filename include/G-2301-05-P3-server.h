@@ -6,6 +6,7 @@ typedef struct Server Server;
 // Orden importante para que no haya recurrencia ciclica
 #include "G-2301-05-P3-user.h"
 #include "G-2301-05-P3-channel.h"
+#include <stdint.h>
 
 typedef struct ServerAdmin {
 	char loc1[200]; 	/* Datos del administrador */
@@ -33,6 +34,8 @@ void server_init(void);
  * @return codigo de error
  */
 int server_accept(Server* serv, int secure);
+
+int server_listen(Server* serv, uint16_t port, int secure);
 
 /**
  * Hace down del semaforo que controla la ejecucion de comandos

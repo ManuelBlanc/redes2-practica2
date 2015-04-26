@@ -12,7 +12,7 @@ noinst_PROGRAMS = G-2301-05-P3-server G-2301-05-P3-echo
 
 # Servidor IRC
 G_2301_05_P3_server_LDADD = lib/libredes2ssl.a $(OPENSSL_LIBS)
-G_2301_05_P3_server_SOURCES = src/G-2301-05-P3-server.c src/G-2301-05-P3-switches.c src/G-2301-05-P3-user.c src/G-2301-05-P3-channel.c
+G_2301_05_P3_server_SOURCES = src/G-2301-05-P3-server.c src/G-2301-05-P3-switches.c src/G-2301-05-P3-user.c src/G-2301-05-P3-channel.c  src/G-2301-05-P3-main.c
 
 # Servidor de echo
 G_2301_05_P3_echo_LDADD = lib/libredes2ssl.a $(OPENSSL_LIBS)
