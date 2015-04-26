@@ -143,8 +143,8 @@ static void* userP_reader_thread(void* data) {
 		userP_process_commands(usr, usr->buffer_recv);
 	}
 
-	ssock_close(usr->ss);
-	pthread_exit(NULL);
+	userE_die(usr);
+	return NULL; // Nunca llega aqui
 }
 
 // Crea una nueva estructura usuario a partir de un socket.
@@ -191,6 +191,7 @@ long userE_die(User* usr) {
 
 	ssock_close(usr->ss);
 	pthread_exit(NULL);
+	if (usr->conn_state & US_RECEIVED_USER) server_delete_user(usr);
 }
 
 long user_ping(User* usr) {
@@ -466,6 +467,7 @@ User* userlist_extract(UserList list) {
 	if (NULL == list) return NULL;
 
 	usr = userlistP_head(list);
+	if (NULL == usr) return NULL;
 	*list = usr->next;
 	usr->next = NULL;
 	return usr;
@@ -477,7 +479,7 @@ UserList userlist_findByNickname(UserList list, char* name) {
 
 	while (1) {
 		User* usr = userlistP_head(list);
-		if (NULL == usr) break;
+		if (NULL == usr) return NULL;
 		if (0 == strncmp(name, usr->nick, USER_MAX_NICK_LEN)) break;
 		list = userlistP_tail(list);
 	}
@@ -491,7 +493,7 @@ UserList userlist_findByUsername(UserList list, char* name) {
 
 	while (1) {
 		User* usr = userlistP_head(list);
-		if (NULL == usr) break;
+		if (NULL == usr) return NULL;
 		if (0 == strncmp(name, usr->name, USER_MAX_NAME_LEN)) break;
 		list = userlistP_tail(list);
 	}

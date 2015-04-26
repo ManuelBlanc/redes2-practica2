@@ -2003,13 +2003,13 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 		//IRCParse_RplMyInfo(char *strin, char **prefix, char **nick, char **servername, char **version, char **availableusermodes, char **availablechannelmodes, char **added)
 		//user_send_cmd(usr, buf);
 
-		action_switch(serv, usr, "LUSERS");
-		action_switch(serv, usr, "MOTD");
-		action_switch(serv, usr, "INFO");
-		action_switch(serv, usr, "VERSION");
-		action_switch(serv, usr, "NAMES");
-		action_switch(serv, usr, "ADMIN");
-		action_switch(serv, usr, "LIST");
+		action_switch(serv, usr,  "LUSERS"   );
+		action_switch(serv, usr,  "MOTD"     );
+		action_switch(serv, usr,  "INFO"     );
+		action_switch(serv, usr,  "VERSION"  );
+		action_switch(serv, usr,  "NAMES"    );
+		action_switch(serv, usr,  "ADMIN"    );
+		action_switch(serv, usr,  "LIST"     );
 	}
 
 	free(pre);
