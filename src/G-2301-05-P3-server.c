@@ -28,86 +28,19 @@
 #include "G-2301-05-P3-channel.h"
 
 struct Server {
-	int                  	num_chan;                 	/* Numero de canales operativos        	*/
-	int                  	num_users;                	/* Numero de conexiones abiertas       	*/
-	int                  	num_out;                  	/* Numero users desconectados guardados	*/
-	int                  	sock;                     	/* Socket que recibe peticiones        	*/
-	char                 	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor                 	*/
-	User*                	usrs;                     	/* Lista de usuarios                   	*/
-	User*                	out;                      	/* Usuarios desconectados              	*/
-	Channel*             	chan;                     	/* Lista de canales                    	*/
-	pthread_mutex_t      	switch_mutex;             	/* Mutex general                       	*/
-	ServerAdmin          	admin_data;               	/* Datos del administrador             	*/
-	pthread_t            	ping_thr;                 	/* Hilo para ver actividad en los users	*/
-	Redes2_SSL_CTX*      	ssl_ctx;                  	/* Contexto SSL                        	*/
-	Redes2_SSL_CTX_config	ssl_conf;                 	/* Configuracion de las conexiones SSL 	*/
+	int                  	 num_chan;                 	/* Numero de canales operativos        	*/
+	int                  	 num_users;                	/* Numero de conexiones abiertas       	*/
+	int                  	 num_out;                  	/* Numero users desconectados guardados	*/
+	char                 	 name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor                 	*/
+	User*                	 usrs;                     	/* Lista de usuarios                   	*/
+	User*                	 out;                      	/* Usuarios desconectados              	*/
+	Channel*             	 chan;                     	/* Lista de canales                    	*/
+	pthread_mutex_t      	 switch_mutex;             	/* Mutex general                       	*/
+	ServerAdmin          	 admin_data;               	/* Datos del administrador             	*/
+	pthread_t            	 ping_thr;                 	/* Hilo para ver actividad en los users	*/
+	Redes2_SSL_CTX*      	 ssl_ctx;                  	/* Contexto SSL                        	*/
+	Redes2_SSL_CTX_config	 ssl_conf;                 	/* Configuracion de las conexiones SSL 	*/
 };
-
-static void usage(int code) {
-	fprintf(stderr, "usage: %s [-hv]\n", "G-2301-05-P3-server");
-	fprintf(stderr, "\t%s : %s\n", "verbose",	"Pone el programa en un modo mas verboso.");
-	fprintf(stderr, "\t%s : %s\n", "help",   	"Muestra esta ayuda.");
-	fprintf(stderr, "\t%s : %s\n", "demonio",	"Arranca el programa como un demonio.");
-	exit(code);
-}
-
-int demonio = 0;
-static void procesar_opciones(int argc, char** argv) {
-	static struct option longopts[] = {
-		{ "verbose", 	no_argument,      	NULL,	'v'	},
-		{ "help",    	no_argument,      	NULL,	'h'	},
-		{ "demonio",   	no_argument,      	NULL,	'd'	},
-		{NULL,0,NULL,0}
-	};
-	while (1) {
-		int opt = getopt_long(argc, argv, "vh", longopts, NULL);
-		switch (opt) {
-			/* Opciones */
-			case 'v': /* verbosity++;        	*/ break;
-			case 'h': /* usage(EXIT_SUCCESS);	*/ break;
-			case 'd': demonio = 1; break;
-			/* Especiales */
-			case -1: return;   /* argument list exhausted */
-			case 0:  continue; /* flag option set */
-			/* Errores */
-			default:
-			case ':': /* missing option argument */
-			case '?': /* unknown or ambiguous option */
-				usage(EXIT_FAILURE);
-		}
-	}
-}
-
-static void demonizar(void) {
-	// 1.– Crear un proceso hijo y terminar el proceso padre
-	pid_t pid = fork();
-	if (pid > 0) exit(EXIT_SUCCESS);
-
-	// 2.– Crear una nueva sesion de tal forma que el proceso pase a ser el lider de sesion
-	setsid();
-
-	// 3.– Cambiar la mascara de modo de ficheros para que sean accesibles a cualquiera
-	umask(0777);
-
-	// 4.– Establecer el directorio raiz / como directorio de trabajo
-	int dummy = chdir("/");
-	UNUSED(dummy);
-
-	// 5.– Cerrar todos los descriptores de fichero que pueda haber abiertos
-	int i, fd_max = getdtablesize();
-	for (i = 0; i < fd_max; ++i) close(i);
-
-	// 6.– Redirigir stdin, stdout, stderr a /dev/null
-	open("/dev/null", O_RDONLY); // 0 - stdin
-	open("/dev/null", O_WRONLY); // 1 - stdout
-	open("/dev/null", O_WRONLY); // 2 - stderr
-
-	// 7.– Abrir el log del sistema para su uso posterior
-	//openlog(const char *ident, int logopt, int facility);
-	//setlogmask(int maskpri);
-	//syslog(int priority, const char *message, ...);
-	//closelog(void);
-}
 
 //Envia pings periodicos a los usuarios para comprobar su actividad
 static void* server_periodic_ping(void* serv_ptr) {
@@ -144,7 +77,7 @@ Server* server_new(void) {
 	pthread_create(&serv->ping_thr, NULL, server_periodic_ping, serv);
 	pthread_detach(serv->ping_thr);
 
-	serv->ssl_conf = (Redes2_SSL_CTX_config){
+	serv->ssl_conf = (Redes2_SSL_CTX_config) {
 		/* ca_file  */ "cert/root.pem",
 		/* ca_path  */ NULL,
 		/* key_file */ "cert/ana.key",
@@ -155,22 +88,29 @@ Server* server_new(void) {
 	return serv;
 }
 
-void server_init(void) {
-	int ret, yes = 1;
-	struct sockaddr_in addr;
+struct ServerListen {
+	Server*   serv;
+	uint16_t  port;
+	int       secure;
+};
+static void* serverP_listen(void* sl_ptr) {
+	struct ServerListen* sl = sl_ptr;
+	Server*   serv   = sl->serv;
+	uint16_t  port   = sl->port;
+	int       secure = sl->secure;
 
-	inicializar_nivel_SSL();
-	Server* serv = server_new();
+	int ret;
+	struct sockaddr_in addr;
 
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
-	addr.sin_port       	= htons(6697);
+	addr.sin_port       	= htons(port);
 
 	serv->sock = socket(AF_INET, SOCK_STREAM, 0);
 	LOG("Creado socket() -> %i", serv->sock);
 
+	//int yes = 1;
 	//setsockopt(serv->sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
-	UNUSED(yes);
 
 	while (ERR == (ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr))) {
 		LOG("Fallado el bind a %s:%i, reintentando en un segundo.",
@@ -183,14 +123,28 @@ void server_init(void) {
 	socklen_t len = sizeof addr;
 	getsockname(serv->sock, (struct sockaddr*) &addr, &len);
 
-	LOG("Escuchando conexiones por %s:%i",
+	LOG("Escuchando conexiones por %s:%i de manera %s.",
 		inet_ntoa(addr.sin_addr),
-		ntohs(addr.sin_port));
+		ntohs(addr.sin_port),
+		secure ? "segura" : "no segura");
 
 	while (1) {
-		server_accept(serv);
+		server_accept(serv, secure);
 		LOG("Aceptado una conexion!");
 	}
+}
+
+int server_listen(Server* serv, uint16_t port, int secure) {
+	struct ServerListen* sl = emalloc(sizeof *sl);
+	sl->serv   = serv;
+	sl->port   = port;
+	sl->secure = secure;
+
+	pthread_t hilo;
+	if (0 > pthread_create(&hilo, 0, serverP_listen, sl)) return ERR;
+
+	pthread_detach(hilo);
+	return OK;
 }
 
 void server_down_semaforo(Server* serv) {
@@ -203,32 +157,37 @@ void server_up_semaforo(Server* serv) {
 	pthread_mutex_unlock(&serv->switch_mutex);
 }
 
-int server_accept(Server* serv) {
+int server_accept(Server* serv, int secure) {
 	struct sockaddr_in user_addr;
 	socklen_t usrlen = sizeof user_addr;
 
 	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
 	if (sock == -1) return ERR;
 
-	Redes2_SSL* ssl = aceptar_canal_seguro_SSL(serv->ssl_ctx, sock);
 	// Si sock es -1 y errno es algo entonces hay que repetir
 	if (SERVER_MAX_USERS <= serv->num_users) {
 		close(sock);
-		free(ssl);
-		LOG("Se ha recibido una conexion cuanado el servidor estaba al maximo de su capacidad.");
-		return ERR;
-	}
-	else if (ERR == evaluar_post_connectar_SSL(ssl)) {
-		close(sock);
-		free(ssl);
-		LOG("Error al intentar establecer una conexion segura.");
+		LOG("Se ha recibido una conexion cunado el servidor estaba al maximo de su capacidad.");
 		return ERR;
 	}
 
-	SSock* ss = ssock_secure_new(sock, ssl);
+	SSock* ss;
+	if (secure) {
+		Redes2_SSL* ssl = aceptar_canal_seguro_SSL(serv->ssl_ctx, sock);
+		if (ERR == evaluar_post_connectar_SSL(ssl)) {
+			close(sock);
+			LOG("Error al intentar establecer una conexion segura.");
+			return ERR;
+		}
+		ss = ssock_secure_new(sock, ssl);
+	}
+	else {
+		ss = ssock_new(sock);
+	}
 
 	server_down_semaforo(serv);
-	user_new(serv, ss);
+		User* user = user_new(serv, ss);
+		server_add_user(serv, user);
 	server_up_semaforo(serv);
 	return OK;
 }
@@ -241,7 +200,7 @@ int server_get_name(Server* serv, char** name) {
 }
 
 int server_get_admin(Server* serv, ServerAdmin** sa) {
-	if (serv == NULL) return ERR;
+	if (NULL == serv) return ERR;
 	*sa = emalloc(sizeof **sa);
 	memcpy(*sa, &serv->admin_data, sizeof **sa);
 	return OK;
@@ -342,14 +301,4 @@ int server_delete_channel(Server* serv, char* name) {
 	channel_delete(chan2);
 	serv->num_chan--;
 	return OK;
-}
-
-int main(int argc, char** argv)
-{
-	LOG("Comenzando ejecucion");
-	procesar_opciones(argc, argv);
-	if (demonio) demonizar();
-	server_init();
-
-	return 0;
 }
