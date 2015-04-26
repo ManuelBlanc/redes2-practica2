@@ -309,7 +309,7 @@ int server_delete_user(Server* serv, char* name) {
 		channel_remove_user(channellist_head(chan), usr2);
 		chan = channellist_tail(chan);
 	}
-	userE_die(usr2);
+	user_kill(usr2);
 	server_add_disconnect(serv, usr2);
 	serv->num_users--;
 	return OK;
