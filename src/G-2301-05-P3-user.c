@@ -38,7 +38,7 @@ typedef enum UserFlags {
 
 struct User {
 	char        	buffer_recv[IRC_MAX_CMD_LEN+1];	/* Buffer de recepcion               	*/
-	char*       	prefix;                        	                                     		/* Prefijo	*/
+	char*       	prefix;                        	/* Prefijo                           	*/
 	char        	nick[USER_MAX_NICK_LEN+1];     	/* Nickname                          	*/
 	char        	name[USER_MAX_NAME_LEN+1];     	/* Nombre                            	*/
 	char        	host[64+1];                    	/* Nombre                            	*/
@@ -134,8 +134,8 @@ static void* userP_reader_thread(void* data) {
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
 		len = ssock_recv(usr->ss, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf);
-		if (-1 == len) {
-			if (!(US_ALIVE | usr->flags)) break; // Debemos morirnos
+		if (!(US_ALIVE | usr->flags)) break; // Debemos morirnos si teniamos una peticion pendiente
+		if (0 > len) {
 			if (EAGAIN == errno || EINTR == errno) continue; // timeout o interrupcion
 			break;
 		}
@@ -189,6 +189,7 @@ long userE_die(User* usr) {
 	if (NULL == usr) return ERR;
 	if (!pthread_equal(pthread_self(), usr->thread)) return ERR;
 
+	LOG("Fin del usuario");
 	ssock_close(usr->ss);
 	pthread_exit(NULL);
 	if (usr->conn_state & US_RECEIVED_USER) server_delete_user(usr->server, usr->nick);
