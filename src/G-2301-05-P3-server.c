@@ -301,7 +301,7 @@ int server_add_user(Server* serv, User* user) {
 
 int server_delete_user(Server* serv, char* name) {
 	UserList usr = userlist_findByNickname(&serv->usrs, name);
-	if (usr == NULL) return ERR;
+	if (usr == NULL || userlist_head(usr) == NULL) return ERR;
 	User* usr2 = userlist_extract(usr);
 	//mirara los canales y sacar al usr si esta presente
 	ChannelList chan = &serv->chan;
@@ -309,6 +309,7 @@ int server_delete_user(Server* serv, char* name) {
 		channel_remove_user(channellist_head(chan), usr2);
 		chan = channellist_tail(chan);
 	}
+	userE_die(usr2);
 	server_add_disconnect(serv, usr2);
 	serv->num_users--;
 	return OK;
