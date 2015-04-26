@@ -228,7 +228,7 @@ int server_accept(Server* serv) {
 	if(SERVER_MAX_USERS <= serv->num_users) {
 		close(sock);
 		free(ssl);
-		LOG("Se ha recibido una conexion cunado el servidor estaba al maximo de su capacidad.");
+		LOG("Se ha recibido una conexion cuanado el servidor estaba al maximo de su capacidad.");
 		return ERR;
 	} else if (ERR == evaluar_post_connectar_SSL(ssl)) {
 		close(sock);
@@ -240,8 +240,7 @@ int server_accept(Server* serv) {
 	SSock* ss = ssock_secure_new(sock, ssl);
 
 	server_down_semaforo(serv);
-	User* user = user_new(serv, ss);
-	server_add_user(serv, user);
+	user_new(serv, ss);
 	server_up_semaforo(serv);
 	return OK;
 }
