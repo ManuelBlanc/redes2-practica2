@@ -517,6 +517,7 @@ Channel* channellist_extract(ChannelList list) {
 	if (NULL == list) return NULL;
 
 	chan = channellistP_head(list);
+	if (NULL == chan) return NULL;
 	*list = chan->next;
 	chan->next = NULL;
 	return chan;

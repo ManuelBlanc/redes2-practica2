@@ -122,9 +122,7 @@ static void* server_periodic_ping(void* serv_ptr) {
 			char* name;
 			user_get_name(usr, &name);
 			LOG("Haciendo ping a %s", name);
-			if(user_ping(usr) == 0) {
-				server_delete_user(serv, name);
-			}
+			user_ping(usr);
 			free(name);
 		}
 		server_up_semaforo(serv);
@@ -133,7 +131,7 @@ static void* server_periodic_ping(void* serv_ptr) {
 	return NULL;
 }
 
-Server* server_new() {
+Server* server_new(void) {
 	Server* serv = ecalloc(1, sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
 	serv->num_users = 0;
@@ -157,13 +155,6 @@ Server* server_new() {
 	return serv;
 }
 
-int socket_temp_segv = -1;
-static void on_segmentation_fault(int sig) {
-	UNUSED(sig);
-	LOG("Recibido fallo de segmentacion. Cerrando el socket... %i", close(socket_temp_segv));
-	exit(EXIT_FAILURE);
-}
-
 void server_init(void) {
 	int ret, yes = 1;
 	struct sockaddr_in addr;
@@ -171,15 +162,11 @@ void server_init(void) {
 	inicializar_nivel_SSL();
 	Server* serv = server_new();
 
-	signal(SIGSEGV, on_segmentation_fault);
-	signal(SIGINT, on_segmentation_fault);
-	signal(SIGTERM, on_segmentation_fault);
-
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
 	addr.sin_port       	= htons(6697);
 
-	serv->sock = socket_temp_segv = socket(AF_INET, SOCK_STREAM, 0);
+	serv->sock = socket(AF_INET, SOCK_STREAM, 0);
 	LOG("Creado socket() -> %i", serv->sock);
 
 	//setsockopt(serv->sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
@@ -225,12 +212,13 @@ int server_accept(Server* serv) {
 
 	Redes2_SSL* ssl = aceptar_canal_seguro_SSL(serv->ssl_ctx, sock);
 	// Si sock es -1 y errno es algo entonces hay que repetir
-	if(SERVER_MAX_USERS <= serv->num_users) {
+	if (SERVER_MAX_USERS <= serv->num_users) {
 		close(sock);
 		free(ssl);
 		LOG("Se ha recibido una conexion cuanado el servidor estaba al maximo de su capacidad.");
 		return ERR;
-	} else if (ERR == evaluar_post_connectar_SSL(ssl)) {
+	}
+	else if (ERR == evaluar_post_connectar_SSL(ssl)) {
 		close(sock);
 		free(ssl);
 		LOG("Error al intentar establecer una conexion segura.");
@@ -260,30 +248,31 @@ int server_get_admin(Server* serv, ServerAdmin** sa) {
 }
 
 UserList server_get_userlist(Server* serv) {
-	if(NULL == serv) return NULL;
+	if (NULL == serv) return NULL;
 	return (&serv->usrs);
 }
 
 UserList server_get_disconnectlist(Server* serv) {
-	if(NULL == serv) return NULL;
+	if (NULL == serv) return NULL;
 	return (&serv->out);
 }
 
 ChannelList server_get_channellist(Server* serv) {
-	if(NULL == serv) return NULL;
+	if (NULL == serv) return NULL;
 	return (&serv->chan);
 }
 
 int server_is_nick_used(Server* serv, char* nick) {
-	if (NULL == userlist_findByNickname(&serv->usrs, nick)) return ERR;
-	return OK;
+	return (NULL != userlist_findByNickname(&serv->usrs, nick)) ? OK : ERR;
 }
 
 int server_get_num_users(Server* serv) {
+	if (NULL == serv) return ERR;
 	return serv->num_users;
 }
 
 int server_get_num_channels(Server* serv) {
+	if (NULL == serv) return ERR;
 	return serv->num_chan;
 }
 
@@ -300,7 +289,7 @@ int server_add_user(Server* serv, User* user) {
 
 int server_delete_user(Server* serv, char* name) {
 	UserList usr = userlist_findByNickname(&serv->usrs, name);
-	if (usr == NULL || userlist_head(usr) == NULL) return ERR;
+	if (NULL == usr) return ERR;
 	User* usr2 = userlist_extract(usr);
 	//mirara los canales y sacar al usr si esta presente
 	ChannelList chan = &serv->chan;
