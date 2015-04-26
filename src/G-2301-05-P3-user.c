@@ -191,7 +191,7 @@ long userE_die(User* usr) {
 
 	ssock_close(usr->ss);
 	pthread_exit(NULL);
-	if (usr->conn_state & US_RECEIVED_USER) server_delete_user(usr);
+	if (usr->conn_state & US_RECEIVED_USER) server_delete_user(usr->server, usr->nick);
 }
 
 long user_ping(User* usr) {
