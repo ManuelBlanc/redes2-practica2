@@ -975,7 +975,7 @@ static int exec_cmd_MODE(Server* serv, User* usr, char* buf, char* sprefix, char
 		}
 	}
 	else {
-		if(strncasecmp(target, nick, USER_MAX_NICK_LEN)) {
+		if (strncasecmp(target, nick, USER_MAX_NICK_LEN)) {
 			opt = ERR_USERSDONTMATCH;
 		}
 		else if(mode == NULL) {
@@ -1183,7 +1183,7 @@ int exec_cmd_NICK(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	UserList usrlist = server_get_userlist(serv);
 	UserList usr_match = userlist_findByNickname(usrlist, nick_wanted);
 
-	if (NULL != *usr_match) {
+	if (NULL != usr_match) {
 		IRC_ErrNickNameInUse(buf, sprefix, nick, nick_wanted);
 		user_send_cmd(usr, buf);
 		return OK;
@@ -1978,7 +1978,7 @@ int exec_cmd_USER(Server* serv, User* usr, char* buf, char* sprefix, char* nick,
 	}
 
 	UserList usr_using = userlist_findByUsername(server_get_userlist(serv), user_name);
-	if (NULL != *usr_using) {
+	if (NULL != usr_using) {
 		// Ya esta registrado? Enviamos error
 		IRC_ErrAlreadyRegistred(buf, sprefix, user_name);
 		user_send_cmd(usr, buf);
