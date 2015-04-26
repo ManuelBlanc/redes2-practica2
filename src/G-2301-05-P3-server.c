@@ -16,9 +16,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <signal.h>
-/* redes2 */
-#include <redes2/irc.h>
 /* usr */
 #include "G-2301-05-P3-ssock.h"
 #include "G-2301-05-P3-config.h"

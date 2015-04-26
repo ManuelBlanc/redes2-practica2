@@ -1,34 +1,54 @@
 
+/* std */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+
+/* usr */
+#include "G-2301-05-P3-server.h"
+#include "G-2301-05-P3-ssl_functions.h"
+
+
 static void usage(int code) {
 	fprintf(stderr, "usage: %s [-hv]\n", "G-2301-05-P3-server");
-	fprintf(stderr, "\t%s : %s\n", "verbose",	"Pone el programa en un modo mas verboso.");
-	fprintf(stderr, "\t%s : %s\n", "help",   	"Muestra esta ayuda.");
-	fprintf(stderr, "\t%s : %s\n", "demonio",	"Arranca el programa como un demonio.");
+	fprintf(stderr, "\t-%c,--%s, : %s\n", 'h', "help",                	"Muestra esta ayuda.");
+	fprintf(stderr, "\t-%c,--%s, : %s\n", 'd', "demonio",             	"Arranca el programa como un demonio.");
+	fprintf(stderr, "\t-%c,--%s=<puerto>, : %s\n", 'p', "port",       	"Especifica el puerto del servidor.");
+	fprintf(stderr, "\t-%c,--%s=[puerto], : %s\n", 's', "secure-port",	"Especifica el puerto seguro.");
 	exit(code);
 }
 
 // Struct anonimo con la configuracion
 static struct {
-	int demonizar;
+	int      demonizar;
+	int      usar_ssl;
 	uint16_t puerto_normal;
 	uint16_t puerto_seguro;
 } configuracion;
 
-int demonio = 0;
 static void procesar_opciones(int argc, char** argv) {
 	static struct option longopts[] = {
-		{ "verbose",	no_argument,	NULL,	'v'	},
-		{ "help",   	no_argument,	NULL,	'h'	},
-		{ "demonio",	no_argument,	NULL,	'd'	},
+		{ "port",       	required_argument,	NULL,	'p'	},
+		{ "secure-port",	optional_argument,	NULL,	's'	},
+		{ "help",       	no_argument,      	NULL,	'h'	},
+		{ "demonio",    	no_argument,      	NULL,	'd'	},
 		{NULL,0,NULL,0}
 	};
+
+	configuracion.demonizar     = 0;
+	configuracion.usar_ssl      = 1;
+	configuracion.puerto_normal = 6667;
+	configuracion.puerto_seguro = 6697;
+
 	while (1) {
-		int opt = getopt_long(argc, argv, "vh", longopts, NULL);
+		int opt = getopt_long(argc, argv, "dhps", longopts, NULL);
 		switch (opt) {
 			/* Opciones */
-			case 'v': /* verbosity++;        	*/ break;
-			case 'h': /* usage(EXIT_SUCCESS);	*/ break;
-			case 'd': demonio = 1; break;
+			case 'h': usage(EXIT_SUCCESS);                                       	break;
+			case 'd': configuracion.demonizar = 1;                               	break;
+			case 'p': configuracion.puerto_normal = atoi(optarg);                	break;
+			case 's': configuracion.puerto_seguro = optarg ? atoi(optarg) : 6697;	break;
 			/* Especiales */
 			case -1: return;   /* argument list exhausted */
 			case 0:  continue; /* flag option set */
@@ -75,12 +95,12 @@ static void demonizar(void) {
 int main(int argc, char** argv)
 {
 	procesar_opciones(argc, argv);
-	if (demonio) demonizar();
+	if (configuracion.demonizar) demonizar();
 
 	inicializar_nivel_SSL();
 
 	Server* serv = server_new();
-	server_listen(serv, 6667, 1);
-	server_listen(serv, 6697, 0);
+	server_listen(serv, configuracion.puerto_seguro, 1);
+	server_listen(serv, configuracion.puerto_normal, 0);
 	return 0;
 }
