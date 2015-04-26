@@ -29,9 +29,10 @@ void server_init(void);
 /**
  * Acepta peticiones de conexion y pre-registra al nuevo usuario
  * @param serv servidor
+ * @param secure indica si la conexion sera segura o no segura
  * @return codigo de error
  */
-int server_accept(Server* serv);
+int server_accept(Server* serv, int secure);
 
 /**
  * Hace down del semaforo que controla la ejecucion de comandos

@@ -99,7 +99,6 @@ static void* serverP_listen(void* sl_ptr) {
 	uint16_t  port   = sl->port;
 	int       secure = sl->secure;
 
-	int ret;
 	struct sockaddr_in addr;
 
 	addr.sin_family     	= AF_INET;
@@ -132,6 +131,7 @@ static void* serverP_listen(void* sl_ptr) {
 		server_accept(serv, secure);
 		LOG("Aceptado una conexion!");
 	}
+	return OK;
 }
 
 int server_listen(Server* serv, uint16_t port, int secure) {
@@ -158,10 +158,12 @@ void server_up_semaforo(Server* serv) {
 }
 
 int server_accept(Server* serv, int secure) {
+	int sock;
 	struct sockaddr_in user_addr;
 	socklen_t usrlen = sizeof user_addr;
 
-	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
+	if(secure) sock = accept(6697, (struct sockaddr*) &user_addr, &usrlen);
+	else sock = accept(6667, (struct sockaddr*) &user_addr, &usrlen);
 	if (sock == -1) return ERR;
 
 	// Si sock es -1 y errno es algo entonces hay que repetir
