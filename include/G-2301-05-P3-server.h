@@ -27,13 +27,6 @@ Server* server_new(void);
 void server_init(void);
 
 /**
- * Acepta peticiones de conexion y pre-registra al nuevo usuario
- * @param serv servidor
- * @return codigo de error
- */
-int server_accept(Server* serv);
-
-/**
  * Hace down del semaforo que controla la ejecucion de comandos
  * @param serv servidor
  */

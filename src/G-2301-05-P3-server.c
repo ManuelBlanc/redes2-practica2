@@ -85,80 +85,11 @@ Server* server_new(void) {
 	return serv;
 }
 
-struct ServerListen {
-	Server*   serv;
-	uint16_t  port;
-	int       secure;
-};
-static void* serverP_listen(void* sl_ptr) {
-	struct ServerListen* sl = sl_ptr;
-	Server*   serv   = sl->serv;
-	uint16_t  port   = sl->port;
-	int       secure = sl->secure;
-
-	int ret;
-	struct sockaddr_in addr;
-
-	addr.sin_family     	= AF_INET;
-	addr.sin_addr.s_addr	= INADDR_ANY;
-	addr.sin_port       	= htons(port);
-
-	serv->sock = socket(AF_INET, SOCK_STREAM, 0);
-	LOG("Creado socket() -> %i", serv->sock);
-
-	//int yes = 1;
-	//setsockopt(serv->sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
-
-	while (ERR == (ret = bind(serv->sock, (struct sockaddr*) &addr, sizeof addr))) {
-		LOG("Fallado el bind a %s:%i, reintentando en un segundo.",
-			inet_ntoa(addr.sin_addr),
-			ntohs(addr.sin_port));
-		sleep(1);
-	}
-	ret = listen(serv->sock, 3); // Maximo 3 peticiones de conexion encoladas
-
-	socklen_t len = sizeof addr;
-	getsockname(serv->sock, (struct sockaddr*) &addr, &len);
-
-	LOG("Escuchando conexiones por %s:%i de manera %s.",
-		inet_ntoa(addr.sin_addr),
-		ntohs(addr.sin_port),
-		secure ? "segura" : "no segura");
-
-	while (1) {
-		server_accept(serv, secure);
-		LOG("Aceptado una conexion!");
-	}
-}
-
-int server_listen(Server* serv, uint16_t port, int secure) {
-	struct ServerListen* sl = emalloc(sizeof *sl);
-	sl->serv   = serv;
-	sl->port   = port;
-	sl->secure = secure;
-
-	pthread_t hilo;
-	if (0 > pthread_create(&hilo, 0, serverP_listen, sl)) return ERR;
-
-	pthread_detach(hilo);
-	return OK;
-}
-
-void server_down_semaforo(Server* serv) {
-	if (serv == NULL) return;
-	pthread_mutex_lock(&serv->switch_mutex);
-}
-
-void server_up_semaforo(Server* serv) {
-	if (serv == NULL) return;
-	pthread_mutex_unlock(&serv->switch_mutex);
-}
-
-int server_accept(Server* serv, int secure) {
+static int serverP_accept(Server* serv, int serv_sock, int secure) {
 	struct sockaddr_in user_addr;
 	socklen_t usrlen = sizeof user_addr;
 
-	int sock = accept(serv->sock, (struct sockaddr*) &user_addr, &usrlen);
+	int sock = accept(serv_sock, (struct sockaddr*) &user_addr, &usrlen);
 	if (sock == -1) return ERR;
 
 	// Si sock es -1 y errno es algo entonces hay que repetir
@@ -187,6 +118,75 @@ int server_accept(Server* serv, int secure) {
 		server_add_user(serv, user);
 	server_up_semaforo(serv);
 	return OK;
+}
+
+struct ServerListen {
+	Server*   serv;
+	uint16_t  port;
+	int       secure;
+};
+static void* serverP_listen(void* sl_ptr) {
+	struct ServerListen* sl = sl_ptr;
+	Server*   serv   = sl->serv;
+	uint16_t  port   = sl->port;
+	int       secure = sl->secure;
+
+	int ret;
+	struct sockaddr_in addr;
+
+	addr.sin_family     	= AF_INET;
+	addr.sin_addr.s_addr	= INADDR_ANY;
+	addr.sin_port       	= htons(port);
+
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	LOG("Creado socket() -> %i", sock);
+
+	//int yes = 1;
+	//setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
+
+	while (ERR == (ret = bind(sock, (struct sockaddr*) &addr, sizeof addr))) {
+		LOG("Fallado el bind a %s:%i, reintentando en 3 segundos.",
+			inet_ntoa(addr.sin_addr),
+			ntohs(addr.sin_port));
+		sleep(3);
+	}
+	ret = listen(sock, 3); // Maximo 3 peticiones de conexion encoladas
+
+	socklen_t len = sizeof addr;
+	getsockname(sock, (struct sockaddr*) &addr, &len);
+
+	LOG("Escuchando conexiones por %s:%i de manera %s.",
+		inet_ntoa(addr.sin_addr),
+		ntohs(addr.sin_port),
+		secure ? "segura" : "no segura");
+
+	while (1) {
+		server_accept(serv, sock, secure);
+		LOG("Aceptado una conexion!");
+	}
+}
+
+int server_listen(Server* serv, uint16_t port, int secure) {
+	struct ServerListen* sl = emalloc(sizeof *sl);
+	sl->serv   = serv;
+	sl->port   = port;
+	sl->secure = secure;
+
+	pthread_t hilo;
+	if (0 > pthread_create(&hilo, 0, serverP_listen, sl)) return ERR;
+
+	pthread_detach(hilo);
+	return OK;
+}
+
+void server_down_semaforo(Server* serv) {
+	if (serv == NULL) return;
+	pthread_mutex_lock(&serv->switch_mutex);
+}
+
+void server_up_semaforo(Server* serv) {
+	if (serv == NULL) return;
+	pthread_mutex_unlock(&serv->switch_mutex);
 }
 
 // Devuelve el topic.
