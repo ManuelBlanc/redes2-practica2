@@ -23,7 +23,6 @@ ATTRIBUTE((format(printf, 2, 3)));
 long user_get_host(User* usr, char** host);
 
 // Para cerrar una conexion con un usuario
-long user_kill(User* usr);
 long userE_die(User* usr);
 
 // Funciones de flags
@@ -32,7 +31,6 @@ long user_set_flag(User* usr, char flag, User* actor);
 long user_unset_flag(User* usr, char flag, User* actor);
 
 // Ping-pong
-long user_ping(User* usr);
 long user_pong(User* usr);
 
 // Cambiar el nick

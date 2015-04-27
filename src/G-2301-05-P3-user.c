@@ -134,19 +134,21 @@ static void* userP_reader_thread(void* data) {
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
 		len = ssock_recv(usr->ss, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf);
-		if (!(US_ALIVE & usr->conn_state)) break; // Debemos morirnos si teniamos una peticion pendiente
 		if (0 > len) {
-			if (EINTR == errno) continue; // timeout o interrupcion
+			// En caso de interrupcion volvemos a intentarlo para no procesar basura
+			if (EINTR == errno) continue;
+			// En caso de timeout comprobamos su actividad
 			if (EAGAIN == errno || EWOULDBLOCK == errno) {
-				user_ping(usr);
-				continue;
+				// Si respondio al ping, todo ok
+				if (1 == user_ping(usr)) continue;
 			}
+			// Error o no respuesta al ping
 			break;
 		}
 		usr->buffer_recv[len+len_buf] = '\0';
 		userP_process_commands(usr, usr->buffer_recv);
 	}
-	
+
 	userE_die(usr);
 	return NULL; // Nunca llega aqui
 }
@@ -181,13 +183,6 @@ User* user_new(Server* serv, SSock* ss) {
 	return usr;
 }
 
-// Peticion de que muera el hilo
-long user_kill(User* usr) {
-	if (NULL == usr) return ERR;
-	if (!(US_ALIVE & usr->conn_state)) return OK;
-	usr->conn_state &= ~US_ALIVE;
-	return OK;
-}
 // Mata el usuario INMEDIATAMENTE. Usar con precaucion. No devuelve si funciona
 long userE_die(User* usr) {
 	if (NULL == usr) return ERR;
@@ -199,9 +194,7 @@ long userE_die(User* usr) {
 	pthread_exit(NULL);
 }
 
-long user_ping(User* usr) {
-	if (NULL == usr) return ERR;
-
+static long user_ping(User* usr) {
 	// Si ya esta muerto, no hay nada que hacer
 	if (!(US_ALIVE & usr->conn_state)) return 0; // Ya esta muerto
 
@@ -220,7 +213,6 @@ long user_ping(User* usr) {
 	}
 	else {
 		// Esta a 0, no se recibio el pong asi que le matamos
-		user_kill(usr);
 		return 0;
 	}
 }
