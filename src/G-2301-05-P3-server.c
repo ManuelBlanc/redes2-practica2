@@ -43,28 +43,6 @@ struct Server {
 	Redes2_SSL_CTX_config	 ssl_conf;                 	/* Configuracion de las conexiones SSL 	*/
 };
 
-//Envia pings periodicos a los usuarios para comprobar su actividad
-static void* server_periodic_ping(void* serv_ptr) {
-	Server* serv = (Server *)serv_ptr;
-	while(1) {
-		UserList ulist = &serv->usrs;
-		server_down_semaforo(serv);
-		while (1) {
-			User* usr = userlist_head(ulist);
-			ulist = userlist_tail(ulist);
-			if (NULL == usr) break;
-			char* name;
-			user_get_name(usr, &name);
-			LOG("Haciendo ping a %s", name);
-			user_ping(usr);
-			free(name);
-		}
-		server_up_semaforo(serv);
-		sleep(10);
-	}
-	return NULL;
-}
-
 Server* server_new(void) {
 	Server* serv = ecalloc(1, sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
@@ -129,6 +107,7 @@ struct ServerListen {
 	uint16_t  port;
 	int       secure;
 };
+#define SECURE_TO_STR(s)	((s) ? "segura" : "no segura")
 static void* serverP_listen(void* sl_ptr) {
 	struct ServerListen* sl = sl_ptr;
 	Server*   serv   = sl->serv;
@@ -138,15 +117,16 @@ static void* serverP_listen(void* sl_ptr) {
 
 	struct sockaddr_in addr;
 
+	server_down_semaforo();
+
+	LOG("Entrando en el hilo de escucha con argumentos %i y %s", (int)port, SECURE_TO_STR(secure));
+
 	addr.sin_family     	= AF_INET;
 	addr.sin_addr.s_addr	= INADDR_ANY;
 	addr.sin_port       	= htons(port);
 
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	LOG("Creado socket() -> %i", sock);
-
-	//int yes = 1;
-	//setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
 
 	while (ERR == (ret = bind(sock, (struct sockaddr*) &addr, sizeof addr))) {
 		LOG("Fallado el bind a %s:%i, reintentando en 3 segundos.",
@@ -162,7 +142,9 @@ static void* serverP_listen(void* sl_ptr) {
 	LOG("Escuchando conexiones por %s:%i de manera %s.",
 		inet_ntoa(addr.sin_addr),
 		ntohs(addr.sin_port),
-		secure ? "segura" : "no segura");
+		SECURE_TO_STR(secure));
+
+	server_uo_semaforo();
 
 	while (1) {
 		serverP_accept(serv, sock, secure);
