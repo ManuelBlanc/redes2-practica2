@@ -50,4 +50,4 @@ scripts/ylwrap
 
 
 #Añade este archivo que si no seria ignorado
-!client_SSL/G-2301-05-makefile
+!cliente_SSL/G-2301-05-makefile

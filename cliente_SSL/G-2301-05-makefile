@@ -1,0 +1,96 @@
+#!/usr/bin/make -f
+# $(MAKE) -C src/ -f G-2301-NN-P3-makefile $@
+
+## ===============
+## Configuracion
+## ===============
+pre  := G-2301-05-P3
+preo := obj/G-2301-05-P3
+lib  := lib/libircclient.a
+
+#CC=gcc
+CFLAGS  := -std=c99 -Wall -Wextra -g -Iincludes/ -Wno-unused-parameter
+LDFLAGS := -Llib/
+LDLIBS  := -lircclient -lircredes -pthread `pkg-config --libs gtk+-2.0` `pkg-config --libs openssl`
+CFLAGS  += `pkg-config --cflags gtk+-2.0` `pkg-config --cflags openssl`
+
+# Esta flag fue añadida cuando la version 14 de los paquetes empezo a dar errores.
+CFLAGS += -fgnu89-inline
+
+src    := $(wildcard src/*.c)
+srclib := $(wildcard srclib/*.c)
+obj    := $(src:src/%.c=obj/%.o)
+objlib := $(srclib:srclib/%.c=obj/%.o)
+exes   := $(patsubst src/%.c,%,$(shell grep -l '^int main' $(src)))
+docs   := $(wildcard doc/*.3.txt)
+mans   :=  $(docs:doc/%.txt=man/%)
+
+## ===============
+## Recetas
+## ===============
+# Fuentes ejecutables
+$(obj): obj/%.o: src/%.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+# Fuentes de la libreria
+$(objlib): obj/%.o: srclib/%.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+# Documentacion
+$(mans): man/%: doc/%.txt
+	a2x -L -f manpage -a lang=es  $<
+	mv doc/$* man/$*
+
+## ===============
+## Dependencias
+## ===============
+CFLAGS += -MD
+-include obj/*.d
+
+$(lib): $(lib)($(objlib))
+#ar cr $@ $<
+
+$(pre)-chat: $(preo)-chat.o $(preo)-chat_funcs.o $(preo)-util.o $(lib)($(objlib))
+	$(CC) $(LDFLAGS) -o $@ $^ $(LOADLIBES) $(LDLIBS)
+
+## ===============
+## Objetivos
+## ===============
+.PHONY: all docs install dist clean help info
+.DEFAULT_GOAL := all
+
+all: $(lib) $(exes)
+docs: $(mans)
+install: all
+	>&2 echo 'No implementado intencionadamente' && exit 1
+dist: clean
+	tar -pxvf $(pre).tgz --X .gitignore .
+clean:
+	$(RM) obj/*.o obj/*.d $(exes) $(lib)
+
+help:
+	@echo "Las opciones validas son las siguientes:"
+	@echo "  all    	Construye el ejecutable y las librerias necesarias"
+	@echo "  docs   	Construye la documentacion"
+	@echo "  install	Instala el programa en /usr/local/"
+	@echo "  dist   	Crea un comprimido"
+	@echo "  clean  	Borra todos los ficheros generados"
+	@echo "  info   	Imprime informacion sobre la configuracion del makefile"
+
+info:
+	@echo "Banderas de compilacion:"
+	@echo "    CC      = $(CC)"
+	@echo "    CFLAGS  = $(CFLAGS)"
+	@echo "    LDFLAGS = $(LDFLAGS)"
+	@echo "    LDLIBS  = $(LDLIBS)"
+	@echo "    CFLAGS  = $(CFLAGS)"
+	@echo "Inventario:"
+	@echo "    src    = $(src)"
+	@echo "    srclib = $(srclib)"
+	@echo "    obj    = $(obj)"
+	@echo "    objlib = $(objlib)"
+	@echo "    exes   = $(exes)"
+	@echo "    docs   = $(docs)"
+	@echo "    mans   = $(mans)"
+
+# Opcion no documentada de debugging
+continua:
+	while true; do ./G-2301-05-makefile all 2>&1 > compilacion.txt; sleep 30; done
