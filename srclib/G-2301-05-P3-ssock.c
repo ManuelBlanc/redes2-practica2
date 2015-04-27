@@ -39,7 +39,7 @@ SSock* ssock_secure_new(int fd, Redes2_SSL* ssl) {
 	return ss;
 }
 
-SSType sssock_get_type(SSock* ss) {
+SSType ssock_get_type(SSock* ss) {
 	if (NULL == ss) return SS_INVALID;
 	return ss->type;
 }

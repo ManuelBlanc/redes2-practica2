@@ -1,0 +1,56 @@
+'\" t
+.\"     Title: aceptar_canal_seguro_ssl
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 27/04/2015
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: Spanish
+.\"
+.TH "ACEPTAR_CANAL_SEGURO" "3" "27/04/2015" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOMBRE"
+*aceptar_canal_seguro_SSL* \- Decora un socket de recepcion
+.SH "SYNOPSIS"
+.sp
+\fB#include <G\-2301\-05\-P3\-ssl_functions\&.h>\fR
+.sp
+\fIRedes2_SSL*\fR \fBaceptar_canal_seguro_SSL\fR(\fIRedes2_SSL_CTX* r2ssl_ctx\fR, \fIint sock_fd\fR);
+.SH "DESCRIPTION"
+.sp
+Decora un socket usando el contexto proporcionado, y bloquea hasta que se haya completado el handshake SSL\&. Esta funcion \fIno\fR debe recibir un socket asincrono\&.
+.SH "RETURN VALUE"
+.PP
+\fBNULL\fR
+.RS 4
+Ha ocurrido un error\&.
+.RE
+.PP
+\fBPuntero\fR
+.RS 4
+Puntero a un socket imbuido con SSL\&.
+.RE
+.SH "SEE ALSO"
+.sp
+conectar_canal_seguro_SSL(3), cerrar_canal_seguro(3), fijar_contexto_SSL(3)
+.SH "AUTHORS"
+.sp
+Ana Alonso <ana\&.alonsoa@estudiante\&.uam\&.es>, Manuel Blanc <manuel\&.blanc@estudiante\&.uam\&.es>

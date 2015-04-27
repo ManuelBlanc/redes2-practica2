@@ -1,0 +1,56 @@
+'\" t
+.\"     Title: ssock_secure_new
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 27/04/2015
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: Spanish
+.\"
+.TH "SSOCK_SECURE_NEW" "3" "27/04/2015" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOMBRE"
+*ssock_secure_new* \- Crea un SSock a partir de un socket SSL
+.SH "SYNOPSIS"
+.sp
+\fB#include <G\-2301\-05\-P3\-ssock\&.h>\fR
+.sp
+\fISSock*\fR \fBssock_secure_new\fR(\fIint fd\fR, \fIRedes2_SSL* ssl\fR);
+.SH "DESCRIPTION"
+.sp
+Esta funcion crea un socket generico a partir de un socket y un objeto SSL inicializado sobre el mismo socket\&. Esta funcion no comprueba que el objeto SSL y el socket esten relacionados, garantizar esto es responsabilidad del programador\&.
+.SH "RETURN VALUE"
+.PP
+\fBNULL\fR
+.RS 4
+Error al crear el SSock\&.
+.RE
+.PP
+\fBPuntero\fR
+.RS 4
+Apunta a un SSock listo para ser usado\&.
+.RE
+.SH "SEE ALSO"
+.sp
+ssock_new(3), ssock_close(3)
+.SH "AUTHORS"
+.sp
+Ana Alonso <ana\&.alonsoa@estudiante\&.uam\&.es>, Manuel Blanc <manuel\&.blanc@estudiante\&.uam\&.es>

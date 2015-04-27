@@ -28,6 +28,9 @@ certificados:
 	@echo 'Generando certificado para el cliente...'
 	openssl req -out cert/client.csr -new -newkey rsa:2048 -nodes -keyout cert/client.key -config cert/client.conf
 	openssl x509 -req -CAcreateserial -CA cert/root.pem -CAkey cert/root.key -out cert/client.pem -in cert/client.csr
+	@echo 'Copiando los certificados del cliente a la carpeta del cliente_SSL/'
+	cp cert/client.pem cliente_SSL/cert/client.pem
+	cp cert/client.key cliente_SSL/cert/client.key
 
 borrar_certs:
 	$(RM) cert/root.pem cert/root.key
