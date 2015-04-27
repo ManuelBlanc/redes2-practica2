@@ -29,20 +29,19 @@
 #include "G-2301-05-P3-channel.h"
 
 struct Server {
-	int                  	 num_chan;                 	/* Numero de canales operativos        	*/
-	int                  	 num_users;                	/* Numero de conexiones abiertas       	*/
-	int                  	 num_out;                  	/* Numero users desconectados guardados	*/
-	char                 	 name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor                 	*/
-	User*                	 usrs;                     	/* Lista de usuarios                   	*/
-	User*                	 out;                      	/* Usuarios desconectados              	*/
-	Channel*             	 chan;                     	/* Lista de canales                    	*/
-	pthread_mutex_t      	 switch_mutex;             	/* Mutex general                       	*/
-	ServerAdmin          	 admin_data;               	/* Datos del administrador             	*/
-	Redes2_SSL_CTX*      	 ssl_ctx;                  	/* Contexto SSL                        	*/
-	Redes2_SSL_CTX_config	 ssl_conf;                 	/* Configuracion de las conexiones SSL 	*/
+	int            	num_chan;                 	/* Numero de canales operativos        	*/
+	int            	num_users;                	/* Numero de conexiones abiertas       	*/
+	int            	num_out;                  	/* Numero users desconectados guardados	*/
+	char           	name[SERVER_MAX_NAME_LEN];	/* Nombre del servidor                 	*/
+	User*          	usrs;                     	/* Lista de usuarios                   	*/
+	User*          	out;                      	/* Usuarios desconectados              	*/
+	Channel*       	chan;                     	/* Lista de canales                    	*/
+	pthread_mutex_t	switch_mutex;             	/* Mutex general                       	*/
+	ServerAdmin    	admin_data;               	/* Datos del administrador             	*/
+	Redes2_SSL_CTX*	ssl_ctx;                  	/* Contexto SSL                        	*/
 };
 
-Server* server_new(void) {
+Server* server_new(Redes2_SSL_CTX_config conf) {
 	Server* serv = ecalloc(1, sizeof *serv);
 	pthread_mutex_init(&serv->switch_mutex, NULL);
 	serv->num_users = 0;
@@ -53,13 +52,7 @@ Server* server_new(void) {
 	strncpy(serv->admin_data.loc2, 	"Goliath National Bank",	200);
 	strncpy(serv->admin_data.email,	"barney@awesome.himym", 	200);
 
-	serv->ssl_conf = (Redes2_SSL_CTX_config) {
-		/* ca_file  */ "cert/root.pem",
-		/* ca_path  */ NULL,
-		/* key_file */ "cert/server.key",
-		/* pem_file */ "cert/server.pem",
-	};
-	serv->ssl_ctx = fijar_contexto_SSL(serv->ssl_conf);
+	serv->ssl_ctx = fijar_contexto_SSL(conf);
 
 	return serv;
 }

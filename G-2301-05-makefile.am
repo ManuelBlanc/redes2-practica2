@@ -17,3 +17,14 @@ G_2301_05_P3_server_SOURCES = src/G-2301-05-P3-server.c src/G-2301-05-P3-switche
 # Servidor de echo
 G_2301_05_P3_echo_LDADD = lib/libredes2ssl.a $(OPENSSL_LIBS)
 G_2301_05_P3_echo_SOURCES = src/G-2301-05-P3-echo.c
+
+# Certificados
+certificados:
+	@echo 'Generando autoridad certificadora...'
+	openssl req -x509 -newkey rsa:2048 -nodes -keyout cert/root.key -outform PEM -out cert/root.pem -config cert/root.conf
+	@echo 'Generando certificado para el servidor...'
+	openssl req -out cert/server.csr -new -newkey rsa:2048 -nodes -keyout cert/server.key -config cert/server.conf
+	openssl x509 -req -CAcreateserial -CA cert/root.pem -CAkey cert/root.key -out cert/server.pem -in cert/server.csr
+	@echo 'Generando certificado para el cliente...'
+	openssl req -out cert/client.csr -new -newkey rsa:2048 -nodes -keyout cert/client.key -config cert/client.conf
+	openssl x509 -req -CAcreateserial -CA cert/root.pem -CAkey cert/root.key -out cert/client.pem -in cert/client.csr

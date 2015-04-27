@@ -11,33 +11,41 @@
 #include <pthread.h>
 
 /* usr */
+#include "G-2301-05-P3-util.h"
 #include "G-2301-05-P3-server.h"
 #include "G-2301-05-P3-ssl_functions.h"
 
 
 static void usage(int code) {
-	fprintf(stderr, "usage: %s [-hv]\n", "G-2301-05-P3-server");
+	fprintf(stderr, "usage: %s [-hvpsck]\n", "G-2301-05-P3-server");
 	fprintf(stderr, "\t-%c,--%s, : %s\n", 'h', "help",                	"Muestra esta ayuda.");
 	fprintf(stderr, "\t-%c,--%s, : %s\n", 'd', "demonio",             	"Arranca el programa como un demonio.");
 	fprintf(stderr, "\t-%c,--%s=<puerto>, : %s\n", 'p', "port",       	"Especifica el puerto del servidor.");
 	fprintf(stderr, "\t-%c,--%s=[puerto], : %s\n", 's', "secure-port",	"Especifica el puerto seguro.");
+	fprintf(stderr, "\t-%c,--%s=[puerto], : %s\n", 'c', "secure-port",	"Especifica el puerto seguro.");
+	fprintf(stderr, "\t-%c,--%s=[puerto], : %s\n", 'k', "secure-port",	"Especifica el puerto seguro.");
 	exit(code);
 }
 
 // Struct anonimo con la configuracion
 static struct {
-	int      demonizar;
-	int      usar_ssl;
-	uint16_t puerto_normal;
-	uint16_t puerto_seguro;
+	int                  	demonizar;
+	int                  	usar_ssl;
+	uint16_t             	puerto_normal;
+	uint16_t             	puerto_seguro;
+	Redes2_SSL_CTX_config	ssl_ctx_conf;
 } configuracion;
 
 static void procesar_opciones(int argc, char** argv) {
 	static struct option longopts[] = {
-		{ "port",       	required_argument,	NULL,	'p'	},
-		{ "secure-port",	optional_argument,	NULL,	's'	},
-		{ "help",       	no_argument,      	NULL,	'h'	},
-		{ "demonio",    	no_argument,      	NULL,	'd'	},
+		{ "port",    	required_argument,	NULL,	'p'	},
+		{ "secure",  	optional_argument,	NULL,	's'	},
+		{ "ca-file", 	required_argument,	NULL,	'1'	},
+		{ "ca-path", 	required_argument,	NULL,	'2'	},
+		{ "key-file",	required_argument,	NULL,	'3'	},
+		{ "pem-file",	required_argument,	NULL,	'4'	},
+		{ "help",    	no_argument,      	NULL,	'h'	},
+		{ "demonio", 	no_argument,      	NULL,	'd'	},
 		{NULL,0,NULL,0}
 	};
 
@@ -45,15 +53,26 @@ static void procesar_opciones(int argc, char** argv) {
 	configuracion.usar_ssl      = 1;
 	configuracion.puerto_normal = 6667;
 	configuracion.puerto_seguro = 6697;
+	configuracion.ssl_ctx_conf = {
+		/* ca_file  */ "cert/root.pem",
+		/* ca_path  */ NULL,
+		/* key_file */ "cert/server.key",
+		/* pem_file */ "cert/server.pem",
+	};
 
 	while (1) {
-		int opt = getopt_long(argc, argv, "dhp:s:", longopts, NULL);
+		int opt = getopt_long(argc, argv, "dhp:", longopts, NULL);
 		switch (opt) {
 			/* Opciones */
 			case 'h': usage(EXIT_SUCCESS);                                       	break;
 			case 'd': configuracion.demonizar = 1;                               	break;
 			case 'p': configuracion.puerto_normal = atoi(optarg);                	break;
 			case 's': configuracion.puerto_seguro = optarg ? atoi(optarg) : 6697;	break;
+			/* Opciones de SSL */
+			case '1': configuracion.ca_file  = estrdup(optarg); break;
+			case '2': configuracion.ca_path  = estrdup(optarg); break;
+			case '3': configuracion.key_file = estrdup(optarg); break;
+			case '4': configuracion.pem_file = estrdup(optarg); break;
 			/* Especiales */
 			case -1: return;   /* argument list exhausted */
 			case 0:  continue; /* flag option set */
@@ -101,8 +120,8 @@ int main(int argc, char** argv)
 	inicializar_nivel_SSL();
 
 	Server* serv = server_new();
-	server_listen(serv, configuracion.puerto_seguro, 1);
 	server_listen(serv, configuracion.puerto_normal, 0);
+	if (configuracion.usar_ssl) server_listen(serv, configuracion.puerto_seguro, 1);
 	pthread_exit(NULL);
 	return 0;
 }
