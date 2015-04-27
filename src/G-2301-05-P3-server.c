@@ -38,7 +38,6 @@ struct Server {
 	Channel*             	 chan;                     	/* Lista de canales                    	*/
 	pthread_mutex_t      	 switch_mutex;             	/* Mutex general                       	*/
 	ServerAdmin          	 admin_data;               	/* Datos del administrador             	*/
-	pthread_t            	 ping_thr;                 	/* Hilo para ver actividad en los users	*/
 	Redes2_SSL_CTX*      	 ssl_ctx;                  	/* Contexto SSL                        	*/
 	Redes2_SSL_CTX_config	 ssl_conf;                 	/* Configuracion de las conexiones SSL 	*/
 };
@@ -53,8 +52,6 @@ Server* server_new(void) {
 	strncpy(serv->admin_data.loc1, 	"Nueva York, USA",      	200);
 	strncpy(serv->admin_data.loc2, 	"Goliath National Bank",	200);
 	strncpy(serv->admin_data.email,	"barney@awesome.himym", 	200);
-	pthread_create(&serv->ping_thr, NULL, server_periodic_ping, serv);
-	pthread_detach(serv->ping_thr);
 
 	serv->ssl_conf = (Redes2_SSL_CTX_config) {
 		/* ca_file  */ "cert/root.pem",
@@ -97,7 +94,6 @@ static int serverP_accept(Server* serv, int serv_sock, int secure) {
 
 	server_down_semaforo(serv);
 		User* user = user_new(serv, ss);
-		server_add_user(serv, user);
 	server_up_semaforo(serv);
 	return OK;
 }
@@ -236,11 +232,10 @@ int server_delete_user(Server* serv, char* name) {
 	User* usr2 = userlist_extract(usr);
 	//mirara los canales y sacar al usr si esta presente
 	ChannelList chan = &serv->chan;
-	while(channellist_head(chan)) {
+	while (channellist_head(chan)) {
 		channel_remove_user(channellist_head(chan), usr2);
 		chan = channellist_tail(chan);
 	}
-	user_kill(usr2);
 	server_add_disconnect(serv, usr2);
 	serv->num_users--;
 	return OK;
