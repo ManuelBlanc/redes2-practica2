@@ -47,7 +47,7 @@ static void procesar_opciones(int argc, char** argv) {
 	configuracion.puerto_seguro = 6697;
 
 	while (1) {
-		int opt = getopt_long(argc, argv, "dhps", longopts, NULL);
+		int opt = getopt_long(argc, argv, "dhp:s:", longopts, NULL);
 		switch (opt) {
 			/* Opciones */
 			case 'h': usage(EXIT_SUCCESS);                                       	break;
