@@ -20,8 +20,8 @@ Destruye el objeto _r2ssl_. Sin embargo, esta funcion no cierra el socket que es
 
 RETURN VALUE
 ------------
-*OK*::  Ha funcionado
-*ERR*:: Ha ocurrido un error (argumento erroneo)
+*OK*::  Ha funcionado.
+*ERR*:: Ha ocurrido un error (argumento erroneo).
 
 SEE ALSO
 --------
@@ -31,4 +31,3 @@ AUTHORS
 -------
 Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
 Manuel Blanc <manuel.blanc@estudiante.uam.es>
-

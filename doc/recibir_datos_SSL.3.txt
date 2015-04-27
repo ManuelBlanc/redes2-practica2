@@ -20,7 +20,7 @@ Lee hasta _len_ bytes del socket decorado _r2ssl_ y los introduce en _buf_.
 
 RETURN VALUE
 ------------
-Devuelve el numero de bytes realmente enviados, o un
+Devuelve el numero de bytes realmente enviados, o un numero negativo si ocurrio un error.
 
 SEE ALSO
 --------
@@ -30,4 +30,3 @@ AUTHORS
 -------
 Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
 Manuel Blanc <manuel.blanc@estudiante.uam.es>
-
