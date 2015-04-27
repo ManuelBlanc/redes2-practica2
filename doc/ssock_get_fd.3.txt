@@ -6,7 +6,7 @@ SSOCK_GET_FD(3)
 
 NOMBRE
 ------
-*ssock_get_fd* - Descripción breve de la función
+*ssock_get_fd* - Devuelve el descriptor de fichero del SSock
 
 SYNOPSIS
 --------
@@ -16,16 +16,16 @@ _int_ *ssock_get_fd*(_SSock* ss_);
 
 DESCRIPTION
 -----------
-Program fragment delivered error ``syntax error at template line 21, near "},"''
+Devuelve el numero asociado al SSock _ss_ proporcionado. Esta funcion debe usarse con precaucion, puesto que puede haber un objeto SSL por encima del descriptor que haga asunciones sobre el socket.
 
 RETURN VALUE
 ------------
-*OK*::  Ha funcionado
-*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+*>0*::  El descriptor de fichero
+*ERR*:: Ha ocurrido un error (argumento erroneo).
 
 SEE ALSO
 --------
-otra_funcion(3)
+ssock_new(3), ssock_secure_new(3)
 
 AUTHORS
 -------

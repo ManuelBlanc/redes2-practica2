@@ -6,7 +6,7 @@ SSSOCK_GET_TYPE(3)
 
 NOMBRE
 ------
-*sssock_get_type* - Descripción breve de la función
+*sssock_get_type* - Devuelve el tipo del SSock
 
 SYNOPSIS
 --------
@@ -16,16 +16,17 @@ _SSType_ *sssock_get_type*(_SSock* ss_);
 
 DESCRIPTION
 -----------
-Program fragment delivered error ``syntax error at template line 21, near "},"''
+Devuelve el tipo del SSock _ss_.
 
 RETURN VALUE
 ------------
-*OK*::  Ha funcionado
-*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+*SS_SECURE*:: Es un socket seguro.
+*SS_NORMAL*:: Es un socket normal.
+*SS_INVALID**:: El argumento proporcionado no es valido.
 
 SEE ALSO
 --------
-otra_funcion(3)
+ssock_new(3), ssock_get_fd(3)
 
 AUTHORS
 -------

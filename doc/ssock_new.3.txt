@@ -16,7 +16,7 @@ _SSock*_ *ssock_new*(_int fd_);
 
 DESCRIPTION
 -----------
-Program fragment delivered error ``syntax error at template line 21, near "},"''
+El SSock encapsula un socket o un SSL y ofrecce una interfaz homogenea a ambos tipos de socket.
 
 RETURN VALUE
 ------------
