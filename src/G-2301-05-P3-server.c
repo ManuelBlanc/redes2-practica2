@@ -93,7 +93,7 @@ static int serverP_accept(Server* serv, int serv_sock, int secure) {
 	}
 
 	server_down_semaforo(serv);
-		User* user = user_new(serv, ss);
+		user_new(serv, ss);
 	server_up_semaforo(serv);
 	return OK;
 }
@@ -113,7 +113,7 @@ static void* serverP_listen(void* sl_ptr) {
 
 	struct sockaddr_in addr;
 
-	server_down_semaforo();
+	server_down_semaforo(serv);
 
 	LOG("Entrando en el hilo de escucha con argumentos %i y %s", (int)port, SECURE_TO_STR(secure));
 
@@ -140,7 +140,7 @@ static void* serverP_listen(void* sl_ptr) {
 		ntohs(addr.sin_port),
 		SECURE_TO_STR(secure));
 
-	server_uo_semaforo();
+	server_up_semaforo(serv);
 
 	while (1) {
 		serverP_accept(serv, sock, secure);
