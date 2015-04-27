@@ -155,7 +155,7 @@ static void* userP_reader_thread(void* data) {
 	while (1) {
 		len_buf = strlen(usr->buffer_recv);
 		len = ssock_recv(usr->ss, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf);
-		if (0 > len) {
+		if (0 >= len) {
 			// En caso de interrupcion volvemos a intentarlo para no procesar basura
 			if (EINTR == errno) continue;
 			// En caso de timeout comprobamos su actividad
