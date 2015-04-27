@@ -3,8 +3,8 @@
 HOST=localhost
 PORT=${1:-4433}
 
-CERT=cert/manu.pem
-KEY=cert/manu.key
+CERT=cert/client.pem
+KEY=cert/client.key
 ROOT=cert/root.pem
 
 openssl s_client -crlf -cert "$CERT" -key "$KEY" -CAfile "$ROOT" -connect "$HOST:$PORT"

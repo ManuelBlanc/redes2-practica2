@@ -1,0 +1,63 @@
+'\" t
+.\"     Title: ssock_recv
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 27/04/2015
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: Spanish
+.\"
+.TH "SSOCK_RECV" "3" "27/04/2015" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOMBRE"
+*ssock_recv* \- Lee datos de un SSock
+.SH "SYNOPSIS"
+.sp
+\fB#include <G\-2301\-05\-P3\-ssock\&.h>\fR
+.sp
+\fIssize_t\fR \fBssock_recv\fR(\fISSock* ss\fR, \fIvoid* buf\fR, \fIsize_t len\fR);
+.SH "DESCRIPTION"
+.sp
+Recibe hasta \fIlen\fR bytes del SSock apuntado por \fIss\fR, y lo guarda en \fIbuf\fR\&.
+.SH "RETURN VALUE"
+.PP
+\fB<0\fR
+.RS 4
+Ha ocurrido un error al recibir\&. Debe comprobarse
+\fIerrno\fR\&.
+.RE
+.PP
+\fB0\fR
+.RS 4
+El par ha cerrado la conexion\&. Se debe llamar a
+\fBssock_close()\fR\&.
+.RE
+.PP
+\fB>0\fR
+.RS 4
+Indica el numero de bytes recibido\&.
+.RE
+.SH "SEE ALSO"
+.sp
+ssock_send(3), ssock_close(3)
+.SH "AUTHORS"
+.sp
+Ana Alonso <ana\&.alonsoa@estudiante\&.uam\&.es>, Manuel Blanc <manuel\&.blanc@estudiante\&.uam\&.es>
