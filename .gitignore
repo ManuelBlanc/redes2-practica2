@@ -5,6 +5,11 @@ G-2301-05-P3-echo
 *.o
 *.a
 
+# Certificados
+*.csr
+*.pem
+*.key
+
 # Documentacion
 *.pdf
 

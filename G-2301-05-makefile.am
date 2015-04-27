@@ -28,3 +28,8 @@ certificados:
 	@echo 'Generando certificado para el cliente...'
 	openssl req -out cert/client.csr -new -newkey rsa:2048 -nodes -keyout cert/client.key -config cert/client.conf
 	openssl x509 -req -CAcreateserial -CA cert/root.pem -CAkey cert/root.key -out cert/client.pem -in cert/client.csr
+
+borrar_certs:
+	$(RM) cert/root.pem cert/root.key
+	$(RM) cert/client.pem cert/client.key cert/client.csr
+	$(RM) cert/server.pem cert/server.key cert/server.csr
