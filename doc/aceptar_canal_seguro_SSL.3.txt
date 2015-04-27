@@ -1,0 +1,34 @@
+
+ACEPTAR_CANAL_SEGURO_SSL(3)
+===========================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*aceptar_canal_seguro_SSL* - Decora un socket de recepcion
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssl_functions.h>*
+
+_Redes2_SSL*_ *aceptar_canal_seguro_SSL*(_Redes2_SSL_CTX* r2ssl_ctx_, _int sock_fd_);
+
+DESCRIPTION
+-----------
+Decora un socket usando el contexto proporcionado, y bloquea hasta que se haya completado el handshake SSL. Esta funcion _no_ debe recibir un socket asincrono.
+
+RETURN VALUE
+------------
+*NULL*::    Ha ocurrido un error.
+*Puntero*:: Puntero a un socket imbuido con SSL
+
+SEE ALSO
+--------
+conectar_canal_seguro_SSL(3), cerrar_canal_seguro(3), fijar_contexto_SSL(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

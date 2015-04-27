@@ -1,0 +1,35 @@
+
+SSOCK_RECV(3)
+=============
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*ssock_recv* - Lee datos de un SSock
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssock.h>*
+
+_ssize_t_ *ssock_recv*(_SSock* ss_, _void* buf_, _size_t len_);
+
+DESCRIPTION
+-----------
+Recibe hasta _len_ bytes del SSock apuntado por _ss_, y lo guarda en _buf_.
+
+RETURN VALUE
+------------
+*<0*::  Ha ocurrido un error al recibir. Debe comprobarse _errno_.
+*0*::   El par ha cerrado la conexion. Se debe llamar a *ssock_close()*.
+*>0*::  Indica el numero de bytes recibido.
+
+SEE ALSO
+--------
+ssock_send(3), ssock_close(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

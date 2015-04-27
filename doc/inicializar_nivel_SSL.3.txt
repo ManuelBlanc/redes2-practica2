@@ -1,0 +1,33 @@
+
+INICIALIZAR_NIVEL_SSL(3)
+========================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*inicializar_nivel_SSL* - Inicializacion de la libreria SSL
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssl_functions.h>*
+
+_void_ *inicializar_nivel_SSL*(_void_);
+
+DESCRIPTION
+-----------
+Esta funcion se encarga de realizar todas las llamadas necesarias para que la aplicacion pueda usar la capa segura SSL. Esta funcion solo debe ser llamada una vez, y se recomienda que se haga desde el programa principal (*main()*).
+
+RETURN VALUE
+------------
+No devuelve ningún valor ni código de error.
+
+SEE ALSO
+--------
+fijar_contexto_SSL(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

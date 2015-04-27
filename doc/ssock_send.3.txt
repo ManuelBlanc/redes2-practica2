@@ -1,0 +1,35 @@
+
+SSOCK_SEND(3)
+=============
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*ssock_send* - Envia datos por un SSock
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssock.h>*
+
+_ssize_t_ *ssock_send*(_SSock* ss_, _void* buf_, _size_t len_);
+
+DESCRIPTION
+-----------
+Envia los primeros _len_ bytes contenidos en _buf_ por el SSock apuntado por _ss_.
+
+RETURN VALUE
+------------
+*<0*::  Ha ocurrido un error al enviar. Debe comprobarse _errno_.
+*0*::   El par ha cerrado la conexion. Se debe llamar a *ssock_close()*.
+*>0*::  Indica el numero de bytes enviado.
+
+SEE ALSO
+--------
+ssock_recv(3), ssock_close
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+
