@@ -56,8 +56,8 @@ Server* server_new(void) {
 	serv->ssl_conf = (Redes2_SSL_CTX_config) {
 		/* ca_file  */ "cert/root.pem",
 		/* ca_path  */ NULL,
-		/* key_file */ "cert/ana.key",
-		/* pem_file */ "cert/ana.pem",
+		/* key_file */ "cert/server.key",
+		/* pem_file */ "cert/server.pem",
 	};
 	serv->ssl_ctx = fijar_contexto_SSL(serv->ssl_conf);
 

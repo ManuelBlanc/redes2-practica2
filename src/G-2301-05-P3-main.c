@@ -77,20 +77,16 @@ static void demonizar(void) {
 	// 3.– Cambiar la mascara de modo de ficheros para que sean accesibles a cualquiera
 	umask(0777);
 
-	// 4.– Establecer el directorio raiz / como directorio de trabajo
-	int dummy = chdir("/");
-	UNUSED(dummy);
-
-	// 5.– Cerrar todos los descriptores de fichero que pueda haber abiertos
+	// 4.– Cerrar todos los descriptores de fichero que pueda haber abiertos
 	int i, fd_max = getdtablesize();
 	for (i = 0; i < fd_max; ++i) close(i);
 
-	// 6.– Redirigir stdin, stdout, stderr a /dev/null
+	// 5.– Redirigir stdin, stdout, stderr a /dev/null
 	open("/dev/null", O_RDONLY); // 0 - stdin
 	open("/dev/null", O_WRONLY); // 1 - stdout
 	open("/dev/null", O_WRONLY); // 2 - stderr
 
-	// 7.– Abrir el log del sistema para su uso posterior
+	// 6.– Abrir el log del sistema para su uso posterior
 	//openlog(const char *ident, int logopt, int facility);
 	//setlogmask(int maskpri);
 	//syslog(int priority, const char *message, ...);
