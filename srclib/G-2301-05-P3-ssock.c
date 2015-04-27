@@ -50,7 +50,7 @@ int ssock_get_fd(SSock* ss) {
 }
 
 ssize_t ssock_send(SSock* ss, void* buf, size_t len) {
-	switch (sssock_get_type(ss)) {
+	switch (ssock_get_type(ss)) {
 		case SS_SECURE:
 			return enviar_datos_SSL(ss->ssl, buf, len);
 		case SS_NORMAL:
@@ -62,7 +62,7 @@ ssize_t ssock_send(SSock* ss, void* buf, size_t len) {
 }
 
 ssize_t ssock_recv(SSock* ss, void* buf, size_t len) {
-	switch (sssock_get_type(ss)) {
+	switch (ssock_get_type(ss)) {
 		case SS_SECURE:
 			return recibir_datos_SSL(ss->ssl, buf, len);
 		case SS_NORMAL:
