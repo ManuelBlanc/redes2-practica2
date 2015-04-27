@@ -6,6 +6,7 @@ typedef struct Server Server;
 // Orden importante para que no haya recurrencia ciclica
 #include "G-2301-05-P3-user.h"
 #include "G-2301-05-P3-channel.h"
+#include "G-2301-05-P3-ssl_functions.h"
 #include <stdint.h>
 
 typedef struct ServerAdmin {
@@ -20,7 +21,7 @@ typedef struct ServerAdmin {
  * Crea una estructura para un servidor
  * @return estructura servidor
  */
-Server* server_new(void);
+Server* server_new(Redes2_SSL_CTX_config conf);
 
 /**
  * Arranca el servidor y se pone a la escucha de peticiones
