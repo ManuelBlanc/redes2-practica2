@@ -136,13 +136,17 @@ static void* userP_reader_thread(void* data) {
 		len = ssock_recv(usr->ss, usr->buffer_recv+len_buf, IRC_MAX_CMD_LEN-len_buf);
 		if (!(US_ALIVE & usr->conn_state)) break; // Debemos morirnos si teniamos una peticion pendiente
 		if (0 > len) {
-			if (EAGAIN == errno || EINTR == errno) continue; // timeout o interrupcion
+			if (EINTR == errno) continue; // timeout o interrupcion
+			if (EAGAIN == errno || EWOULDBLOCK == errno) {
+				user_ping(usr);
+				continue;
+			}
 			break;
 		}
 		usr->buffer_recv[len+len_buf] = '\0';
 		userP_process_commands(usr, usr->buffer_recv);
 	}
-
+	
 	userE_die(usr);
 	return NULL; // Nunca llega aqui
 }
@@ -157,9 +161,9 @@ User* user_new(Server* serv, SSock* ss) {
 	getsockname(ssock_get_fd(ss), (struct sockaddr*)&address, &addr_len);
 	strncpy(usr->host, inet_ntoa(address.sin_addr), USER_MAX_HOST_LEN);
 
-	// Ponemos un timeout de 3 al recv()
+	// Ponemos un timeout al recv()
 	struct timeval tv;
-	tv.tv_sec = 3;
+	tv.tv_sec = 10;
 	tv.tv_usec = 0;
 	setsockopt(ssock_get_fd(ss), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv);
 
