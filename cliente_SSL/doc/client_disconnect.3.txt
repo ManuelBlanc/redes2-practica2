@@ -1,0 +1,34 @@
+
+CLIENT_DISCONNECT(3)
+====================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+client_disconnect - cierra la conexion con el servidor
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-client.h>*
+
+_int_ *client_disconnect*(_Client* cli_);
+
+DESCRIPTION
+-----------
+Cierra la conexion con el servidor y bloquea hasta que muera el hilo de recepcion.
+
+RETURN VALUE
+------------
+*OK*::  La conexion ha sido cerrada con exito.
+*ERR*:: No habia ninguna conexion abierta.
+
+SEE ALSO
+--------
+client_connect(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

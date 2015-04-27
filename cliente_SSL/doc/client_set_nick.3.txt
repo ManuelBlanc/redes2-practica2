@@ -1,0 +1,35 @@
+
+CLIENT_SET_NICK(3)
+==================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+client_set_nick - cambia el pseudonimo del cliente
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-client.h>*
+
+_int_ *client_set_nick*(_Client* cli_, _char* nick_);
+
+DESCRIPTION
+-----------
+Cambia el pseudonimo del cliente al valor de _nick_. Se hace una copia interna asi que el valor de
+_nick_ puede ser cambiado posteriormente.
+
+RETURN VALUE
+------------
+*OK*::  Ha funcionado
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+client_connect(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

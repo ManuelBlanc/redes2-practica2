@@ -1,0 +1,35 @@
+
+CLIENT_CONNECT(3)
+=================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+client_connect - abre la conexion con el servidor
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-client.h>*
+
+_int_ *client_connect*(_Client* cli_);
+
+DESCRIPTION
+-----------
+Abre una conexion con el servidor. Previamente, debe haber sido configurado el puerto, el
+nombre del servidor y el nick para poder abrir la conexion.
+
+RETURN VALUE
+------------
+*OK*::  Conexion abierta con el servidor.
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+client_disconnect(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

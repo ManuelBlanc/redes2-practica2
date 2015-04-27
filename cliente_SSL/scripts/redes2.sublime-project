@@ -1,0 +1,52 @@
+{
+	"build_systems":
+	[
+		{
+			"shell_cmd": "${project_path}/G-2301-05-makefile all 2>&1 | tee compilacion.txt && ./G-2301-05-P1-chat",
+			"encoding": "UTF-8",
+			"file_regex": "^(.+):([0-9]+):([0-9]+): (?:(?:fatal )?error|warning|note): (.*)$|^.*\\(\\) @ (.*):(\\d+):",
+			"name": "Compilar REDES2",
+			"selector": "source",
+			"working_dir": "${project_path}"
+		}
+	],
+	"folders":
+	[
+		{
+			"folder_include_patterns":
+			[
+				"doc",
+				"includes",
+				"scripts",
+				"src",
+				"srclib",
+				"man",
+				"latex"
+			],
+			"file_exclude_patterns": [".*", "G-2301-05-P1-chat"],
+			"follow_symlinks": true,
+			"name": "practica1",
+			"path": "."
+		},
+		{
+			"follow_symlinks": true,
+			"name": "Cabeceras",
+			"path": "/usr/local/include/redes2"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "Cabeceras (local)",
+			"path": "../docs_includes/includes/redes2"
+		}
+	],
+	"settings":
+	{
+		"ensure_newline_at_eof_on_save": true,
+		"rulers":
+		[
+			100
+		],
+		"tab_size": 8,
+		"trim_trailing_white_space_on_save": true,
+	}
+}

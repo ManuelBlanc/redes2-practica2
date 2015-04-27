@@ -1,0 +1,40 @@
+
+CLIENTCMD(3)
+============
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+clientcmd, clientcmdf - procesa un comando de usuario
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-clientcmd.h>*
+
+_int_ *clientcmd*(_Client* cli_, _char* cmdstr_); +
+_int_ *clientcmdf*(_Client* cli_, _char* fmt_, _..._);
+
+DESCRIPTION
+-----------
+Estas funciones son los puntos de entrada a la interaccion con el protocolo IRC.
+Ambas procesan un (unico) comando de usuario, y se toman las acciones correspondientes.
+Por ejemplo, mandar un mensaje al servidor e imprimir datos por interfaz.
+
+La variante *clientcmdf*() permite generar el comando en la propia llamada. Esto es util para implementar funcionalidades como los botones de la interfaz.
+Los formatos aceptados son los mismos que los que usa *sprintf*().
+
+RETURN VALUE
+------------
+*OK*::  Ha funcionado
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+client_create(3), sprintf(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

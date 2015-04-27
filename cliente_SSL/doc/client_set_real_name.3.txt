@@ -1,0 +1,35 @@
+
+CLIENT_SET_REAL_NAME(3)
+=======================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+client_set_real_name - Descripción breve de la función
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-client.h>*
+
+_int_ *client_set_real_name*(_Client* cli_, _char* rname_);
+
+DESCRIPTION
+-----------
+Cambia el nombre real del cliente al valor de _rname_. Se hace una copia interna asi que el valor de
+_rname_ puede ser cambiado posteriormente.
+
+RETURN VALUE
+------------
+*OK*::  Ha funcionado
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+client_connect(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

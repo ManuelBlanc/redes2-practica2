@@ -1,0 +1,35 @@
+
+CLIENT_SET_SERVER(3)
+====================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+client_set_server - Descripción breve de la función
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-client.h>*
+
+_int_ *client_set_server*(_Client* cli_, _char* serv_);
+
+DESCRIPTION
+-----------
+Cambia el servidor al que se conectara el cliente a _server_. Se hace una copia interna asi que el
+valor de _server_ puede ser cambiado posteriormente.
+
+RETURN VALUE
+------------
+*OK*::  Ha funcionado
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+otra_funcion(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

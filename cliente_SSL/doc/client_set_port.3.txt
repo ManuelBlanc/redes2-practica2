@@ -1,0 +1,34 @@
+
+CLIENT_SET_NICK(3)
+==================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+client_set_port - cambia el puerto del cliente
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-client.h>*
+
+_int_ *client_set_port*(_Client* cli_, _char* port_);
+
+DESCRIPTION
+-----------
+Cambia el puerto al que se conectara el cliente a _port_.
+
+RETURN VALUE
+------------
+*OK*::  Ha funcionado
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+client_connect(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

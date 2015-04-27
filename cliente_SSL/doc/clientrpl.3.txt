@@ -1,0 +1,36 @@
+
+CLIENTRPL(3)
+============
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+clientrpl - procesa una respuesta del servidor
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-clientrpl.h>*
+
+_int_ *clientrpl*(_Client* cli_, _char* str_);
+
+DESCRIPTION
+-----------
+Se procesa un buffer terminado con \0 recibido del servidor. Si no hay suficientes datos,
+se almacenan para uso posterior. Si los hay, se toman la acciones correspondientes como
+imprimir por la interfaz o responder al servidor.
+
+RETURN VALUE
+------------
+*OK*::  La respuesta has sido procesada con exito.
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+client_connect(3), clientcmd(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

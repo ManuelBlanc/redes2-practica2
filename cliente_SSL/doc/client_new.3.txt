@@ -1,0 +1,34 @@
+
+CLIENT_NEW(3)
+=============
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+client_new - reserva memoria para un cliente IRC
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P1-client.h>*
+
+_Client*_ *client_new*();
+
+DESCRIPTION
+-----------
+Se reserva memoria y se hace un inicializado basico de una estructura cliente. Es necesario
+configurar algunos campos antes de poder invocar *client_connect*().
+
+RETURN VALUE
+------------
+Estructura cliente vacia.
+
+SEE ALSO
+--------
+client_delete(3), client_connect(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

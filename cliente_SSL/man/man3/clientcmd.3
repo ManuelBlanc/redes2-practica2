@@ -1,0 +1,58 @@
+'\" t
+.\"     Title: clientcmd
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 03/03/2015
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: Spanish
+.\"
+.TH "CLIENTCMD" "3" "03/03/2015" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NOMBRE"
+clientcmd, clientcmdf \- procesa un comando de usuario
+.SH "SYNOPSIS"
+.sp
+\fB#include <G\-2301\-05\-P1\-clientcmd\&.h>\fR
+.sp
+\fIint\fR \fBclientcmd\fR(\fIClient* cli\fR, \fIchar* cmdstr\fR); \fIint\fR \fBclientcmdf\fR(\fIClient* cli\fR, \fIchar* fmt\fR, \fI\&...\fR);
+.SH "DESCRIPTION"
+.sp
+Estas funciones son los puntos de entrada a la interaccion con el protocolo IRC\&. Ambas procesan un (unico) comando de usuario, y se toman las acciones correspondientes\&. Por ejemplo, mandar un mensaje al servidor e imprimir datos por interfaz\&.
+.sp
+La variante \fBclientcmdf\fR() permite generar el comando en la propia llamada\&. Esto es util para implementar funcionalidades como los botones de la interfaz\&. Los formatos aceptados son los mismos que los que usa \fBsprintf\fR()\&.
+.SH "RETURN VALUE"
+.PP
+\fBOK\fR
+.RS 4
+Ha funcionado
+.RE
+.PP
+\fBERR\fR
+.RS 4
+Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado)\&.
+.RE
+.SH "SEE ALSO"
+.sp
+client_create(3), sprintf(3)
+.SH "AUTHORS"
+.sp
+Ana Alonso <ana\&.alonsoa@estudiante\&.uam\&.es>, Manuel Blanc <manuel\&.blanc@estudiante\&.uam\&.es>
