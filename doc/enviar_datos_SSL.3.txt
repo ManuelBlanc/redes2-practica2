@@ -1,0 +1,33 @@
+
+ENVIAR_DATOS_SSL(3)
+===================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*enviar_datos_SSL* - Envia datos por un socket decorado
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssl_functions.h>*
+
+_ssize_t_ *enviar_datos_SSL*(_Redes2_SSL* r2ssl_, _void* buf_, _size_t len_);
+
+DESCRIPTION
+-----------
+Envia los _len_ primeros bytes contenidos en _buf_ por el socket _r2ssl_.
+
+RETURN VALUE
+------------
+Devuelve el numero de bytes enviados, o un numero negativo si ha ocurido un error.
+
+SEE ALSO
+--------
+recibir_datos_SSL(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

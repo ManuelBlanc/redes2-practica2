@@ -1,0 +1,34 @@
+
+SSOCK_NEW(3)
+============
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*ssock_new* - Crea un SSock a partir de un socket
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssock.h>*
+
+_SSock*_ *ssock_new*(_int fd_);
+
+DESCRIPTION
+-----------
+Program fragment delivered error ``syntax error at template line 21, near "},"''
+
+RETURN VALUE
+------------
+*NULL*::    Error al crear el SSock
+*Puntero*:: Apunta a un SSock listo para ser usado
+
+SEE ALSO
+--------
+ssock_secure_new(3), ssock_close(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

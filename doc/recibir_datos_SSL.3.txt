@@ -1,0 +1,33 @@
+
+RECIBIR_DATOS_SSL(3)
+====================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*recibir_datos_SSL* - Recibe datos de un socket decorado
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssl_functions.h>*
+
+_ssize_t_ *recibir_datos_SSL*(_Redes2_SSL* r2ssl_, _void* buf_, _size_t len_);
+
+DESCRIPTION
+-----------
+Lee hasta _len_ bytes del socket decorado _r2ssl_ y los introduce en _buf_.
+
+RETURN VALUE
+------------
+Devuelve el numero de bytes realmente enviados, o un
+
+SEE ALSO
+--------
+enviar_datos_SSL(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

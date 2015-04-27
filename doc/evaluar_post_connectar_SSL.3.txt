@@ -1,0 +1,34 @@
+
+EVALUAR_POST_CONNECTAR_SSL(3)
+=============================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*evaluar_post_connectar_SSL* - Comprueba que el par sea valido
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssl_functions.h>*
+
+_int_ *evaluar_post_connectar_SSL*(_Redes2_SSL* r2ssl_);
+
+DESCRIPTION
+-----------
+Esta funcion comprueba que el par del conexion es quien dice ser, segun los CAs con los que fue configurado el contexto.
+
+RETURN VALUE
+------------
+*OK*::  El par es valido
+*ERR*:: El par no es valido, se recomienda cerrar la conexion.
+
+SEE ALSO
+--------
+aceptar_canal_seguro_SSL(3), conectar_canal_seguro_SSL(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

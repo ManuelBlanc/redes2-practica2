@@ -1,0 +1,34 @@
+
+SSSOCK_GET_TYPE(3)
+==================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*sssock_get_type* - Descripción breve de la función
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssock.h>*
+
+_SSType_ *sssock_get_type*(_SSock* ss_);
+
+DESCRIPTION
+-----------
+Program fragment delivered error ``syntax error at template line 21, near "},"''
+
+RETURN VALUE
+------------
+*OK*::  Ha funcionado
+*ERR*:: Ha ocurrido un error (argumento erroneo; fallo de memoria; error inesperado).
+
+SEE ALSO
+--------
+otra_funcion(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

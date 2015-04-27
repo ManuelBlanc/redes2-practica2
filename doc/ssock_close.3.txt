@@ -1,0 +1,34 @@
+
+SSOCK_CLOSE(3)
+==============
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*ssock_close* - Cierra un SSock
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssock.h>*
+
+_int_ *ssock_close*(_SSock* ss_);
+
+DESCRIPTION
+-----------
+Cierra y libera la memoria de un SSock.
+
+RETURN VALUE
+------------
+*OK*::  Ha funcionado
+*ERR*:: Ha ocurrido un error (argumento erroneo).
+
+SEE ALSO
+--------
+ssock_new(3), ssock_secure_new(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+

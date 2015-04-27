@@ -1,0 +1,34 @@
+
+SSOCK_SECURE_NEW(3)
+===================
+:doctype: manpage
+:format: manpage
+
+NOMBRE
+------
+*ssock_secure_new* - Crea un SSock a partir de un socket SSL
+
+SYNOPSIS
+--------
+*#include <G-2301-05-P3-ssock.h>*
+
+_SSock*_ *ssock_secure_new*(_int fd_, _Redes2_SSL* ssl_);
+
+DESCRIPTION
+-----------
+Esta funcion crea un socket generico a partir de un socket y un objeto SSL inicializado sobre el mismo socket. Esta funcion no comprueba que el objeto SSL y el socket esten relacionados, garantizar esto es responsabilidad del programador
+
+RETURN VALUE
+------------
+*NULL*::    Error al crear el SSock
+*Puntero*:: Apunta a un SSock listo para ser usado
+
+SEE ALSO
+--------
+ssock_new(3), ssock_close(3)
+
+AUTHORS
+-------
+Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
+Manuel Blanc <manuel.blanc@estudiante.uam.es>
+
