@@ -20,7 +20,7 @@ Esta funcion comprueba que el par del conexion es quien dice ser, segun los CAs 
 
 RETURN VALUE
 ------------
-*OK*::  El par es valido
+*OK*::  El par es valido.
 *ERR*:: El par no es valido, se recomienda cerrar la conexion.
 
 SEE ALSO
@@ -31,4 +31,3 @@ AUTHORS
 -------
 Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
 Manuel Blanc <manuel.blanc@estudiante.uam.es>
-

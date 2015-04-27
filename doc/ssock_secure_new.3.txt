@@ -16,12 +16,12 @@ _SSock*_ *ssock_secure_new*(_int fd_, _Redes2_SSL* ssl_);
 
 DESCRIPTION
 -----------
-Esta funcion crea un socket generico a partir de un socket y un objeto SSL inicializado sobre el mismo socket. Esta funcion no comprueba que el objeto SSL y el socket esten relacionados, garantizar esto es responsabilidad del programador
+Esta funcion crea un socket generico a partir de un socket y un objeto SSL inicializado sobre el mismo socket. Esta funcion no comprueba que el objeto SSL y el socket esten relacionados, garantizar esto es responsabilidad del programador.
 
 RETURN VALUE
 ------------
-*NULL*::    Error al crear el SSock
-*Puntero*:: Apunta a un SSock listo para ser usado
+*NULL*::    Error al crear el SSock.
+*Puntero*:: Apunta a un SSock listo para ser usado.
 
 SEE ALSO
 --------
@@ -31,4 +31,3 @@ AUTHORS
 -------
 Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
 Manuel Blanc <manuel.blanc@estudiante.uam.es>
-

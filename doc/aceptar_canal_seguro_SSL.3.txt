@@ -21,7 +21,7 @@ Decora un socket usando el contexto proporcionado, y bloquea hasta que se haya c
 RETURN VALUE
 ------------
 *NULL*::    Ha ocurrido un error.
-*Puntero*:: Puntero a un socket imbuido con SSL
+*Puntero*:: Puntero a un socket imbuido con SSL.
 
 SEE ALSO
 --------
@@ -31,4 +31,3 @@ AUTHORS
 -------
 Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
 Manuel Blanc <manuel.blanc@estudiante.uam.es>
-

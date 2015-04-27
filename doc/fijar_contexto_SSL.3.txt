@@ -20,8 +20,8 @@ Esta funcion se encarga de inicializar correctamente el contexto que es utilizad
 
 RETURN VALUE
 ------------
-*NULL*::    La creacion del contexto SSL ha fallado
-*Puntero*:: Puntero a un contexto inicializado
+*NULL*::    La creacion del contexto SSL ha fallado.
+*Puntero*:: Puntero a un contexto inicializado.
 
 SEE ALSO
 --------
@@ -31,4 +31,3 @@ AUTHORS
 -------
 Ana Alonso <ana.alonsoa@estudiante.uam.es>, +
 Manuel Blanc <manuel.blanc@estudiante.uam.es>
-
