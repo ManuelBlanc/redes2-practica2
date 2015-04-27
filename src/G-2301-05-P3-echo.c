@@ -102,8 +102,8 @@ int main(int argc, char** argv) {
 	Redes2_SSL_CTX_config cnf = {
 		/* ca_file  */ "cert/root.pem",
 		/* ca_path  */ NULL,
-		/* key_file */ "cert/ana.key",
-		/* pem_file */ "cert/ana.pem",
+		/* key_file */ "cert/server.key",
+		/* pem_file */ "cert/server.pem",
 	};
 
 	// Inicializacion de la libreria y el contexto
@@ -136,4 +136,3 @@ int main(int argc, char** argv) {
 	LOG("Cerrando el servidor");
 	exit(EXIT_SUCCESS);
 }
-

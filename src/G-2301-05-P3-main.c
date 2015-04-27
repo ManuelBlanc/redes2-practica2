@@ -53,7 +53,7 @@ static void procesar_opciones(int argc, char** argv) {
 	configuracion.usar_ssl      = 1;
 	configuracion.puerto_normal = 6667;
 	configuracion.puerto_seguro = 6697;
-	configuracion.ssl_ctx_conf = {
+	configuracion.ssl_ctx_conf = (Redes2_SSL_CTX_config){
 		/* ca_file  */ "cert/root.pem",
 		/* ca_path  */ NULL,
 		/* key_file */ "cert/server.key",
@@ -69,10 +69,10 @@ static void procesar_opciones(int argc, char** argv) {
 			case 'p': configuracion.puerto_normal = atoi(optarg);                	break;
 			case 's': configuracion.puerto_seguro = optarg ? atoi(optarg) : 6697;	break;
 			/* Opciones de SSL */
-			case '1': configuracion.ca_file  = estrdup(optarg); break;
-			case '2': configuracion.ca_path  = estrdup(optarg); break;
-			case '3': configuracion.key_file = estrdup(optarg); break;
-			case '4': configuracion.pem_file = estrdup(optarg); break;
+			case '1': configuracion.ssl_ctx_conf.ca_file  = estrdup(optarg); break;
+			case '2': configuracion.ssl_ctx_conf.ca_path  = estrdup(optarg); break;
+			case '3': configuracion.ssl_ctx_conf.key_file = estrdup(optarg); break;
+			case '4': configuracion.ssl_ctx_conf.pem_file = estrdup(optarg); break;
 			/* Especiales */
 			case -1: return;   /* argument list exhausted */
 			case 0:  continue; /* flag option set */
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 
 	inicializar_nivel_SSL();
 
-	Server* serv = server_new();
+	Server* serv = server_new(configuracion.ssl_ctx_conf);
 	server_listen(serv, configuracion.puerto_normal, 0);
 	if (configuracion.usar_ssl) server_listen(serv, configuracion.puerto_seguro, 1);
 	pthread_exit(NULL);
