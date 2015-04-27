@@ -123,7 +123,28 @@ static long userP_process_commands(User* usr, char* str) {
 	return OK;
 }
 
+static long user_ping(User* usr) {
+	// Si ya esta muerto, no hay nada que hacer
+	if (!(US_ALIVE & usr->conn_state)) return 0; // Ya esta muerto
 
+	if (US_PING & usr->conn_state) {
+		// Esta a 1, lo ponemos a 0
+		usr->conn_state &= ~US_PING;
+		// y le mandamos un ping
+		char buf[IRC_MAX_CMD_LEN+1];
+		char* serv_name;
+		server_get_name(usr->server, &serv_name);
+		IRC_Ping(buf, NULL, serv_name, NULL);
+		user_send_cmd(usr, buf);
+		free(serv_name);
+
+		return 1;
+	}
+	else {
+		// Esta a 0, no se recibio el pong asi que le matamos
+		return 0;
+	}
+}
 
 // Funcion que ejecuta el hilo lector.
 static void* userP_reader_thread(void* data) {
@@ -194,28 +215,6 @@ long userE_die(User* usr) {
 	pthread_exit(NULL);
 }
 
-static long user_ping(User* usr) {
-	// Si ya esta muerto, no hay nada que hacer
-	if (!(US_ALIVE & usr->conn_state)) return 0; // Ya esta muerto
-
-	if (US_PING & usr->conn_state) {
-		// Esta a 1, lo ponemos a 0
-		usr->conn_state &= ~US_PING;
-		// y le mandamos un ping
-		char buf[IRC_MAX_CMD_LEN+1];
-		char* serv_name;
-		server_get_name(usr->server, &serv_name);
-		IRC_Ping(buf, NULL, serv_name, NULL);
-		user_send_cmd(usr, buf);
-		free(serv_name);
-
-		return 1;
-	}
-	else {
-		// Esta a 0, no se recibio el pong asi que le matamos
-		return 0;
-	}
-}
 long user_pong(User* usr) {
 	if (NULL == usr) return ERR;
 	usr->conn_state |= US_PING;
